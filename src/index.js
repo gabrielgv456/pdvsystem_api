@@ -1,10 +1,11 @@
 const { PrismaClient } = require('@prisma/client');
 const express = require('express')
-const {v4} = require('uuid')
+const { v4 } = require('uuid')
 
 const prisma = new PrismaClient()
 const app = express();
-const cors = require('cors')
+const cors = require('cors');
+const req = require('express/lib/request');
 const corsOptions = {
     origin: "http://localhost:3000",
     optionsSucessStatus: 200
@@ -20,34 +21,76 @@ app.use(cors(corsOptions))
 //  }
 //}
 
-app.post("/products", async (request, response) => {
+// START SELLS //
 
-    const { userId } = request.body
-    
-    if(userId){
+app.post("/addsell", async (request, response) => {
     try {
-        let listProducts = await prisma.products.findMany({
-            where: { storeId: userId },
-            select: { id: true, name: true, value: true }
+        const { sell } = request.body
+        
+        let createSellonDB = await prisma.sells.create({data: {
+            storeId:sell.UserId,
+            sellValue:sell.totalValue,
+            valuePayment:sell.valuePayment
+        }})
+        
+        await sell.Products.map(async (product) => {
+            let createItensSellonDB = await prisma.itensSell.create({ data: { 
+                storeId: sell.UserId, 
+                sellId:createSellonDB.id,
+                idProduct: product.id,
+                quantity: product.quantity,
+                valueProduct: product.initialvalue,
+                totalValue: product.totalvalue,
+                descriptionProduct: product.name
+             } });
+            console.log("Created Products")
         })
-        if (listProducts == null) {
-            return response.json({
-                erro: "Nenhum produto encontrado para a loja informada"
-            })
-        }
-        else {
-            return response.json({
 
-                listProducts
-
-            })
-        }
+        await sell.Payment.map(async (payment) => {
+            let createPaymentSellonDB = await prisma.paymentSell.create({ data: { 
+                storeId: sell.UserId, 
+                sellId:createSellonDB.id,
+                typepayment:payment.type,
+                value: payment.value
+             } });
+            console.log("Created Payment")
+        })
+        return response.json({ Success: true })
     }
 
     catch (error) {
-        return response.json({ erro: error })
+        return response.json({ error })
     }
-}
+})
+
+app.post("/signin", async (request, response) => {
+
+    try {
+        const { email, password } = request.body
+        const uuidGenerated = v4()
+
+        let updatetoken = await prisma.user.update({ where: { email: email }, data: { Token: uuidGenerated } })
+        let validateUser = await prisma.user.findUnique({ where: { email: email } })
+
+        if (validateUser.password == password) {
+
+            return response.json({
+                user: {
+                    id: validateUser.id,
+                    name: validateUser.name,
+                    email: validateUser.email,
+
+                },
+                token: validateUser.Token
+            })
+        }
+        if (validateUser == null) {
+            return response.json({ erro: "Não foi encontrado usuarios com esse email" })
+        }
+
+    } catch (error) {
+        return response.json({ error_message: "Usuario não encontrado", error })
+    }
 })
 
 app.post("/validate", async (request, response) => {
@@ -77,33 +120,64 @@ app.post("/validate", async (request, response) => {
 
 })
 
-app.post("/signin", async (request, response) => {
 
-    try {
-        const { email, password } = request.body
-        const uuidGenerated = v4()
+app.post("/products", async (request, response) => {
 
-        let updatetoken = await prisma.user.update({where:{email:email}, data: {Token:uuidGenerated}})
-        let validateUser = await prisma.user.findUnique({ where: { email: email } })
+    const { userId } = request.body
 
-        if (validateUser.password == password) {
-
-            return response.json({
-                user: {
-                    id: validateUser.id,
-                    name: validateUser.name,
-                    email: validateUser.email,
-
-                },
-                token: validateUser.Token
+    if (userId) {
+        try {
+            let listProducts = await prisma.products.findMany({
+                where: { storeId: userId },
+                select: { id: true, name: true, value: true }
             })
-        }
-        if (validateUser == null) {
-            return response.json({ erro: "Não foi encontrado usuarios com esse email" })
+            if (listProducts == null) {
+                return response.json({
+                    erro: "Nenhum produto encontrado para a loja informada"
+                })
+            }
+            else {
+                return response.json({
+
+                    listProducts
+
+                })
+            }
         }
 
-    } catch (error) {
-        return response.json({ error_message: "Usuario não encontrado", error })
+        catch (error) {
+            return response.json({ erro: error })
+        }
+    }
+})
+
+// END SELLS //
+
+// START CONTROL SELLS //
+
+app.post("/findsells", async (request,response) => {
+    const {datafindSells} = request.body
+    console.log(datafindSells)
+    try{
+        let findsells = await prisma.sells.findMany({
+            where: { AND: [{
+                created_at : { 
+                    gt: new Date (datafindSells.InitialDate)  
+                }},
+                  {
+                     created_at : {
+                         lt:new Date(`${datafindSells.FinalDate}T23:59:59Z`)
+                        }},
+                        {storeId : datafindSells.userId}
+                    
+                    ]}})
+
+        //let findsells = await prisma.$queryRaw`SELECT * FROM "public"."ItensSell" WHERE "created_at" = timestamp '2022-06-09 13:27:54' `
+        console.log(findsells)
+        return response.json(findsells)
+    }
+    catch (error){
+        return response.json({erro:error})
     }
 })
 

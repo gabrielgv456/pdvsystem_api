@@ -17,6 +17,8 @@ model User {
   password   String
   sells      Sells[]
   products   Products[]
+  itensSell  ItensSell[]
+  paymentsells PaymentSell[]
   Token      String     @unique
   created_at DateTime   @default(now())
 }
@@ -28,7 +30,14 @@ model Products {
   store   User   @relation(fields: [storeId], references: [id])
   storeId Int
   created_at DateTime   @default(now())
+  itenssells ItensSell[]
+  
 
+}
+model PaymentTypes {
+  id Int @id @default(autoincrement())
+  type String @unique
+  paymentsells PaymentSell[]
 }
 
 model Sells {
@@ -36,5 +45,36 @@ model Sells {
   store   User @relation(fields: [storeId], references: [id])
   storeId Int
   created_at DateTime   @default(now())
+  itenssells ItensSell[]
+  paymentsells PaymentSell[]
+  sellValue Int
+  valuePayment Int
+}
 
+model ItensSell {
+  id Int @id @default(autoincrement())
+  store   User @relation(fields: [storeId], references: [id])
+  storeId Int
+  sell Sells @relation(fields: [sellId], references: [id])
+  sellId Int
+  product Products @relation(fields: [idProduct], references: [id])
+  idProduct Int 
+  
+  quantity Int
+  valueProduct Int
+  totalValue Int
+  descriptionProduct String
+  created_at DateTime @default(now())
+
+}
+
+model PaymentSell {
+  id Int @id @default(autoincrement())
+  store   User @relation(fields: [storeId], references: [id])
+  storeId Int
+  sell Sells @relation(fields: [sellId], references: [id])
+  sellId Int
+  payment PaymentTypes @relation(fields: [typepayment], references: [type])
+  typepayment String
+  value Int
 }
