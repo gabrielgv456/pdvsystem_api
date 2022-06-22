@@ -6,6 +6,7 @@ const prisma = new PrismaClient()
 const app = express();
 const cors = require('cors');
 const req = require('express/lib/request');
+const atualdate = new Date()
 const corsOptions = {
     origin: "http://localhost:3000",
     optionsSucessStatus: 200
@@ -30,7 +31,8 @@ app.post("/addsell", async (request, response) => {
         let createSellonDB = await prisma.sells.create({data: {
             storeId:sell.UserId,
             sellValue:sell.totalValue,
-            valuePayment:sell.valuePayment
+            valuePayment:sell.valuePayment,
+            
         }})
         
         await sell.Products.map(async (product) => {
@@ -43,7 +45,7 @@ app.post("/addsell", async (request, response) => {
                 totalValue: product.totalvalue,
                 descriptionProduct: product.name
              } });
-            console.log("Created Products")
+            console.log("Created Products",atualdate)
         })
 
         await sell.Payment.map(async (payment) => {
@@ -53,7 +55,7 @@ app.post("/addsell", async (request, response) => {
                 typepayment:payment.type,
                 value: payment.value
              } });
-            console.log("Created Payment")
+            console.log("Created Payment",atualdate)
         })
         return response.json({ Success: true })
     }
@@ -157,7 +159,7 @@ app.post("/products", async (request, response) => {
 
 app.post("/findsells", async (request,response) => {
     const {datafindSells} = request.body
-    console.log(datafindSells)
+    
     try{
         let findsells = await prisma.sells.findMany({
             where: { AND: [{
@@ -170,16 +172,56 @@ app.post("/findsells", async (request,response) => {
                         }},
                         {storeId : datafindSells.userId}
                     
+                    ]}
+                })
+        let findsellsproducts = await prisma.itensSell.findMany({
+            where: { AND: [{
+                created_at : { 
+                    gt: new Date (datafindSells.InitialDate)  
+                }},
+                  {
+                     created_at : {
+                         lt:new Date(`${datafindSells.FinalDate}T23:59:59Z`)
+                        }},
+                        {storeId : datafindSells.userId}
+                    
                     ]}})
-
+        
         //let findsells = await prisma.$queryRaw`SELECT * FROM "public"."ItensSell" WHERE "created_at" = timestamp '2022-06-09 13:27:54' `
-        console.log(findsells)
-        return response.json(findsells)
+        let finalreturn = {sells:[...findsells],sellsproducts:[...findsellsproducts]}
+        return response.json(finalreturn)
     }
     catch (error){
         return response.json({erro:error})
     }
 })
 
+app.post("/findtransactions", async (request,response) =>{
+
+    const {datafindTransactions} = request.body
+
+    try{
+        let findtransactions = await prisma.paymentSell.findMany({
+            where: { AND: [{
+                created_at : { 
+                    gt: new Date (datafindTransactions.InitialDate)  
+                }},
+                  {
+                     created_at : {
+                         lt:new Date(`${datafindTransactions.FinalDate}T23:59:59Z`)
+                        }},
+                        {storeId : datafindTransactions.userId}
+                    
+                    ]}
+        })
+
+        return response.json(findtransactions)
+    }
+    catch (error){
+        return response.json({erro:error})
+
+    }
+
+})
 
 app.listen(2211, () => console.log('Server Up on 2211 port'));
