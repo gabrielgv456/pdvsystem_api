@@ -11,72 +11,74 @@ datasource db {
 }
 
 model User {
-  id         Int        @id @default(autoincrement())
-  email      String     @unique
-  name       String
-  password   String
-  sells      Sells[]
-  products   Products[]
-  itensSell  ItensSell[]
+  id           Int           @id @default(autoincrement())
+  email        String        @unique
+  name         String
+  password     String
+  masterkey    String        @default("123")
+  sells        Sells[]
+  products     Products[]
+  itensSell    ItensSell[]
   paymentsells PaymentSell[]
-  Token      String     @unique
-  created_at DateTime   @default(dbgenerated("CURRENT_TIMESTAMP"))
+  Token        String        @unique
+  created_at   DateTime      @default(dbgenerated("CURRENT_TIMESTAMP"))
 }
 
 model Products {
-  id      Int    @id @default(autoincrement())
-  name    String
-  value   Int
-  store   User   @relation(fields: [storeId], references: [id])
-  storeId Int
-  created_at DateTime   @default(dbgenerated("CURRENT_TIMESTAMP"))
+  id         Int         @id @default(autoincrement())
+  name       String
+  value      Int
+  store      User        @relation(fields: [storeId], references: [id])
+  storeId    Int
+  created_at DateTime    @default(dbgenerated("CURRENT_TIMESTAMP"))
   itenssells ItensSell[]
-  
+
 
 }
+
 model PaymentTypes {
-  id Int @id @default(autoincrement())
-  type String @unique
+  id           Int           @id @default(autoincrement())
+  type         String        @unique
   paymentsells PaymentSell[]
 }
 
 model Sells {
-  id      Int  @id @default(autoincrement())
-  store   User @relation(fields: [storeId], references: [id])
-  storeId Int
-  created_at DateTime  @default(dbgenerated("CURRENT_TIMESTAMP"))
-  itenssells ItensSell[]
+  id           Int           @id @default(autoincrement())
+  store        User          @relation(fields: [storeId], references: [id])
+  storeId      Int
+  created_at   DateTime      @default(dbgenerated("CURRENT_TIMESTAMP"))
+  itenssells   ItensSell[]
   paymentsells PaymentSell[]
-  sellValue Int
+  sellValue    Int
   valuePayment Int
 }
 
 model ItensSell {
-  id Int @id @default(autoincrement())
-  store   User @relation(fields: [storeId], references: [id])
-  storeId Int
-  sell Sells @relation(fields: [sellId], references: [id])
-  sellId Int
-  product Products @relation(fields: [idProduct], references: [id])
-  idProduct Int 
-  
-  quantity Int
-  valueProduct Int
-  totalValue Int
+  id        Int      @id @default(autoincrement())
+  store     User     @relation(fields: [storeId], references: [id])
+  storeId   Int
+  sell      Sells    @relation(fields: [sellId], references: [id])
+  sellId    Int
+  product   Products @relation(fields: [idProduct], references: [id])
+  idProduct Int
+
+  quantity           Int
+  valueProduct       Int
+  totalValue         Int
   descriptionProduct String
-  created_at DateTime @default(dbgenerated("CURRENT_TIMESTAMP"))
+  created_at         DateTime @default(dbgenerated("CURRENT_TIMESTAMP"))
 
 }
 
 model PaymentSell {
-  id Int @id @default(autoincrement())
-  store   User @relation(fields: [storeId], references: [id])
-  storeId Int
-  sell Sells @relation(fields: [sellId], references: [id])
-  sellId Int
-  payment PaymentTypes @relation(fields: [typepayment], references: [type])
+  id          Int          @id @default(autoincrement())
+  store       User         @relation(fields: [storeId], references: [id])
+  storeId     Int
+  sell        Sells        @relation(fields: [sellId], references: [id])
+  sellId      Int
+  payment     PaymentTypes @relation(fields: [typepayment], references: [type])
   typepayment String
-  value Int
-  created_at DateTime @default(dbgenerated("CURRENT_TIMESTAMP"))
+  value       Int
+  created_at  DateTime     @default(dbgenerated("CURRENT_TIMESTAMP"))
 
 }

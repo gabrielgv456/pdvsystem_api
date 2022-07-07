@@ -81,7 +81,7 @@ app.post("/signin", async (request, response) => {
                     id: validateUser.id,
                     name: validateUser.name,
                     email: validateUser.email,
-
+                    masterkey: validateUser.masterkey
                 },
                 token: validateUser.Token
             })
@@ -131,7 +131,7 @@ app.post("/products", async (request, response) => {
         try {
             let listProducts = await prisma.products.findMany({
                 where: { storeId: userId },
-                select: { id: true, name: true, value: true }
+                select: { id: true, name: true, value: true ,created_at:true}
             })
             if (listProducts == null) {
                 return response.json({
@@ -195,11 +195,12 @@ app.post("/findsells", async (request,response) => {
         return response.json({erro:error})
     }
 })
+// END CONTROL SELLS //
 
+// START TRANSCTIONS // 
 app.post("/findtransactions", async (request,response) =>{
 
     const {datafindTransactions} = request.body
-
     try{
         let findtransactions = await prisma.paymentSell.findMany({
             where: { AND: [{
@@ -223,5 +224,28 @@ app.post("/findtransactions", async (request,response) =>{
     }
 
 })
+// END TRANSACTIONS //
 
+// START INVENTORY MANAGEMENT //
+
+app.post("/addproduct", async(request,response) => {
+
+        const {dataAddProduct} = request.body
+        console.log(dataAddProduct)
+        try {
+            let addproduct = await prisma.products.create({data:{
+                name:dataAddProduct.name,
+                value:dataAddProduct.value,
+                storeId:dataAddProduct.userId
+
+            }})
+            return response.json({Sucess:true})
+        }
+        catch(error){
+            return response.json({erro:error})
+        }
+
+})
+
+// END INVENTORY MANAGEMENT //
 app.listen(2211, () => console.log('Server Up on 2211 port'));
