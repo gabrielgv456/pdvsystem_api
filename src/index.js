@@ -34,6 +34,37 @@ app.post("/addsell", async (request, response) => {
             valuePayment:sell.valuePayment,
             
         }})
+
+        await sell.Products.map(async (product) => {
+            
+            let searchProduct = await prisma.products.findUnique({
+                where:{
+                    id:product.id
+                }
+            })
+            if (product.quantity > searchProduct.quantity) {
+                return('quantidade maior do que o saldo')
+                
+            } else {
+                    let updateQuantityProduct = await prisma.products.update({
+                        where:{
+                            id: product.id
+                        },
+                        data:{
+                            quantity: searchProduct.quantity - product.quantity
+                        }
+                    
+                    })
+                    let createTransactionProduct = await prisma.transactionsProducts.create({data:{
+                        type: "S",
+                        description:"Venda",
+                        totalQuantity: searchProduct.quantity - product.quantity,
+                        quantity:product.quantity,
+                        productId:searchProduct.id,
+                        storeId: searchProduct.storeId
+            }})
+            }
+        })
         
         await sell.Products.map(async (product) => {
             let createItensSellonDB = await prisma.itensSell.create({ data: { 
@@ -107,6 +138,7 @@ app.post("/validate", async (request, response) => {
                     id: validateUser.id,
                     name: validateUser.name,
                     email: validateUser.email,
+                    masterkey: validateUser.masterkey
 
                 },
                 token: validateUser.Token
@@ -131,7 +163,7 @@ app.post("/products", async (request, response) => {
         try {
             let listProducts = await prisma.products.findMany({
                 where: { storeId: userId },
-                select: { id: true, name: true, value: true ,created_at:true}
+                select: { id: true, name: true, value: true ,created_at:true,active:true,quantity:true}
             })
             if (listProducts == null) {
                 return response.json({
@@ -231,13 +263,26 @@ app.post("/findtransactions", async (request,response) =>{
 app.post("/addproduct", async(request,response) => {
 
         const {dataAddProduct} = request.body
-        console.log(dataAddProduct)
+        
         try {
+            
             let addproduct = await prisma.products.create({data:{
                 name:dataAddProduct.name,
                 value:dataAddProduct.value,
-                storeId:dataAddProduct.userId
+                storeId:dataAddProduct.userId,
+                quantity:dataAddProduct.quantity,
+                active:dataAddProduct.active,
+                
 
+            }})
+
+            let createTransactionProduct = await prisma.transactionsProducts.create({data:{
+                type: "E",
+                description:"Criação do produto",
+                totalQuantity: dataAddProduct.quantity,
+                quantity:dataAddProduct.quantity,
+                productId:addproduct.id,
+                storeId:dataAddProduct.userId
             }})
             return response.json({Sucess:true})
         }
@@ -246,6 +291,126 @@ app.post("/addproduct", async(request,response) => {
         }
 
 })
+
+app.post("/editproduct", async(request,response) => {
+
+    const {dataEditProduct} = request.body
+    try {
+        let searchProduct = await prisma.products.findUnique({
+            where:{id:dataEditProduct.id}
+        })
+        if (searchProduct.name===dataEditProduct.name && 
+            searchProduct.quantity===dataEditProduct.quantity &&
+            searchProduct.value===dataEditProduct.value &&
+            searchProduct.active===dataEditProduct.active
+            ) {
+                return response.json({Sucess:false,Erro: 'Não há alterações para serem realizadas!'})
+            }
+        else {
+            try {
+                let editproduct = await prisma.products.update({
+                    
+                    where:{id:dataEditProduct.id},
+        
+                    data:{
+                    name:dataEditProduct.name,
+                    value:dataEditProduct.value,
+                    quantity:dataEditProduct.quantity,
+                    active:dataEditProduct.active
+        
+                    }
+                })
+                console.log('a', editproduct)
+                if (searchProduct.quantity > editproduct.quantity) {
+                    
+                    let createTransactionEditProduct = await prisma.transactionsProducts.create({data:{
+                        type: "S",
+                        description:"Ajuste de estoque",
+                        totalQuantity: editproduct.quantity,
+                        quantity: searchProduct.quantity - dataEditProduct.quantity,
+                        productId:dataEditProduct.id,
+                        storeId:dataEditProduct.userId
+                    }})
+                }
+                if (searchProduct.quantity < editproduct.quantity){
+                    
+                    let createTransactionEditProduct = await prisma.transactionsProducts.create({data:{
+                        type: "E",
+                        description:"Ajuste de estoque",
+                        totalQuantity: editproduct.quantity,
+                        quantity:dataEditProduct.quantity - searchProduct.quantity,
+                        productId:dataEditProduct.id,
+                        storeId:dataEditProduct.userId
+                    }})
+                }
+                console.log(searchProduct,editproduct.quantity)
+                return response.json({Sucess:true})
+            }
+            catch(error){
+                return response.json({erro:error})
+            }
+
+        }
+        
+    }
+    catch(error){
+        return response.json({erro:error})
+
+    }
+})
+
+
+app.post("/deleteproduct", async(request,response) => {
+
+    const {dataDeleteProduct} = request.body
+  
+
+    try {
+        let verifyIfExitsSellsThisProduct = await prisma.itensSell.findFirst({
+            where:{idProduct:dataDeleteProduct.id}
+        })
+        if (verifyIfExitsSellsThisProduct){
+            return response.json({Sucess:false,Erro: 'ERRO: Não é possivel excluir produtos que possuem vendas cadastradas!'})
+        }
+        
+        else{
+            let deleteTransationsProducts = await prisma.transactionsProducts.deleteMany({
+                where:{productId:dataDeleteProduct.id}
+            })
+
+            console.log('aqui')
+
+            let deleteproduct = await prisma.products.delete({
+                where:{id:dataDeleteProduct.id} 
+            })
+
+            return response.json({Sucess:true})
+        }
+        
+    }
+    catch(error){
+        return response.json({erro:error})
+    }
+
+})
+
+app.post("/findtransactionsproducts", async(request,response) => {
+
+    const {dataFindTransactionsProduct} = request.body
+  
+
+    try {
+            let findTransactionsProducts = await prisma.transactionsProducts.findMany({where:{
+                productId:dataFindTransactionsProduct.id
+            }})
+            return response.json({Sucess:true, findTransactionsProducts})
+        }
+    catch(error){
+        return response.json({erro:error})
+    }
+
+})
+
 
 // END INVENTORY MANAGEMENT //
 app.listen(2211, () => console.log('Server Up on 2211 port'));

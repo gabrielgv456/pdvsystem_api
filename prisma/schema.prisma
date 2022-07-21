@@ -11,29 +11,46 @@ datasource db {
 }
 
 model User {
-  id           Int           @id @default(autoincrement())
-  email        String        @unique
-  name         String
-  password     String
-  masterkey    String        @default("123")
-  sells        Sells[]
-  products     Products[]
-  itensSell    ItensSell[]
-  paymentsells PaymentSell[]
-  Token        String        @unique
-  created_at   DateTime      @default(dbgenerated("CURRENT_TIMESTAMP"))
+  id                   Int                    @id @default(autoincrement())
+  email                String                 @unique
+  name                 String
+  password             String
+  masterkey            String                 @default("123")
+  sells                Sells[]
+  products             Products[]
+  itensSell            ItensSell[]
+  paymentsells         PaymentSell[]
+  transactions         Transactions[]
+  transactionsProducts TransactionsProducts[]
+  Token                String                 @unique
+  created_at           DateTime               @default(dbgenerated("CURRENT_TIMESTAMP"))
 }
 
 model Products {
-  id         Int         @id @default(autoincrement())
-  name       String
-  value      Int
-  store      User        @relation(fields: [storeId], references: [id])
-  storeId    Int
-  created_at DateTime    @default(dbgenerated("CURRENT_TIMESTAMP"))
-  itenssells ItensSell[]
+  id                   Int                    @id @default(autoincrement())
+  name                 String
+  value                Int
+  store                User                   @relation(fields: [storeId], references: [id])
+  storeId              Int
+  created_at           DateTime               @default(dbgenerated("CURRENT_TIMESTAMP"))
+  itenssells           ItensSell[]
+  transactionsProducts TransactionsProducts[]
+  quantity             Int
+  active               Boolean
 
+}
 
+model TransactionsProducts {
+  id            Int      @id @default(autoincrement())
+  type          String
+  created_at    DateTime @default(dbgenerated("CURRENT_TIMESTAMP"))
+  description   String
+  quantity      Int
+  totalQuantity Int
+  product       Products @relation(fields: [productId], references: [id])
+  productId     Int
+  store         User     @relation(fields: [storeId], references: [id])
+  storeId       Int
 }
 
 model PaymentTypes {
@@ -43,12 +60,13 @@ model PaymentTypes {
 }
 
 model Sells {
-  id           Int           @id @default(autoincrement())
-  store        User          @relation(fields: [storeId], references: [id])
+  id           Int            @id @default(autoincrement())
+  store        User           @relation(fields: [storeId], references: [id])
   storeId      Int
-  created_at   DateTime      @default(dbgenerated("CURRENT_TIMESTAMP"))
+  created_at   DateTime       @default(dbgenerated("CURRENT_TIMESTAMP"))
   itenssells   ItensSell[]
   paymentsells PaymentSell[]
+  transactions Transactions[]
   sellValue    Int
   valuePayment Int
 }
@@ -80,5 +98,18 @@ model PaymentSell {
   typepayment String
   value       Int
   created_at  DateTime     @default(dbgenerated("CURRENT_TIMESTAMP"))
+
+}
+
+model Transactions {
+  id          Int      @id @default(autoincrement())
+  type        String
+  description String
+  created_at  DateTime @default(dbgenerated("CURRENT_TIMESTAMP"))
+  valor       Int
+  sell        Sells?   @relation(fields: [sellId], references: [id])
+  sellId      Int?
+  store       User     @relation(fields: [storeId], references: [id])
+  storeId     Int
 
 }
