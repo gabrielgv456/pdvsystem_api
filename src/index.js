@@ -27,7 +27,7 @@ app.use(cors(corsOptions))
 app.post("/addsell", async (request, response) => {
     try {
         const { sell } = request.body
-        
+        console.log(sell)
         let createSellonDB = await prisma.sells.create({data: {
             storeId:sell.UserId,
             sellValue:sell.totalValue,
@@ -87,12 +87,19 @@ app.post("/addsell", async (request, response) => {
                 value: payment.value
              } });
             console.log("Created Payment",atualdate)
+            let createPaymentTransaction = await prisma.transactions.create({ data: {
+                type: payment.type,
+                description: "Recebimento de venda",
+                value: payment.value,
+                sellId: createSellonDB.id,
+                storeId: sell.UserId
+            }})
         })
         return response.json({ Success: true })
     }
 
     catch (error) {
-        return response.json({ error })
+        return response.json({ Success: false, Erro: error })
     }
 })
 
@@ -234,8 +241,9 @@ app.post("/findtransactions", async (request,response) =>{
 
     const {datafindTransactions} = request.body
     try{
-        let findtransactions = await prisma.paymentSell.findMany({
+        let findtransactions = await prisma.transactions.findMany({
             where: { AND: [{
+                storeId:datafindTransactions.userID,
                 created_at : { 
                     gt: new Date (datafindTransactions.InitialDate)  
                 }},
@@ -256,6 +264,27 @@ app.post("/findtransactions", async (request,response) =>{
     }
 
 })
+
+app.post("/addtransaction", async(request,response) => {
+
+    const {dataAddTransaction} = request.body
+
+    try {
+        let createPaymentTransaction = await prisma.transactions.create({ data: {
+            type:dataAddTransaction.type,
+            description: dataAddTransaction.description,
+            value: dataAddTransaction.value,
+            storeId: dataAddTransaction.UserId
+        }})
+        return response.json({Sucess:true})
+
+    }catch (error) {
+
+        return response.json({Sucess:false, Erro: error})
+
+    }
+})
+
 // END TRANSACTIONS //
 
 // START INVENTORY MANAGEMENT //

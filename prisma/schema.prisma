@@ -29,7 +29,7 @@ model User {
 model Products {
   id                   Int                    @id @default(autoincrement())
   name                 String
-  value                Int
+  value                Float
   store                User                   @relation(fields: [storeId], references: [id])
   storeId              Int
   created_at           DateTime               @default(dbgenerated("CURRENT_TIMESTAMP"))
@@ -67,8 +67,8 @@ model Sells {
   itenssells   ItensSell[]
   paymentsells PaymentSell[]
   transactions Transactions[]
-  sellValue    Int
-  valuePayment Int
+  sellValue    Float
+  valuePayment Float
 }
 
 model ItensSell {
@@ -81,8 +81,8 @@ model ItensSell {
   idProduct Int
 
   quantity           Int
-  valueProduct       Int
-  totalValue         Int
+  valueProduct       Float
+  totalValue         Float
   descriptionProduct String
   created_at         DateTime @default(dbgenerated("CURRENT_TIMESTAMP"))
 
@@ -96,7 +96,7 @@ model PaymentSell {
   sellId      Int
   payment     PaymentTypes @relation(fields: [typepayment], references: [type])
   typepayment String
-  value       Int
+  value       Float
   created_at  DateTime     @default(dbgenerated("CURRENT_TIMESTAMP"))
 
 }
@@ -106,7 +106,7 @@ model Transactions {
   type        String
   description String
   created_at  DateTime @default(dbgenerated("CURRENT_TIMESTAMP"))
-  valor       Int
+  value       Float
   sell        Sells?   @relation(fields: [sellId], references: [id])
   sellId      Int?
   store       User     @relation(fields: [storeId], references: [id])
