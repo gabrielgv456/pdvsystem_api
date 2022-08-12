@@ -1,4 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient, Prisma } = require('@prisma/client');
 const express = require('express')
 const { v4 } = require('uuid')
 
@@ -66,6 +66,7 @@ app.post("/addsell", async (request, response) => {
             }
         })
         
+
         await sell.Products.map(async (product) => {
             let createItensSellonDB = await prisma.itensSell.create({ data: { 
                 storeId: sell.UserId, 
@@ -100,6 +101,93 @@ app.post("/addsell", async (request, response) => {
 
     catch (error) {
         return response.json({ Success: false, Erro: error })
+    }
+})
+
+app.post("/deletesell", async (request,response) => {
+
+    const {dataDeleteSell} = request.body
+
+    try{
+
+        dataDeleteSell.Products.map(async product=>{
+            let searchProduct = await prisma.products.findUnique({
+                where: {
+                    id: product.idProduct
+                }
+            })
+            let updateQntProduct = await prisma.products.update({
+                where: {
+                    id: searchProduct.id
+                },
+                data: {
+                    quantity : searchProduct.quantity + product.quantity
+                }
+            })
+            let addTransaction = await prisma.transactionsProducts.create({
+                data: {
+                    type: 'E',
+                    description: 'Estorno de Venda',
+                    quantity: product.quantity,
+                    totalQuantity: updateQntProduct.quantity,
+                    productId: product.idProduct,
+                    storeId: dataDeleteSell.UserId
+                }
+            })
+        })
+
+
+        let deleteSellonDB = await prisma.sells.updateMany({
+
+            where:
+            {
+                AND: [
+                    { id : {equals: dataDeleteSell.SellId  } },
+                    { storeId: {equals:  dataDeleteSell.UserId } }
+                ]
+            },
+
+            data:
+            {
+                deleted: true
+            }
+            
+        })
+
+        let deleteItensSellonDB = await prisma.itensSell.updateMany({
+            where:
+            {
+                AND: [
+                    { sellId : {equals: dataDeleteSell.SellId  } },
+                    { storeId: {equals:  dataDeleteSell.UserId } }
+                ]
+            },
+            data:
+            {
+                deleted: true
+            }
+        })
+
+        if (dataDeleteSell.AddExitTransaction){
+            let AddExitTransactionDb = await prisma.transactions.create({data:{
+                description: 'Estorno de Venda',
+                type:'exit',
+                value: dataDeleteSell.SellValue,
+                sellId: dataDeleteSell.SellId,
+                storeId: dataDeleteSell.UserId
+            }})
+        }
+
+        if (deleteSellonDB.count <= 0) {
+            response.json({Success: false, erro: "Nenhum registro encontrado com os parametros fornecidos"})
+        } else {
+            response.json({Success: true, deleteSellonDB})
+        }
+    }
+    catch(error){
+
+        response.json({Success:false, erro:error})
+
     }
 })
 
@@ -209,7 +297,8 @@ app.post("/findsells", async (request,response) => {
                      created_at : {
                          lt:new Date(`${datafindSells.FinalDate}T23:59:59Z`)
                         }},
-                        {storeId : datafindSells.userId}
+                        {storeId : datafindSells.userId},
+                        {deleted : false}
                     
                     ]}
                 })
@@ -222,11 +311,13 @@ app.post("/findsells", async (request,response) => {
                      created_at : {
                          lt:new Date(`${datafindSells.FinalDate}T23:59:59Z`)
                         }},
-                        {storeId : datafindSells.userId}
+                        {storeId : datafindSells.userId},
+                        {deleted : false}
                     
                     ]}})
         
         //let findsells = await prisma.$queryRaw`SELECT * FROM "public"."ItensSell" WHERE "created_at" = timestamp '2022-06-09 13:27:54' `
+       
         let finalreturn = {sells:[...findsells],sellsproducts:[...findsellsproducts]}
         return response.json(finalreturn)
     }
@@ -234,6 +325,8 @@ app.post("/findsells", async (request,response) => {
         return response.json({erro:error})
     }
 })
+
+
 // END CONTROL SELLS //
 
 // START TRANSCTIONS // 

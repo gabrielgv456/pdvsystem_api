@@ -37,7 +37,6 @@ model Products {
   transactionsProducts TransactionsProducts[]
   quantity             Int
   active               Boolean
-
 }
 
 model TransactionsProducts {
@@ -69,23 +68,23 @@ model Sells {
   transactions Transactions[]
   sellValue    Float
   valuePayment Float
+  deleted      Boolean        @default(false)
 }
 
 model ItensSell {
-  id        Int      @id @default(autoincrement())
-  store     User     @relation(fields: [storeId], references: [id])
-  storeId   Int
-  sell      Sells    @relation(fields: [sellId], references: [id])
-  sellId    Int
-  product   Products @relation(fields: [idProduct], references: [id])
-  idProduct Int
-
+  id                 Int      @id @default(autoincrement())
+  store              User     @relation(fields: [storeId], references: [id])
+  storeId            Int
+  sell               Sells    @relation(fields: [sellId], references: [id])
+  sellId             Int
+  product            Products @relation(fields: [idProduct], references: [id])
+  idProduct          Int
+  deleted            Boolean  @default(false)
   quantity           Int
   valueProduct       Float
   totalValue         Float
   descriptionProduct String
   created_at         DateTime @default(dbgenerated("CURRENT_TIMESTAMP"))
-
 }
 
 model PaymentSell {
@@ -98,7 +97,6 @@ model PaymentSell {
   typepayment String
   value       Float
   created_at  DateTime     @default(dbgenerated("CURRENT_TIMESTAMP"))
-
 }
 
 model Transactions {
@@ -111,5 +109,4 @@ model Transactions {
   sellId      Int?
   store       User     @relation(fields: [storeId], references: [id])
   storeId     Int
-
 }
