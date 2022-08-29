@@ -1,0 +1,34 @@
+-- DropForeignKey
+ALTER TABLE "Sells" DROP CONSTRAINT "Sells_sellerId_fkey";
+
+-- AlterTable
+ALTER TABLE "Clients" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "ItensSell" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "PaymentSell" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "Products" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "Sellers" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "Sells" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP,
+ALTER COLUMN "sellerId" DROP NOT NULL,
+ALTER COLUMN "sellerId" DROP DEFAULT;
+
+-- AlterTable
+ALTER TABLE "Transactions" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "TransactionsProducts" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AddForeignKey
+ALTER TABLE "Sells" ADD CONSTRAINT "Sells_sellerId_fkey" FOREIGN KEY ("sellerId") REFERENCES "Sellers"("id") ON DELETE SET NULL ON UPDATE CASCADE;

@@ -28,73 +28,85 @@ app.post("/addsell", async (request, response) => {
     try {
         const { sell } = request.body
         console.log(sell)
-        let createSellonDB = await prisma.sells.create({data: {
-            storeId:sell.UserId,
-            sellValue:sell.totalValue,
-            valuePayment:sell.valuePayment,
-            
-        }})
+        const createSellonDB = await prisma.sells.create({
+            data: {
+                storeId: sell.UserId,
+                sellValue: sell.totalValue,
+                valuePayment: sell.valuePayment,
+                clientId: sell.clientId,
+                sellerId: sell.sellerId
+
+            }
+        })
 
         await sell.Products.map(async (product) => {
-            
-            let searchProduct = await prisma.products.findUnique({
-                where:{
-                    id:product.id
+
+            const searchProduct = await prisma.products.findUnique({
+                where: {
+                    id: product.id
                 }
             })
             if (product.quantity > searchProduct.quantity) {
-                return('quantidade maior do que o saldo')
-                
+                return ('quantidade maior do que o saldo')
+
             } else {
-                    let updateQuantityProduct = await prisma.products.update({
-                        where:{
-                            id: product.id
-                        },
-                        data:{
-                            quantity: searchProduct.quantity - product.quantity
-                        }
-                    
-                    })
-                    let createTransactionProduct = await prisma.transactionsProducts.create({data:{
+                const updateQuantityProduct = await prisma.products.update({
+                    where: {
+                        id: product.id
+                    },
+                    data: {
+                        quantity: searchProduct.quantity - product.quantity
+                    }
+
+                })
+                const createTransactionProduct = await prisma.transactionsProducts.create({
+                    data: {
                         type: "S",
-                        description:"Venda",
+                        description: "Venda",
                         totalQuantity: searchProduct.quantity - product.quantity,
-                        quantity:product.quantity,
-                        productId:searchProduct.id,
+                        quantity: product.quantity,
+                        productId: searchProduct.id,
                         storeId: searchProduct.storeId
-            }})
+                    }
+                })
             }
         })
-        
+
 
         await sell.Products.map(async (product) => {
-            let createItensSellonDB = await prisma.itensSell.create({ data: { 
-                storeId: sell.UserId, 
-                sellId:createSellonDB.id,
-                idProduct: product.id,
-                quantity: product.quantity,
-                valueProduct: product.initialvalue,
-                totalValue: product.totalvalue,
-                descriptionProduct: product.name
-             } });
-            console.log("Created Products",atualdate)
+            const createItensSellonDB = await prisma.itensSell.create({
+                data: {
+                    storeId: sell.UserId,
+                    sellId: createSellonDB.id,
+                    idProduct: product.id,
+                    quantity: product.quantity,
+                    valueProduct: product.initialvalue,
+                    totalValue: product.totalvalue,
+                    descriptionProduct: product.name
+                }
+            });
+            console.log("Created Products", atualdate)
         })
 
         await sell.Payment.map(async (payment) => {
-            let createPaymentSellonDB = await prisma.paymentSell.create({ data: { 
-                storeId: sell.UserId, 
-                sellId:createSellonDB.id,
-                typepayment:payment.type,
-                value: payment.value
-             } });
-            console.log("Created Payment",atualdate)
-            let createPaymentTransaction = await prisma.transactions.create({ data: {
-                type: payment.type,
-                description: "Recebimento de venda",
-                value: payment.value,
-                sellId: createSellonDB.id,
-                storeId: sell.UserId
-            }})
+            const createPaymentSellonDB = await prisma.paymentSell.create({
+                data: {
+                    storeId: sell.UserId,
+                    sellId: createSellonDB.id,
+                    typepayment: payment.type,
+                    value: payment.value
+                }
+            });
+            console.log("Created Payment", atualdate)
+            const createPaymentTransaction = await prisma.transactions.create({
+                data: {
+                    type: payment.type,
+                    description: "Recebimento de venda",
+                    value: payment.value,
+                    sellId: createSellonDB.id,
+                    storeId: sell.UserId
+                }
+            })
         })
         return response.json({ Success: true })
     }
@@ -104,27 +116,27 @@ app.post("/addsell", async (request, response) => {
     }
 })
 
-app.post("/deletesell", async (request,response) => {
+app.post("/deletesell", async (request, response) => {
 
-    const {dataDeleteSell} = request.body
+    const { dataDeleteSell } = request.body
 
-    try{
+    try {
 
-        dataDeleteSell.Products.map(async product=>{
-            let searchProduct = await prisma.products.findUnique({
+        dataDeleteSell.Products.map(async product => {
+            const searchProduct = await prisma.products.findUnique({
                 where: {
                     id: product.idProduct
                 }
             })
-            let updateQntProduct = await prisma.products.update({
+            const updateQntProduct = await prisma.products.update({
                 where: {
                     id: searchProduct.id
                 },
                 data: {
-                    quantity : searchProduct.quantity + product.quantity
+                    quantity: searchProduct.quantity + product.quantity
                 }
             })
-            let addTransaction = await prisma.transactionsProducts.create({
+            const addTransaction = await prisma.transactionsProducts.create({
                 data: {
                     type: 'E',
                     description: 'Estorno de Venda',
@@ -137,13 +149,13 @@ app.post("/deletesell", async (request,response) => {
         })
 
 
-        let deleteSellonDB = await prisma.sells.updateMany({
+        const deleteSellonDB = await prisma.sells.updateMany({
 
             where:
             {
                 AND: [
-                    { id : {equals: dataDeleteSell.SellId  } },
-                    { storeId: {equals:  dataDeleteSell.UserId } }
+                    { id: dataDeleteSell.SellId },
+                    { storeId: dataDeleteSell.UserId }
                 ]
             },
 
@@ -151,15 +163,15 @@ app.post("/deletesell", async (request,response) => {
             {
                 deleted: true
             }
-            
+
         })
 
-        let deleteItensSellonDB = await prisma.itensSell.updateMany({
+        const deleteItensSellonDB = await prisma.itensSell.updateMany({
             where:
             {
                 AND: [
-                    { sellId : {equals: dataDeleteSell.SellId  } },
-                    { storeId: {equals:  dataDeleteSell.UserId } }
+                    { sellId: dataDeleteSell.SellId },
+                    { storeId: dataDeleteSell.UserId }
                 ]
             },
             data:
@@ -168,25 +180,27 @@ app.post("/deletesell", async (request,response) => {
             }
         })
 
-        if (dataDeleteSell.AddExitTransaction){
-            let AddExitTransactionDb = await prisma.transactions.create({data:{
-                description: 'Estorno de Venda',
-                type:'exit',
-                value: dataDeleteSell.SellValue,
-                sellId: dataDeleteSell.SellId,
-                storeId: dataDeleteSell.UserId
-            }})
+        if (dataDeleteSell.AddExitTransaction) {
+            const AddExitTransactionDb = await prisma.transactions.create({
+                data: {
+                    description: 'Estorno de Venda',
+                    type: 'exit',
+                    value: dataDeleteSell.SellValue,
+                    sellId: dataDeleteSell.SellId,
+                    storeId: dataDeleteSell.UserId
+                }
+            })
         }
 
         if (deleteSellonDB.count <= 0) {
-            response.json({Success: false, erro: "Nenhum registro encontrado com os parametros fornecidos"})
+            response.json({ Success: false, erro: "Nenhum registro encontrado com os parametros fornecidos" })
         } else {
-            response.json({Success: true, deleteSellonDB})
+            response.json({ Success: true, deleteSellonDB })
         }
     }
-    catch(error){
+    catch (error) {
 
-        response.json({Success:false, erro:error})
+        response.json({ Success: false, erro: error })
 
     }
 })
@@ -197,8 +211,8 @@ app.post("/signin", async (request, response) => {
         const { email, password } = request.body
         const uuidGenerated = v4()
 
-        let updatetoken = await prisma.user.update({ where: { email: email }, data: { Token: uuidGenerated } })
-        let validateUser = await prisma.user.findUnique({ where: { email: email } })
+        const updatetoken = await prisma.user.update({ where: { email: email }, data: { Token: uuidGenerated } })
+        const validateUser = await prisma.user.findUnique({ where: { email: email } })
 
         if (validateUser.password == password) {
 
@@ -225,7 +239,7 @@ app.post("/validate", async (request, response) => {
     try {
         const { token } = request.body
 
-        let validateUser = await prisma.user.findFirst({ where: { Token: token } })
+        const validateUser = await prisma.user.findFirst({ where: { Token: token } })
         if (validateUser.Token == token) {
             return response.json({
                 valid: true,
@@ -256,9 +270,10 @@ app.post("/products", async (request, response) => {
 
     if (userId) {
         try {
-            let listProducts = await prisma.products.findMany({
+            const listProducts = await prisma.products.findMany({
+                orderBy: { id: 'desc' },
                 where: { storeId: userId },
-                select: { id: true, name: true, value: true ,created_at:true,active:true,quantity:true}
+                select: { id: true, name: true, value: true, created_at: true, active: true, quantity: true }
             })
             if (listProducts == null) {
                 return response.json({
@@ -284,45 +299,128 @@ app.post("/products", async (request, response) => {
 
 // START CONTROL SELLS //
 
-app.post("/findsells", async (request,response) => {
-    const {datafindSells} = request.body
-    
-    try{
-        let findsells = await prisma.sells.findMany({
-            where: { AND: [{
-                created_at : { 
-                    gt: new Date (datafindSells.InitialDate)  
-                }},
-                  {
-                     created_at : {
-                         lt:new Date(`${datafindSells.FinalDate}T23:59:59Z`)
-                        }},
-                        {storeId : datafindSells.userId},
-                        {deleted : false}
-                    
-                    ]}
-                })
-        let findsellsproducts = await prisma.itensSell.findMany({
-            where: { AND: [{
-                created_at : { 
-                    gt: new Date (datafindSells.InitialDate)  
-                }},
-                  {
-                     created_at : {
-                         lt:new Date(`${datafindSells.FinalDate}T23:59:59Z`)
-                        }},
-                        {storeId : datafindSells.userId},
-                        {deleted : false}
-                    
-                    ]}})
-        
-        //let findsells = await prisma.$queryRaw`SELECT * FROM "public"."ItensSell" WHERE "created_at" = timestamp '2022-06-09 13:27:54' `
-       
-        let finalreturn = {sells:[...findsells],sellsproducts:[...findsellsproducts]}
-        return response.json(finalreturn)
+app.post("/findsells", async (request, response) => {
+    const { datafindSells } = request.body
+
+    try {
+        const findsells = await prisma.sells.findMany({
+            orderBy: { id: 'desc' },
+            where: {
+                AND: [{
+                    created_at: {
+                        gt: new Date(datafindSells.InitialDate)
+                    }
+                },
+                {
+                    created_at: {
+                        lt: new Date(`${datafindSells.FinalDate}T23:59:59Z`)
+                    }
+                },
+                { storeId: datafindSells.userId },
+                { deleted: false }
+
+                ]
+            }
+        })
+
+        const findsellsproducts = await prisma.itensSell.findMany({
+            orderBy: { id: 'desc' },
+            where: {
+                AND: [{
+                    created_at: {
+                        gt: new Date(datafindSells.InitialDate)
+                    }
+                },
+                {
+                    created_at: {
+                        lt: new Date(`${datafindSells.FinalDate}T23:59:59Z`)
+                    }
+                },
+                { storeId: datafindSells.userId },
+                { deleted: false }
+
+                ]
+            }
+        })
+
+        let finalSellswithSellerorClientname = []
+
+        await Promise.all(
+            findsells.map(async (sell) => {
+                if (sell.sellerId || sell.clientId) {
+                    if (sell.sellerId && sell.clientId) {
+                        const findSellersName = await prisma.sellers.findUnique({
+                            where: {
+                                id: sell.sellerId
+                            },
+                            select: {
+
+                                name: true
+                            }
+                        });
+
+                        const findClientName = await prisma.clients.findUnique({
+                            where: {
+                                id: sell.clientId
+                            },
+                            select: {
+                                name: true
+                            }
+                        });
+
+                        finalSellswithSellerorClientname.push({
+                            clientName: findClientName.name,
+                            sellerName: findSellersName.name,
+                            ...sell
+                        })
+                    }
+                    else if (sell.sellerId) {
+                        const findSellersName = await prisma.sellers.findUnique({
+                            where: {
+                                id: sell.sellerId
+                            },
+                            select: {
+
+                                name: true
+                            }
+                        });
+                        finalSellswithSellerorClientname.push({
+                            sellerName: findSellersName.name,
+                            ...sell
+                        })
+                    }
+                    else if (sell.clientId) {
+                        const findClientName = await prisma.clients.findUnique({
+                            where: {
+                                id: sell.clientId
+                            },
+                            select: {
+                                name: true
+                            }
+                        });
+                        finalSellswithSellerorClientname.push({
+                            clientName: findClientName.name,
+                            ...sell
+                        })
+                    }
+
+
+                }
+                else {
+                    finalSellswithSellerorClientname.push({ ...sell })
+                }
+            })
+        )
+        console.log(finalSellswithSellerorClientname)
+        //const findsells = await prisma.$queryRaw`SELECT * FROM "public"."ItensSell" WHERE "created_at" = timestamp '2022-06-09 13:27:54' `
+
+        if (findsells && findsellsproducts && finalSellswithSellerorClientname) {
+            const finalreturn = { sells: [...finalSellswithSellerorClientname], sellsproducts: [...findsellsproducts] }
+            return response.json(finalreturn)
+        }
     }
-    catch (error){
-        return response.json({erro:error})
+    catch (error) {
+        return response.json({ erro: error })
     }
 })
 
@@ -330,50 +428,57 @@ app.post("/findsells", async (request,response) => {
 // END CONTROL SELLS //
 
 // START TRANSCTIONS // 
-app.post("/findtransactions", async (request,response) =>{
+app.post("/findtransactions", async (request, response) => {
 
-    const {datafindTransactions} = request.body
-    try{
-        let findtransactions = await prisma.transactions.findMany({
-            where: { AND: [{
-                storeId:datafindTransactions.userID,
-                created_at : { 
-                    gt: new Date (datafindTransactions.InitialDate)  
-                }},
-                  {
-                     created_at : {
-                         lt:new Date(`${datafindTransactions.FinalDate}T23:59:59Z`)
-                        }},
-                        {storeId : datafindTransactions.userId}
-                    
-                    ]}
+    const { datafindTransactions } = request.body
+    try {
+        const findtransactions = await prisma.transactions.findMany({
+            orderBy: { id: 'desc' },
+            where: {
+                AND: [{
+                    storeId: datafindTransactions.userID,
+                    created_at: {
+                        gt: new Date(datafindTransactions.InitialDate)
+                    }
+                },
+                {
+                    created_at: {
+                        lt: new Date(`${datafindTransactions.FinalDate}T23:59:59Z`)
+                    }
+                },
+                { storeId: datafindTransactions.userId }
+
+                ]
+            }
         })
 
         return response.json(findtransactions)
     }
-    catch (error){
-        return response.json({erro:error})
+    catch (error) {
+        return response.json({ erro: error })
 
     }
 
 })
 
-app.post("/addtransaction", async(request,response) => {
+app.post("/addtransaction", async (request, response) => {
 
-    const {dataAddTransaction} = request.body
+    const { dataAddTransaction } = request.body
 
     try {
-        let createPaymentTransaction = await prisma.transactions.create({ data: {
-            type:dataAddTransaction.type,
-            description: dataAddTransaction.description,
-            value: dataAddTransaction.value,
-            storeId: dataAddTransaction.UserId
-        }})
-        return response.json({Sucess:true})
+        const createPaymentTransaction = await prisma.transactions.create({
+            data: {
+                type: dataAddTransaction.type,
+                description: dataAddTransaction.description,
+                value: dataAddTransaction.value,
+                storeId: dataAddTransaction.UserId
+            }
+        })
+        return response.json({ Sucess: true })
 
-    }catch (error) {
+    } catch (error) {
 
-        return response.json({Sucess:false, Erro: error})
+        return response.json({ Sucess: false, Erro: error })
 
     }
 })
@@ -382,155 +487,411 @@ app.post("/addtransaction", async(request,response) => {
 
 // START INVENTORY MANAGEMENT //
 
-app.post("/addproduct", async(request,response) => {
+app.post("/addproduct", async (request, response) => {
 
-        const {dataAddProduct} = request.body
-        
-        try {
-            
-            let addproduct = await prisma.products.create({data:{
-                name:dataAddProduct.name,
-                value:dataAddProduct.value,
-                storeId:dataAddProduct.userId,
-                quantity:dataAddProduct.quantity,
-                active:dataAddProduct.active,
-                
+    const { dataAddProduct } = request.body
 
-            }})
+    try {
 
-            let createTransactionProduct = await prisma.transactionsProducts.create({data:{
+        const addproduct = await prisma.products.create({
+            data: {
+                name: dataAddProduct.name,
+                value: dataAddProduct.value,
+                storeId: dataAddProduct.userId,
+                quantity: dataAddProduct.quantity,
+                active: dataAddProduct.active,
+
+
+            }
+        })
+
+        const createTransactionProduct = await prisma.transactionsProducts.create({
+            data: {
                 type: "E",
-                description:"Criação do produto",
+                description: "Criação do produto",
                 totalQuantity: dataAddProduct.quantity,
-                quantity:dataAddProduct.quantity,
-                productId:addproduct.id,
-                storeId:dataAddProduct.userId
-            }})
-            return response.json({Sucess:true})
-        }
-        catch(error){
-            return response.json({erro:error})
-        }
+                quantity: dataAddProduct.quantity,
+                productId: addproduct.id,
+                storeId: dataAddProduct.userId
+            }
+        })
+        return response.json({ Sucess: true })
+    }
+    catch (error) {
+        return response.json({ erro: error })
+    }
 
 })
 
-app.post("/editproduct", async(request,response) => {
+app.post("/editproduct", async (request, response) => {
 
-    const {dataEditProduct} = request.body
+    const { dataEditProduct } = request.body
     try {
-        let searchProduct = await prisma.products.findUnique({
-            where:{id:dataEditProduct.id}
+        const searchProduct = await prisma.products.findUnique({
+            where: { id: dataEditProduct.id }
         })
-        if (searchProduct.name===dataEditProduct.name && 
-            searchProduct.quantity===dataEditProduct.quantity &&
-            searchProduct.value===dataEditProduct.value &&
-            searchProduct.active===dataEditProduct.active
-            ) {
-                return response.json({Sucess:false,Erro: 'Não há alterações para serem realizadas!'})
-            }
+        if (searchProduct.name === dataEditProduct.name &&
+            searchProduct.quantity === dataEditProduct.quantity &&
+            searchProduct.value === dataEditProduct.value &&
+            searchProduct.active === dataEditProduct.active
+        ) {
+            return response.json({ Sucess: false, Erro: 'Não há alterações para serem realizadas!' })
+        }
         else {
             try {
-                let editproduct = await prisma.products.update({
-                    
-                    where:{id:dataEditProduct.id},
-        
-                    data:{
-                    name:dataEditProduct.name,
-                    value:dataEditProduct.value,
-                    quantity:dataEditProduct.quantity,
-                    active:dataEditProduct.active
-        
+                const editproduct = await prisma.products.updateMany({
+
+                    where: {
+                        AND: [
+                            { id: dataEditProduct.id },
+                            { storeId: dataEditProduct.userId }
+                        ]
+                    },
+
+                    data: {
+                        name: dataEditProduct.name,
+                        value: dataEditProduct.value,
+                        quantity: dataEditProduct.quantity,
+                        active: dataEditProduct.active
+
                     }
                 })
                 console.log('a', editproduct)
                 if (searchProduct.quantity > editproduct.quantity) {
-                    
-                    let createTransactionEditProduct = await prisma.transactionsProducts.create({data:{
-                        type: "S",
-                        description:"Ajuste de estoque",
-                        totalQuantity: editproduct.quantity,
-                        quantity: searchProduct.quantity - dataEditProduct.quantity,
-                        productId:dataEditProduct.id,
-                        storeId:dataEditProduct.userId
-                    }})
+
+                    const createTransactionEditProduct = await prisma.transactionsProducts.create({
+                        data: {
+                            type: "S",
+                            description: "Ajuste de estoque",
+                            totalQuantity: editproduct.quantity,
+                            quantity: searchProduct.quantity - dataEditProduct.quantity,
+                            productId: dataEditProduct.id,
+                            storeId: dataEditProduct.userId
+                        }
+                    })
                 }
-                if (searchProduct.quantity < editproduct.quantity){
-                    
-                    let createTransactionEditProduct = await prisma.transactionsProducts.create({data:{
-                        type: "E",
-                        description:"Ajuste de estoque",
-                        totalQuantity: editproduct.quantity,
-                        quantity:dataEditProduct.quantity - searchProduct.quantity,
-                        productId:dataEditProduct.id,
-                        storeId:dataEditProduct.userId
-                    }})
+                if (searchProduct.quantity < editproduct.quantity) {
+
+                    const createTransactionEditProduct = await prisma.transactionsProducts.create({
+                        data: {
+                            type: "E",
+                            description: "Ajuste de estoque",
+                            totalQuantity: editproduct.quantity,
+                            quantity: dataEditProduct.quantity - searchProduct.quantity,
+                            productId: dataEditProduct.id,
+                            storeId: dataEditProduct.userId
+                        }
+                    })
                 }
-                console.log(searchProduct,editproduct.quantity)
-                return response.json({Sucess:true})
+                console.log(searchProduct, editproduct.quantity)
+                return response.json({ Sucess: true })
             }
-            catch(error){
-                return response.json({erro:error})
+            catch (error) {
+                return response.json({ erro: error })
             }
 
         }
-        
+
     }
-    catch(error){
-        return response.json({erro:error})
+    catch (error) {
+        return response.json({ erro: error })
 
     }
 })
 
 
-app.post("/deleteproduct", async(request,response) => {
+app.post("/deleteproduct", async (request, response) => {
 
-    const {dataDeleteProduct} = request.body
-  
+    const { dataDeleteProduct } = request.body
+
 
     try {
-        let verifyIfExitsSellsThisProduct = await prisma.itensSell.findFirst({
-            where:{idProduct:dataDeleteProduct.id}
+        const verifyIfExitsSellsThisProduct = await prisma.itensSell.findFirst({
+            where: { idProduct: dataDeleteProduct.id }
         })
-        if (verifyIfExitsSellsThisProduct){
-            return response.json({Sucess:false,Erro: 'ERRO: Não é possivel excluir produtos que possuem vendas cadastradas!'})
+        if (verifyIfExitsSellsThisProduct) {
+            return response.json({ Sucess: false, Erro: 'ERRO: Não é possivel excluir produtos que possuem vendas cadastradas!' })
         }
-        
-        else{
-            let deleteTransationsProducts = await prisma.transactionsProducts.deleteMany({
-                where:{productId:dataDeleteProduct.id}
+
+        else {
+            const deleteTransationsProducts = await prisma.transactionsProducts.deleteMany({
+                where: {
+                    AND: [
+                        { productId: dataDeleteProduct.id },
+                        { storeId: dataDeleteProduct.storeId }
+                    ]
+                }
             })
 
-            console.log('aqui')
-
-            let deleteproduct = await prisma.products.delete({
-                where:{id:dataDeleteProduct.id} 
+            const deleteproduct = await prisma.products.deleteMany({
+                where: {
+                    AND: [
+                        { id: dataDeleteProduct.id },
+                        { storeId: dataDeleteProduct.storeId }
+                    ]
+                }
             })
 
-            return response.json({Sucess:true})
+            if (deleteTransationsProducts && deleteproduct) {
+                return response.json({ Sucess: true })
+            }
         }
-        
+
     }
-    catch(error){
-        return response.json({erro:error})
+    catch (error) {
+        return response.json({ erro: error })
     }
 
 })
 
-app.post("/findtransactionsproducts", async(request,response) => {
+app.post("/findtransactionsproducts", async (request, response) => {
 
-    const {dataFindTransactionsProduct} = request.body
-  
+    const { dataFindTransactionsProduct } = request.body
+
 
     try {
-            let findTransactionsProducts = await prisma.transactionsProducts.findMany({where:{
-                productId:dataFindTransactionsProduct.id
-            }})
-            return response.json({Sucess:true, findTransactionsProducts})
-        }
-    catch(error){
-        return response.json({erro:error})
+        const findTransactionsProducts = await prisma.transactionsProducts.findMany({
+            orderBy: { id: 'desc' },
+            where: {
+                AND:
+                    [
+                        { productId: dataFindTransactionsProduct.id },
+                        { storeId: dataFindTransactionsProduct.storeId }
+                    ]
+            }
+        })
+        return response.json({ Sucess: true, findTransactionsProducts })
+    }
+    catch (error) {
+        return response.json({ erro: error })
     }
 
+})
+
+app.post("/findsellers", async (request, response) => {
+
+    const { userId } = request.body
+
+    if (userId) {
+        try {
+            const findSellers = await prisma.sellers.findMany({
+                orderBy: { name: 'asc' },
+                where: {
+                    storeId: userId
+                }
+            })
+            if (findSellers.length === 0) {
+                return response.json({ Success: false, erro: "ERRO: Nenhum valor encontrado com os dados fornecidos!" })
+            }
+            else {
+                return response.json({ Success: true, findSellers })
+            }
+        }
+        catch (error) {
+            return response.json({ Sucess: false, erro: error })
+        }
+    }
+    else {
+        return response.json({ Sucess: false, erro: "Dados invalidos, informe corretamente !" })
+    }
+})
+
+app.post('/editseller', async (request, response) => {
+
+    const { dataEditSeller } = request.body
+
+    if (dataEditSeller) {
+        try {
+            const editSeller = await prisma.sellers.updateMany({
+                where: {
+                    AND: [
+                        { id: dataEditSeller.idSeller },
+                        { storeId: dataEditSeller.storeId }
+                    ]
+                },
+                data: {
+                    email: dataEditSeller.email,
+                    adressCep: dataEditSeller.adressCep,
+                    adressCity: dataEditSeller.adressCity,
+                    adressComplement: dataEditSeller.adressComplement,
+                    adressNeighborhood: dataEditSeller.adressNeighborhood,
+                    adressNumber: dataEditSeller.adressNumber,
+                    adressState: dataEditSeller.adressState,
+                    adressStreet: dataEditSeller.adressStreet,
+                    birthDate: dataEditSeller.birthDate,
+                    cellNumber: dataEditSeller.cellNumber,
+                    cpf: dataEditSeller.cpf,
+                    gender: dataEditSeller.gender,
+                    name: dataEditSeller.name,
+                    phoneNumber: dataEditSeller.phoneNumber,
+                    active: dataEditSeller.active
+                }
+            })
+            if (editSeller) {
+                return response.json({ Success: true, dataSeller: editSeller })
+            }
+        }
+        catch (error) {
+            return response.json({ Success: false, erro: error })
+        }
+    }
+    else {
+        return response.json({ Success: false, erro: "Dados invalidos, informe corretamente !" })
+    }
+})
+
+app.post('/addseller', async (request, response) => {
+
+    const { dataAddSeller } = request.body
+
+    if (dataAddSeller) {
+        try {
+            const addSeller = await prisma.sellers.create({
+                data: {
+                    email: dataAddSeller.email,
+                    adressCep: dataAddSeller.adressCep,
+                    adressCity: dataAddSeller.adressCity,
+                    active: dataAddSeller.active,
+                    adressComplement: dataAddSeller.adressComplement,
+                    adressNeighborhood: dataAddSeller.adressNeighborhood,
+                    adressNumber: dataAddSeller.adressNumber,
+                    adressState: dataAddSeller.adressState,
+                    adressStreet: dataAddSeller.adressStreet,
+                    birthDate: dataAddSeller.birthDate,
+                    cellNumber: dataAddSeller.cellNumber,
+                    cpf: dataAddSeller.cpf,
+                    gender: dataAddSeller.gender,
+                    name: dataAddSeller.name,
+                    phoneNumber: dataAddSeller.phoneNumber,
+                    storeId: dataAddSeller.storeId,
+                }
+            })
+            if (addSeller) {
+                return response.json({ Success: true, dataSeller: addSeller })
+            }
+        }
+        catch (error) {
+            return response.json({ Success: false, erro: error })
+        }
+    }
+    else {
+        return response.json({ Success: false, erro: "Dados invalidos, informe corretamente !" })
+    }
+})
+
+app.post("/findclients", async (request, response) => {
+
+    const { userId } = request.body
+
+    if (userId) {
+        try {
+            const findClients = await prisma.clients.findMany({
+                orderBy: {
+                    name: 'asc'
+                },
+                where: {
+                    storeId: userId
+                }
+            })
+            if (findClients.length === 0) {
+                return response.json({ Success: false, erro: "ERRO: Nenhum valor encontrado com os dados fornecidos!" })
+            }
+            else {
+                return response.json({ Success: true, findClients })
+            }
+        }
+        catch (error) {
+            return response.json({ Sucess: false, erro: error })
+        }
+    }
+    else {
+        return response.json({ Sucess: false, erro: "Dados invalidos, informe corretamente !" })
+    }
+})
+
+app.post('/editclient', async (request, response) => {
+
+    const { dataEditClient } = request.body
+
+    if (dataEditClient) {
+        try {
+            const editClient = await prisma.clients.updateMany({
+                where: {
+                    AND:
+                        [
+                            { id: dataEditClient.idClient },
+                            { storeId: dataEditClient.storeId }
+                        ]
+                },
+                data: {
+                    email: dataEditClient.email,
+                    adressCep: dataEditClient.adressCep,
+                    adressCity: dataEditClient.adressCity,
+                    adressComplement: dataEditClient.adressComplement,
+                    adressNeighborhood: dataEditClient.adressNeighborhood,
+                    adressNumber: dataEditClient.adressNumber,
+                    adressState: dataEditClient.adressState,
+                    adressStreet: dataEditClient.adressStreet,
+                    birthDate: dataEditClient.birthDate,
+                    cellNumber: dataEditClient.cellNumber,
+                    cpf: dataEditClient.cpf,
+                    gender: dataEditClient.gender,
+                    name: dataEditClient.name,
+                    phoneNumber: dataEditClient.phoneNumber,
+
+                }
+            })
+            if (editClient) {
+                return response.json({ Success: true, dataClient: editClient })
+            }
+        }
+        catch (error) {
+            return response.json({ Success: false, erro: error })
+        }
+    }
+    else {
+        return response.json({ Success: false, erro: "Dados invalidos, informe corretamente !" })
+    }
+})
+
+
+app.post('/addclient', async (request, response) => {
+
+    const { dataAddClient } = request.body
+
+    if (dataAddClient) {
+        try {
+            const addClient = await prisma.clients.create({
+                data: {
+                    email: dataAddClient.email,
+                    adressCep: dataAddClient.adressCep,
+                    adressCity: dataAddClient.adressCity,
+                    active: dataAddClient.active,
+                    adressComplement: dataAddClient.adressComplement,
+                    adressNeighborhood: dataAddClient.adressNeighborhood,
+                    adressNumber: dataAddClient.adressNumber,
+                    adressState: dataAddClient.adressState,
+                    adressStreet: dataAddClient.adressStreet,
+                    birthDate: `${dataAddClient.birthDate}T00:00:00Z`,
+                    cellNumber: dataAddClient.cellNumber,
+                    cpf: dataAddClient.cpf,
+                    gender: dataAddClient.gender,
+                    name: dataAddClient.name,
+                    phoneNumber: dataAddClient.phoneNumber,
+                    storeId: dataAddClient.storeId,
+                }
+            })
+            if (addClient) {
+                return response.json({ Success: true, dataClient: addClient })
+            }
+        }
+        catch (error) {
+            return response.json({ Success: false, erro: error })
+        }
+    }
+    else {
+        return response.json({ Success: false, erro: "Dados invalidos, informe corretamente !" })
+    }
 })
 
 

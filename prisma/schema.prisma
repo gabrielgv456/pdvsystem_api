@@ -22,6 +22,8 @@ model User {
   paymentsells         PaymentSell[]
   transactions         Transactions[]
   transactionsProducts TransactionsProducts[]
+  Sellers              Sellers[]
+  Clients              Clients[]
   Token                String                 @unique
   created_at           DateTime               @default(dbgenerated("CURRENT_TIMESTAMP"))
 }
@@ -62,6 +64,10 @@ model Sells {
   id           Int            @id @default(autoincrement())
   store        User           @relation(fields: [storeId], references: [id])
   storeId      Int
+  seller       Sellers?       @relation(fields: [sellerId], references: [id])
+  sellerId     Int?
+  client       Clients?       @relation(fields: [clientId], references: [id])
+  clientId     Int?           
   created_at   DateTime       @default(dbgenerated("CURRENT_TIMESTAMP"))
   itenssells   ItensSell[]
   paymentsells PaymentSell[]
@@ -109,4 +115,51 @@ model Transactions {
   sellId      Int?
   store       User     @relation(fields: [storeId], references: [id])
   storeId     Int
+}
+
+model Sellers {
+  id                 Int       @id @default(autoincrement())
+  created_at         DateTime  @default(dbgenerated("CURRENT_TIMESTAMP"))
+  name               String
+  cpf                String?
+  email              String?
+  birthDate          DateTime?
+  matricula          Int?
+  gender             String?
+  phoneNumber        String?
+  cellNumber         String?
+  adressStreet       String?
+  adressNumber       String?
+  adressNeighborhood String?
+  adressComplement   String?
+  adressCity         String?
+  adressState        String?
+  adressCep          String?
+  active             Boolean   @default(true)
+  store              User      @relation(fields: [storeId], references: [id])
+  storeId            Int
+  Sells              Sells[]
+}
+
+model Clients {
+  id                 Int       @id @default(autoincrement())
+  created_at         DateTime  @default(dbgenerated("CURRENT_TIMESTAMP"))
+  name               String
+  gender             String?
+  cpf                String
+  email              String?
+  birthDate          DateTime?
+  phoneNumber        String?
+  cellNumber         String?
+  adressStreet       String?
+  adressNumber       String?
+  adressNeighborhood String?
+  adressComplement   String?
+  adressCity         String?
+  adressState        String?
+  adressCep          String?
+  active             Boolean   @default(true)
+  store              User      @relation(fields: [storeId], references: [id])
+  storeId            Int
+  Sells              Sells[]
 }
