@@ -6,6 +6,7 @@ const prisma = new PrismaClient()
 const app = express();
 const cors = require('cors');
 const req = require('express/lib/request');
+const { request } = require('http');
 const atualdate = new Date()
 const corsOptions = {
     origin: "http://localhost:3000",
@@ -530,12 +531,13 @@ app.post("/editproduct", async (request, response) => {
         const searchProduct = await prisma.products.findUnique({
             where: { id: dataEditProduct.id }
         })
+
         if (searchProduct.name === dataEditProduct.name &&
             searchProduct.quantity === dataEditProduct.quantity &&
             searchProduct.value === dataEditProduct.value &&
             searchProduct.active === dataEditProduct.active
         ) {
-            return response.json({ Sucess: false, Erro: 'Não há alterações para serem realizadas!' })
+            return response.json({ Sucess: false, erro: 'Não há alterações para serem realizadas!' })
         }
         else {
             try {
@@ -556,48 +558,83 @@ app.post("/editproduct", async (request, response) => {
 
                     }
                 })
-                console.log('a', editproduct)
-                if (searchProduct.quantity > editproduct.quantity) {
 
-                    const createTransactionEditProduct = await prisma.transactionsProducts.create({
-                        data: {
-                            type: "S",
-                            description: "Ajuste de estoque",
-                            totalQuantity: editproduct.quantity,
-                            quantity: searchProduct.quantity - dataEditProduct.quantity,
-                            productId: dataEditProduct.id,
-                            storeId: dataEditProduct.userId
-                        }
+
+                if (editproduct.count <= 0) {
+                    return response.json({
+                        Sucess: false, erro: "Nenhum registro encontrado com as codições informadas"
                     })
                 }
-                if (searchProduct.quantity < editproduct.quantity) {
+                else {
+                    if (searchProduct.quantity > dataEditProduct.quantity) {
 
-                    const createTransactionEditProduct = await prisma.transactionsProducts.create({
-                        data: {
-                            type: "E",
-                            description: "Ajuste de estoque",
-                            totalQuantity: editproduct.quantity,
-                            quantity: dataEditProduct.quantity - searchProduct.quantity,
-                            productId: dataEditProduct.id,
-                            storeId: dataEditProduct.userId
+                        try {
+                            const createTransactionEditProduct = await prisma.transactionsProducts.create({
+                                data: {
+                                    type: "S",
+                                    description: "Ajuste de estoque",
+                                    totalQuantity: dataEditProduct.quantity,
+                                    quantity: searchProduct.quantity - dataEditProduct.quantity,
+                                    productId: dataEditProduct.id,
+                                    storeId: dataEditProduct.userId
+                                }
+                            })
+                            if (createTransactionEditProduct && editproduct) {
+                                return response.json({
+                                    Sucess: true
+                                })
+                            }
                         }
-                    })
+                        catch (error) {
+                            return response.json({ Sucess: false, erro: error, message: "falha ao criar transação >" })
+                        }
+
+                    }
+                    if (searchProduct.quantity < dataEditProduct.quantity) {
+
+                        try {
+                            const createTransactionEditProduct = await prisma.transactionsProducts.create({
+                                data: {
+                                    type: "E",
+                                    description: "Ajuste de estoque",
+                                    totalQuantity: dataEditProduct.quantity,
+                                    quantity: dataEditProduct.quantity - searchProduct.quantity,
+                                    productId: dataEditProduct.id,
+                                    storeId: dataEditProduct.userId
+                                }
+                            })
+                            if (createTransactionEditProduct && editproduct) {
+                                return response.json({
+                                    Sucess: true
+                                })
+                            }
+                        }
+                        catch (error) {
+                            return response.json({ Sucess: false, erro: error, message: "Falha ao criar transação <" })
+                        }
+
+                    }
+                    if (searchProduct.quantity === dataEditProduct.quantity) {
+                        if (editproduct.count > 0) {
+                            return response.json({
+                                Sucess: true
+                            })
+                        }
+
+                    }
                 }
-                console.log(searchProduct, editproduct.quantity)
-                return response.json({ Sucess: true })
             }
             catch (error) {
-                return response.json({ erro: error })
+                return response.json({ Sucess: false, erro: error, message: "Falha ao editar produto" })
             }
-
         }
-
     }
     catch (error) {
-        return response.json({ erro: error })
-
+        return response.json({ Sucess: false, erro: error, message: "Falha ao localizar produto" })
     }
-})
+
+}
+)
 
 
 app.post("/deleteproduct", async (request, response) => {
@@ -872,7 +909,7 @@ app.post('/addclient', async (request, response) => {
                     adressNumber: dataAddClient.adressNumber,
                     adressState: dataAddClient.adressState,
                     adressStreet: dataAddClient.adressStreet,
-                    birthDate: `${dataAddClient.birthDate}T00:00:00Z`,
+                    birthDate: dataAddClient.birthDate,
                     cellNumber: dataAddClient.cellNumber,
                     cpf: dataAddClient.cpf,
                     gender: dataAddClient.gender,
@@ -894,6 +931,57 @@ app.post('/addclient', async (request, response) => {
     }
 })
 
+app.post('/deleteclient', async (request,response) => {
+
+    const {dataDeleteClient} = request.body
+
+    try{
+        const deleteClientDb = await prisma.clients.deleteMany({
+            where:{
+                AND:[{
+                    storeId: dataDeleteClient.userId,
+                    id: dataDeleteClient.clientId
+                }]
+            }})
+        if (deleteClientDb.count <=0 ){
+            return response.json({Success: false, erro:"Nenhum registro encontrado"})
+        }
+        else if (deleteClientDb.count > 0) {
+            return response.json({Success: true})
+        }
+    }
+    catch (error){
+        return response.json({Success: false, erro: error})
+    }
+
+})
+
+app.post ('/deleteseller', async(request, response) => {
+
+    const {dataDeleteSeller} = request.body
+
+    try{
+        const deleteSellerDb = await prisma.sellers.deleteMany({
+            where:{
+                AND:[
+                    {id: dataDeleteSeller.sellerId},
+                    {storeId: dataDeleteSeller.userId}
+                ]
+            }
+        })
+        if (deleteSellerDb.count > 0){
+            return response.json ({Success: true})
+        }
+        else if (deleteSellerDb.count <= 0) {
+            return response.sjon ({Success: false, erro: 'Nenhum registro encontrado com os parametros fonecidos'})
+        }
+    }
+    catch (error){
+        
+        return response.json({Success: false, erro: error})
+
+    }
+})
 
 // END INVENTORY MANAGEMENT //
 app.listen(2211, () => console.log('Server Up on 2211 port'));
