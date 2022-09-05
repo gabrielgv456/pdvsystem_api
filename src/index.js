@@ -1,7 +1,7 @@
 const { PrismaClient, Prisma } = require('@prisma/client');
 const express = require('express')
 const { v4 } = require('uuid')
-
+const bcrypt = require('bcrypt')
 const prisma = new PrismaClient()
 const app = express();
 const cors = require('cors');
@@ -17,11 +17,97 @@ app.use(express.json())
 app.use(cors())
 app.use(cors(corsOptions))
 
-//type productsType = {
-//  body:{
-//   userId : number,
-//  }
-//}
+//START LOGIN//
+app.post("/signin", async (request, response) => {
+
+    try {
+        const { email, password } = request.body
+        const uuidGenerated = v4()
+
+        const updatetoken = await prisma.user.update({ where: { email: email }, data: { Token: uuidGenerated } })
+        const validateUser = await prisma.user.findUnique({ where: { email: email } })
+
+        if (validateUser === null) {
+            return response.json({ erro: "Não foi encontrado usuarios com esse email" })
+        }
+        else {
+            if ( await bcrypt.compare( password, validateUser.password)) {
+                return response.json({
+                    user: {
+                        id: validateUser.id,
+                        name: validateUser.name,
+                        email: validateUser.email,
+                        masterkey: validateUser.masterkey
+                    },
+                    token: validateUser.Token
+                })
+            }
+            else {
+                return response.json({Success:false, erro: "Senha incorreta"})
+            }
+        }
+        
+
+    } catch (error) {
+        return response.json({ error_message: "Usuario não encontrado", error })
+    }
+})
+
+app.post("/validate", async (request, response) => {
+    try {
+        const { token } = request.body
+
+        const validateUser = await prisma.user.findFirst({ where: { Token: token } })
+        if (validateUser.Token == token) {
+            return response.json({
+                valid: true,
+                user: {
+                    id: validateUser.id,
+                    name: validateUser.name,
+                    email: validateUser.email,
+                    masterkey: validateUser.masterkey
+
+                },
+                token: validateUser.Token
+            })
+        }
+        if (validateUser.Token == null) {
+            return response.json({ erro: "Token não encontrado!" })
+        }
+    }
+    catch (error) {
+        return response.json({ valid: false, error_message: "Token Invalido", error })
+    }
+
+})
+
+// END LOGIN //
+
+
+app.post ("/adduser", async (request,response) => {
+
+    const {email,password,name,masterkey} = request.body
+    
+    try{
+        const hashedpassword = await bcrypt.hash(password, 11)
+        const uuidGenerated = v4()
+
+        const addUserDb = await prisma.user.create({data:{
+            email: email,
+            name : name,
+            password : hashedpassword,
+            Token : uuidGenerated,
+            masterkey: masterkey  
+        }})
+
+        if (addUserDb){
+            return response.json({Success: true})
+        }
+    }
+    catch (error) {
+        return response.json({Success: false, erro: error})
+    }
+})
 
 // START SELLS //
 
@@ -204,64 +290,6 @@ app.post("/deletesell", async (request, response) => {
         response.json({ Success: false, erro: error })
 
     }
-})
-
-app.post("/signin", async (request, response) => {
-
-    try {
-        const { email, password } = request.body
-        const uuidGenerated = v4()
-
-        const updatetoken = await prisma.user.update({ where: { email: email }, data: { Token: uuidGenerated } })
-        const validateUser = await prisma.user.findUnique({ where: { email: email } })
-
-        if (validateUser.password == password) {
-
-            return response.json({
-                user: {
-                    id: validateUser.id,
-                    name: validateUser.name,
-                    email: validateUser.email,
-                    masterkey: validateUser.masterkey
-                },
-                token: validateUser.Token
-            })
-        }
-        if (validateUser == null) {
-            return response.json({ erro: "Não foi encontrado usuarios com esse email" })
-        }
-
-    } catch (error) {
-        return response.json({ error_message: "Usuario não encontrado", error })
-    }
-})
-
-app.post("/validate", async (request, response) => {
-    try {
-        const { token } = request.body
-
-        const validateUser = await prisma.user.findFirst({ where: { Token: token } })
-        if (validateUser.Token == token) {
-            return response.json({
-                valid: true,
-                user: {
-                    id: validateUser.id,
-                    name: validateUser.name,
-                    email: validateUser.email,
-                    masterkey: validateUser.masterkey
-
-                },
-                token: validateUser.Token
-            })
-        }
-        if (validateUser.Token == null) {
-            return response.json({ erro: "Token não encontrado!" })
-        }
-    }
-    catch (error) {
-        return response.json({ valid: false, error_message: "Token Invalido", error })
-    }
-
 })
 
 
@@ -977,7 +1005,7 @@ app.post ('/deleteseller', async(request, response) => {
         }
     }
     catch (error){
-        
+
         return response.json({Success: false, erro: error})
 
     }
