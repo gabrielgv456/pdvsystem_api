@@ -6,7 +6,6 @@ const prisma = new PrismaClient()
 const app = express();
 const cors = require('cors');
 const req = require('express/lib/request');
-const { request } = require('http');
 const atualdate = new Date()
 const corsOptions = {
     origin: "http://localhost:3000",
@@ -31,7 +30,7 @@ app.post("/signin", async (request, response) => {
             return response.json({ erro: "Não foi encontrado usuarios com esse email" })
         }
         else {
-            if ( await bcrypt.compare( password, validateUser.password)) {
+            if (await bcrypt.compare(password, validateUser.password)) {
                 return response.json({
                     user: {
                         id: validateUser.id,
@@ -43,10 +42,10 @@ app.post("/signin", async (request, response) => {
                 })
             }
             else {
-                return response.json({Success:false, erro: "Senha incorreta"})
+                return response.json({ Success: false, erro: "Senha incorreta" })
             }
         }
-        
+
 
     } catch (error) {
         return response.json({ error_message: "Usuario não encontrado", error })
@@ -84,37 +83,338 @@ app.post("/validate", async (request, response) => {
 // END LOGIN //
 
 
-app.post ("/adduser", async (request,response) => {
+app.post("/adduser", async (request, response) => {
 
-    const {email,password,name,masterkey} = request.body
-    
-    try{
+    const { email, password, name, masterkey } = request.body
+
+    try {
         const hashedpassword = await bcrypt.hash(password, 11)
         const uuidGenerated = v4()
 
-        const addUserDb = await prisma.user.create({data:{
-            email: email,
-            name : name,
-            password : hashedpassword,
-            Token : uuidGenerated,
-            masterkey: masterkey  
-        }})
+        const addUserDb = await prisma.user.create({
+            data: {
+                email: email,
+                name: name,
+                password: hashedpassword,
+                Token: uuidGenerated,
+                masterkey: masterkey
+            }
+        })
 
-        if (addUserDb){
-            return response.json({Success: true})
+        if (addUserDb) {
+            return response.json({ Success: true })
         }
     }
     catch (error) {
-        return response.json({Success: false, erro: error})
+        return response.json({ Success: false, erro: error })
     }
 })
+
+app.post("/logout", async (resquest, response) => {
+
+    const { userId } = request.body.dataLogOutUser
+    const uuidGenerated = v4()
+
+    try {
+        const logoutUserDb = await prisma.user.update({
+            where: {
+                id: userId
+            },
+            data: {
+                Token: uuidGenerated
+            }
+        })
+        if (logoutUserDb) {
+            return response.json({ Success: true })
+        }
+        else {
+            return response.json({ Success: false, erro: 'Falha ao atualizar Token' })
+        }
+    }
+    catch (error) {
+        return response.json({ Success: false, erro: error })
+    }
+})
+
+// START HOME //
+
+app.post("/charts/bar", async (request, response) => {
+
+    const { userId } = request.body
+
+    try {
+        const atualMonth = new Date().getMonth() + 1
+        const atualYear = new Date().getFullYear()
+        const qtdMoths = [0, 1, 2, 3, 4, 5] // add to changing months quantity
+        const monthstoConsult = qtdMoths.map(month => month = atualMonth - month)
+
+        const dataBarChart = []
+
+        await Promise.all(
+            monthstoConsult.map(async month => {
+
+                const initialDate = new Date(month > 9 ? `${atualYear}-${month}-01T03:00:00.000Z` : `${atualYear}-0${month}-01T03:00:00.000Z`)
+                const finalDate = new Date(initialDate.getFullYear(), initialDate.getMonth() + 1, 0)
+
+
+                const VerifySells = await prisma.sells.findMany({
+                    where: {
+                        AND: [{
+                            created_at: {
+                                gt: initialDate
+                            }
+                        },
+                        {
+                            created_at: {
+                                lt: finalDate
+                            }
+                        },
+                        { storeId: userId },
+
+                        ]
+                    }
+                })
+
+                const sumSells = VerifySells.reduce((acc, item) => {
+                    return acc + item.sellValue
+                }, 0)
+
+                const medTicket = sumSells / VerifySells.length
+
+                dataBarChart.push({ sumSells, month, medTicket })
+                dataBarChart.sort(function (x, y) { return x.month - y.month }) //order array
+            }))
+        return response.json({ Success: true, dataBarChart })
+
+    }
+    catch (error) {
+        return response.json({ Success: false, erro: error })
+    }
+
+})
+
+app.post("/charts/doughnut", async (request, response) => {
+
+    try {
+
+        const { userId } = request.body
+        const atualMonth = new Date().getMonth() + 1
+        const atualYear = new Date().getFullYear()
+        const initialDate = new Date(atualMonth > 9 ? `${atualYear}-${atualMonth}-01T03:00:00.000Z` : `${atualYear}-0${atualMonth}-01T03:00:00.000Z`)
+        const finalDate = new Date(initialDate.getFullYear(), initialDate.getMonth() + 1, 0)
+
+        const searchsells = await prisma.sells.findMany({
+            where: {
+                AND: [{
+                    created_at: {
+                        gt: initialDate
+                    }
+                },
+                {
+                    created_at: {
+                        lt: finalDate
+                    }
+                },
+                { storeId: userId },
+
+                ]
+            }
+        })
+
+        const GenderClients = []
+
+        await Promise.all(
+
+            searchsells.map(async sell => {
+
+                if (sell.clientId === null) {
+                    GenderClients.push({ gender: null })
+                }
+                else {
+                    const searchGenderClients = await prisma.clients.findUnique({
+                        where: {
+                            id: sell.clientId
+                        }, select: {
+                            gender: true
+                        }
+                    })
+                    GenderClients.push(searchGenderClients)
+                }
+            })
+        )
+
+        const FemaleGender = GenderClients.filter(client => client.gender === "F")
+        const MasculineGender = GenderClients.filter(client => client.gender === "M")
+        const NotInformedGender = GenderClients.filter(client => client.gender === null)
+
+        return response.json({
+            Success: true,
+            doughnutData: {
+                femaleGender: FemaleGender.length,
+                masculineGender: MasculineGender.length,
+                notInformedGender: NotInformedGender.length
+            },
+            GenderClients
+        })
+    }
+
+    catch (error) {
+
+        return response.json({ Success: error })
+
+    }
+})
+
+app.post('/charts/area', async (request, response) => {
+
+    const { userId } = request.body
+    const atualDate = new Date()
+    const firstDayWeek = atualDate.getDate() - atualDate.getDay() // first day this week
+    const endDayWeek = firstDayWeek + 6
+    const qtdDays = [0, 1, 2, 3, 4, 5, 6] // change to add more days
+    const daysToConsult = qtdDays.map(day => firstDayWeek + day)
+
+    //var primeiroDiaDaSemana = new Date(dataAtual.setDate(primeiro)).toUTCString();
+    //var ultimoDiaDaSemana = new Date(dataAtual.setDate(ultimo)).toUTCString();
+
+    const SellsChartArea = []
+
+    await Promise.all(
+        daysToConsult.map(async day => {
+
+            const initialDayConsult = new Date((new Date()).setDate(day))
+            const initialHourDayConsult = new Date(initialDayConsult.setUTCHours(0, 0, 0, 0))
+            const endHourDayConsult = new Date(initialDayConsult.setUTCHours(23, 59, 59, 59))
+            const nameDay = new Date((new Date()).setDate(day)).toLocaleString([], { weekday: 'long' })
+
+
+            try {
+                const Sells = await prisma.sells.findMany({
+                    where: {
+                        AND: [{
+                            created_at: {
+                                gt: initialHourDayConsult
+                            }
+                        },
+                        {
+                            created_at: {
+                                lt: endHourDayConsult
+                            }
+                        },
+                        { storeId: userId },
+
+                        ]
+                    }
+                })
+
+                const totalSells = Sells.reduce((acc, item) => {
+                    return acc + item.sellValue
+                }, 0)
+                SellsChartArea.push({ totalSells, day, nameDay })
+                SellsChartArea.sort(function (x, y) { return x.day - y.day }) // order array
+            }
+            catch (error) {
+                return response.json({ Success: false, erro: error })
+            }
+
+
+        })
+    )
+    return response.json({ Success: true, SellsChartArea })
+})
+
+app.post("/charts/bestsellers", async (request, response) => {
+
+    try {
+        const { userId } = request.body
+        const atualMonth = new Date().getMonth() + 1
+        const atualYear = new Date().getFullYear()
+        const initialDate = new Date(atualMonth > 9 ? `${atualYear}-${atualMonth}-01T03:00:00.000Z` : `${atualYear}-0${atualMonth}-01T03:00:00.000Z`)
+        const finalDate = new Date(initialDate.getFullYear(), initialDate.getMonth() + 1, 0)
+
+        const Sellers =
+            await prisma.sellers.findMany({
+                where: {
+                    storeId: userId
+                },
+                select: {
+                    id: true,
+                    name: true
+                }
+            })
+
+        await Promise.all(
+            Sellers.map(async seller => {
+                const SellsSellers = await prisma.sells.findMany({
+                    where: {
+                        AND: [{
+                            created_at: {
+                                gt: initialDate
+                            }
+                        },
+                        {
+                            created_at: {
+                                lt: finalDate
+                            }
+                        },
+                        { storeId: userId },
+                        { sellerId: seller.id }
+
+                        ]
+                    },
+                    orderBy: {
+                        sellerId: 'asc'
+                    }
+                })
+
+                const totalValueSell = SellsSellers.reduce((acc, item) => {
+                    return acc + item.sellValue
+                }, 0)
+
+                await Promise.all(
+                    SellsSellers.map(async sell => {
+                        const ItensSellsSellers = await prisma.itensSell.findMany({
+                            where: {
+                                sellId: sell.id
+                            }
+                        })
+
+                        sell.totalItens = ItensSellsSellers.length
+                    })
+                )
+
+                const totalItensSell = SellsSellers.reduce((acc, item) => {
+                    return acc + item.totalItens
+                }, 0)
+
+                seller.totalValueSell = totalValueSell
+                seller.totalItensSell = totalItensSell
+            })
+
+        )
+        
+        const firstsSellers = Sellers.filter((value,index)=> index <= 3)
+        firstsSellers.sort(function (x, y) { return y.totalValueSell - x.totalValueSell }) // odernar array
+        
+        if (Sellers) {
+            return response.json({ Success: true, bestSellers: firstsSellers })
+        }
+        else {
+            return response.json({ Success: false, erro: "Falha ao localizar dados dos melhores vendedores!" })
+        }
+    }
+    catch (error) {
+        return response.json({ Success: false, erro: error })
+    }
+})
+// END HOME //
 
 // START SELLS //
 
 app.post("/addsell", async (request, response) => {
     try {
         const { sell } = request.body
-        console.log(sell)
+
         const createSellonDB = await prisma.sells.create({
             data: {
                 storeId: sell.UserId,
@@ -959,54 +1259,55 @@ app.post('/addclient', async (request, response) => {
     }
 })
 
-app.post('/deleteclient', async (request,response) => {
+app.post('/deleteclient', async (request, response) => {
 
-    const {dataDeleteClient} = request.body
+    const { dataDeleteClient } = request.body
 
-    try{
+    try {
         const deleteClientDb = await prisma.clients.deleteMany({
-            where:{
-                AND:[{
+            where: {
+                AND: [{
                     storeId: dataDeleteClient.userId,
                     id: dataDeleteClient.clientId
                 }]
-            }})
-        if (deleteClientDb.count <=0 ){
-            return response.json({Success: false, erro:"Nenhum registro encontrado"})
+            }
+        })
+        if (deleteClientDb.count <= 0) {
+            return response.json({ Success: false, erro: "Nenhum registro encontrado" })
         }
         else if (deleteClientDb.count > 0) {
-            return response.json({Success: true})
+            return response.json({ Success: true })
         }
     }
-    catch (error){
-        return response.json({Success: false, erro: error})
+    catch (error) {
+        return response.json({ Success: false, erro: error })
     }
 
 })
 
-app.post ('/deleteseller', async(request, response) => {
+app.post('/deleteseller', async (request, response) => {
 
-    const {dataDeleteSeller} = request.body
+    const { dataDeleteSeller } = request.body
 
-    try{
+    try {
         const deleteSellerDb = await prisma.sellers.deleteMany({
-            where:{
-                AND:[
-                    {id: dataDeleteSeller.sellerId},
-                    {storeId: dataDeleteSeller.userId}
+            where: {
+                AND: [
+                    { id: dataDeleteSeller.sellerId },
+                    { storeId: dataDeleteSeller.userId }
                 ]
             }
         })
-        if (deleteSellerDb.count > 0){
-            return response.json ({Success: true})
+        if (deleteSellerDb.count > 0) {
+            return response.json({ Success: true })
         }
         else if (deleteSellerDb.count <= 0) {
-            return response.sjon ({Success: false, erro: 'Nenhum registro encontrado com os parametros fonecidos'})
+            return response.sjon({ Success: false, erro: 'Nenhum registro encontrado com os parametros fonecidos' })
         }
     }
-    catch (error){
+    catch (error) {
 
-        return response.json({Success: false, erro: error})
+        return response.json({ Success: false, erro: error })
 
     }
 })
