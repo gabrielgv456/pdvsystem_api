@@ -8,7 +8,7 @@ const cors = require('cors');
 const req = require('express/lib/request');
 const atualdate = new Date()
 const corsOptions = {
-    origin: "http://localhost:3000",
+    origin: "*",
     optionsSucessStatus: 200
 }
 
