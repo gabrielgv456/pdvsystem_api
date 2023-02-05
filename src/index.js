@@ -110,7 +110,7 @@ app.post("/adduser", async (request, response) => {
     }
 })
 
-app.post("/logout", async (resquest, response) => {
+app.post("/logout", async (request, response) => {
 
     const { userId } = request.body.dataLogOutUser
     const uuidGenerated = v4()
@@ -146,16 +146,16 @@ app.post("/charts/bar", async (request, response) => {
         const atualMonth = new Date().getMonth() + 1
         const atualYear = new Date().getFullYear()
         const qtdMoths = [0, 1, 2, 3, 4, 5] // add to changing months quantity
-        const monthstoConsult = qtdMoths.map(month => month = atualMonth - month)
+        const monthstoConsult = qtdMoths.map(month => month = new Date().getMonth() + 1 - month)
 
         const dataBarChart = []
 
         await Promise.all(
-            monthstoConsult.map(async month => {
-
-                const initialDate = new Date(month > 9 ? `${atualYear}-${month}-01T03:00:00.000Z` : `${atualYear}-0${month}-01T03:00:00.000Z`)
+            monthstoConsult.map(async monthConsult => {
+                const year = monthConsult <= 0 ? atualYear - 1 : atualYear //update year last year
+                const month = monthConsult <= 0 ? monthConsult + 12 : monthConsult //update months last year
+                const initialDate = new Date(month > 9 ? `${year}-${month}-01T03:00:00.000Z` : `${year}-0${month}-01T03:00:00.000Z`)
                 const finalDate = new Date(initialDate.getFullYear(), initialDate.getMonth() + 1, 0)
-
 
                 const VerifySells = await prisma.sells.findMany({
                     where: {
@@ -170,19 +170,18 @@ app.post("/charts/bar", async (request, response) => {
                             }
                         },
                         { storeId: userId },
+                        {deleted : false}
 
                         ]
                     }
                 })
-
+                
                 const sumSells = VerifySells.reduce((acc, item) => {
                     return acc + item.sellValue
                 }, 0)
-
-                const medTicket = sumSells / VerifySells.length
-
-                dataBarChart.push({ sumSells, month, medTicket })
-                dataBarChart.sort(function (x, y) { return x.month - y.month }) //order array
+                const medTicket = VerifySells.length === 0 ? 0 : sumSells / VerifySells.length
+                dataBarChart.push({ sumSells, month, medTicket, year,initialDate,finalDate })
+                dataBarChart.sort(function (x, y) { return x.initialDate - y.initialDate }) //order array
             }))
         return response.json({ Success: true, dataBarChart })
 
@@ -481,15 +480,15 @@ app.post("/charts/radar", async(request,response) => {
             },
             _count: { id: true },
             by: ['typepayment'],
-            orderBy: { typepayment: 'asc' },
+            orderBy: { typepayment: 'desc' },
             take: 5
         })
 
         await Promise.all (
             Payments.map(payment=>{
                 if (payment.typepayment === 'money'){payment.typepayment = 'Dinheiro'}
-                if (payment.typepayment === 'creditcard'){payment.typepayment = 'Cartão de Crédito'}
-                if (payment.typepayment === 'debitcard'){payment.typepayment = 'Cartão de Débito'}
+                if (payment.typepayment === 'creditcard'){payment.typepayment = 'Crédito'}
+                if (payment.typepayment === 'debitcard'){payment.typepayment = 'Débito'}
                 if (payment.typepayment === 'pix'){payment.typepayment = 'Pix'}
                 if (payment.typepayment === 'others'){payment.typepayment = 'Outros'}
                 payment.quantity = payment._count.id
@@ -1141,12 +1140,12 @@ app.post("/findsellers", async (request, response) => {
                     storeId: userId
                 }
             })
-            if (findSellers.length === 0) {
-                return response.json({ Success: false, erro: "ERRO: Nenhum valor encontrado com os dados fornecidos!" })
-            }
-            else {
+            // if (findSellers.length === 0) {
+            //     return response.json({ Success: false, erro: "ERRO: Nenhum vendedor encontrado com os dados fornecidos!" })
+            // }
+            // else {
                 return response.json({ Success: true, findSellers })
-            }
+            // }
         }
         catch (error) {
             return response.json({ Sucess: false, erro: error })
@@ -1254,12 +1253,12 @@ app.post("/findclients", async (request, response) => {
                     storeId: userId
                 }
             })
-            if (findClients.length === 0) {
-                return response.json({ Success: false, erro: "ERRO: Nenhum valor encontrado com os dados fornecidos!" })
-            }
-            else {
+            // if (findClients.length === 0) {
+            //     return response.json({ Success: false, erro: "ERRO: Nenhum cliente encontrado com os dados fornecidos!" })
+            // }
+            // else {
                 return response.json({ Success: true, findClients })
-            }
+            // }
         }
         catch (error) {
             return response.json({ Sucess: false, erro: error })
