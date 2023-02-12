@@ -14,6 +14,10 @@ model User {
   id                   Int                    @id @default(autoincrement())
   email                String                 @unique
   name                 String
+  nameOwner            String?
+  phone                String?
+  isEmailValid         Boolean                @default(false)
+  codEmailValidate     String?
   password             String
   masterkey            String                 @default("123")
   sells                Sells[]

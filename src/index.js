@@ -6,6 +6,7 @@ const prisma = new PrismaClient()
 const app = express();
 const cors = require('cors');
 const req = require('express/lib/request');
+const sendEmail = require('./mail')
 const atualdate = new Date()
 const corsOptions = {
     origin: "*",
@@ -84,29 +85,51 @@ app.post("/validate", async (request, response) => {
 
 
 app.post("/adduser", async (request, response) => {
-
-    const { email, password, name, masterkey } = request.body
+    console.log(JSON.stringify(request.body))
+    const { email, password, name, masterkey, ownerName, phone } = request.body
 
     try {
+        const verifyExists = await prisma.user.findUnique({
+           where:{email:email} 
+        })
+        if (verifyExists){
+            throw new Error ('E-mail já cadastrado!')}
         const hashedpassword = await bcrypt.hash(password, 11)
         const uuidGenerated = v4()
-
+        function generateRandom() {
+            var stringAleatoria = '';
+            var caracteres = '0123456789';
+            for (var i = 0; i < 6; i++) {
+                stringAleatoria += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+            }
+            return stringAleatoria;
+        }
+        const codEmailValidate = generateRandom()
+        console.log(codEmailValidate)
         const addUserDb = await prisma.user.create({
-            data: {
+            data: {   
                 email: email,
                 name: name,
                 password: hashedpassword,
                 Token: uuidGenerated,
-                masterkey: masterkey
+                masterkey: hashedpassword,
+                nameOwner:ownerName,
+                phone,
+                codEmailValidate
             }
         })
-
+        console.log(addUserDb)
+        const mailConfirm = sendEmail(email,codEmailValidate,ownerName)
+        console.log(mailConfirm)
         if (addUserDb) {
-            return response.json({ Success: true })
+            return response.json({ Success: true, codEmailValidate })
+        } else {
+            throw new Error ('Falha ao adicionar registro!')
         }
     }
     catch (error) {
-        return response.json({ Success: false, erro: error })
+        console.log(error)
+        return response.json({ Success: false, erro: error.message })
     }
 })
 
