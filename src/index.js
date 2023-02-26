@@ -7,6 +7,7 @@ const app = express();
 const cors = require('cors');
 const req = require('express/lib/request');
 const sendEmail = require('./mail')
+const auth = require("./auth")
 const atualdate = new Date()
 const corsOptions = {
     origin: "*",
@@ -17,6 +18,7 @@ app.use(express.json())
 app.use(cors())
 app.use(cors(corsOptions))
 
+app.use(auth()) // all routes below have authorization validation
 //START LOGIN//
 app.post("/signin", async (request, response) => {
 

@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
 
 module.exports = async function sendEmail(email,codVerify,ownerName){
     const mailSent = await transporter.sendMail({
-        subject: `Verificação de email - Smart Store - Código ${codVerify}`,
+        subject: `Verificação de e-mail - Smart Store - Código ${codVerify}`,
         from: 'No-reply Smart Store',
         to: email,
         html: `
