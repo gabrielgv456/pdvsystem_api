@@ -16,8 +16,8 @@ const transporter = nodemailer.createTransport({
 
 module.exports = async function sendEmail(email,codVerify,ownerName){
     const mailSent = await transporter.sendMail({
-        subject: `Verificação de e-mail - Smart Store - Código ${codVerify}`,
-        from: 'No-reply Smart Store',
+        subject: `Verificação de e-mail - Safyra - Código ${codVerify}`,
+        from: 'no-reply@safyra.com.br',
         to: email,
         html: `
         <html>
@@ -26,7 +26,7 @@ module.exports = async function sendEmail(email,codVerify,ownerName){
                 <br/><br/>
                 Hey, ${ownerName}, estamos muito contente que tenha interesse nos nossos serviços. Confirme agora seu e-mail para que possa ter acesso a plataforma!<br/>
                 <br/><br/>
-                Abraços, equipe Smart Store ♡ <br/>
+                Abraços, equipe Safyra ♡ <br/>
 
             </body>
         </html>

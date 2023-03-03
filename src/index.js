@@ -10,9 +10,11 @@ const sendEmail = require('./mail')
 const auth = require("./auth")
 const atualdate = new Date()
 const corsOptions = {
+   // origin: "https://*.safyra.com.br",
     origin: "*",
     optionsSucessStatus: 200
 }
+
 
 app.use(express.json())
 app.use(cors())
@@ -39,7 +41,9 @@ app.post("/signin", async (request, response) => {
                         id: validateUser.id,
                         name: validateUser.name,
                         email: validateUser.email,
-                        masterkey: validateUser.masterkey
+                        masterkey: validateUser.masterkey,
+                        isEmailValid:validateUser.isEmailValid,
+                        codEmailValidate:validateUser.codEmailValidate
                     },
                     token: validateUser.Token
                 })
@@ -87,7 +91,6 @@ app.post("/validate", async (request, response) => {
 
 
 app.post("/adduser", async (request, response) => {
-    console.log(JSON.stringify(request.body))
     const { email, password, name, masterkey, ownerName, phone } = request.body
 
     try {
@@ -107,22 +110,22 @@ app.post("/adduser", async (request, response) => {
             return stringAleatoria;
         }
         const codEmailValidate = generateRandom()
-        console.log(codEmailValidate)
+        
         const addUserDb = await prisma.user.create({
             data: {   
                 email: email,
                 name: name,
                 password: hashedpassword,
                 Token: uuidGenerated,
-                masterkey: hashedpassword,
+                masterkey: "safyra",
                 nameOwner:ownerName,
                 phone,
                 codEmailValidate
             }
         })
-        console.log(addUserDb)
+        
         const mailConfirm = sendEmail(email,codEmailValidate,ownerName)
-        console.log(mailConfirm)
+        
         if (addUserDb) {
             return response.json({ Success: true, codEmailValidate })
         } else {
@@ -130,9 +133,33 @@ app.post("/adduser", async (request, response) => {
         }
     }
     catch (error) {
-        console.log(error)
         return response.json({ Success: false, erro: error.message })
     }
+})
+
+app.post("/validatemail", async(request,response)=>{
+    
+    const {userId} = request.body
+    console.log(userId)
+    try{
+        const validateMail = await prisma.user.update({
+            where:{
+                id : userId
+            },data:{
+                codEmailValidate:null,
+                isEmailValid:true
+            }})
+        if (validateMail){
+            return response.json({success:true})
+
+        }else{
+            throw new Error('Falha ao validar e-mail')
+        } 
+       
+    }catch(error){
+        return response.json({success:false,erro:error.message})
+    }
+
 })
 
 app.post("/logout", async (request, response) => {
