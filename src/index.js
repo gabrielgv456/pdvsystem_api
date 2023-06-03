@@ -10,8 +10,10 @@ const sendEmail = require('./mail')
 const auth = require("./auth")
 const atualdate = new Date()
 const corsOptions = {
-   // origin: "https://*.safyra.com.br",
-    origin: "*",
+    //PRODUCTION:
+    origin: ['https://safyra.com.br','https://www.safya.com.br','https://*.safyra.com.br'],
+    //DEVELOPMENT:
+    //origin: "*",
     optionsSucessStatus: 200
 }
 
