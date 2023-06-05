@@ -11,9 +11,9 @@ const auth = require("./auth")
 const atualdate = new Date()
 const corsOptions = {
     //PRODUCTION:
-    origin: ['https://safyra.com.br','https://www.safya.com.br','https://*.safyra.com.br'],
+    //origin: ['https://safyra.com.br','https://www.safya.com.br','https://*.safyra.com.br'],
     //DEVELOPMENT:
-    //origin: "*",
+    origin: "*",
     optionsSucessStatus: 200
 }
 
@@ -127,9 +127,10 @@ app.post("/adduser", async (request, response) => {
         })
         
         const mailConfirm = sendEmail(email,codEmailValidate,ownerName)
-        
+        const idUser      = addUserDb.id
+
         if (addUserDb) {
-            return response.json({ Success: true, codEmailValidate })
+            return response.json({ Success: true, codEmailValidate, idUser })
         } else {
             throw new Error ('Falha ao adicionar registro!')
         }
