@@ -762,6 +762,7 @@ app.post("/products", async (request, response) => {
                 })
             }
             else {
+                listProducts.map((product)=>product.totalValue = product.quantity * product.value)
                 return response.json({
 
                     listProducts
