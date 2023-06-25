@@ -44,8 +44,8 @@ app.post("/signin", async (request, response) => {
                         name: validateUser.name,
                         email: validateUser.email,
                         masterkey: validateUser.masterkey,
-                        isEmailValid:validateUser.isEmailValid,
-                        codEmailValidate:validateUser.codEmailValidate
+                        isEmailValid: validateUser.isEmailValid,
+                        codEmailValidate: validateUser.codEmailValidate
                     },
                     token: validateUser.Token
                 })
@@ -97,10 +97,11 @@ app.post("/adduser", async (request, response) => {
 
     try {
         const verifyExists = await prisma.user.findUnique({
-           where:{email:email} 
+            where: { email: email }
         })
-        if (verifyExists){
-            throw new Error ('E-mail já cadastrado!')}
+        if (verifyExists) {
+            throw new Error('E-mail já cadastrado!')
+        }
         const hashedpassword = await bcrypt.hash(password, 11)
         const uuidGenerated = v4()
         function generateRandom() {
@@ -112,27 +113,27 @@ app.post("/adduser", async (request, response) => {
             return stringAleatoria;
         }
         const codEmailValidate = generateRandom()
-        
+
         const addUserDb = await prisma.user.create({
-            data: {   
+            data: {
                 email: email,
                 name: name,
                 password: hashedpassword,
                 Token: uuidGenerated,
                 masterkey: "safyra",
-                nameOwner:ownerName,
+                nameOwner: ownerName,
                 phone,
                 codEmailValidate
             }
         })
-        
-        const mailConfirm = sendEmail(email,codEmailValidate,ownerName)
-        const idUser      = addUserDb.id
+
+        const mailConfirm = sendEmail(email, codEmailValidate, ownerName)
+        const idUser = addUserDb.id
 
         if (addUserDb) {
             return response.json({ Success: true, codEmailValidate, idUser })
         } else {
-            throw new Error ('Falha ao adicionar registro!')
+            throw new Error('Falha ao adicionar registro!')
         }
     }
     catch (error) {
@@ -140,27 +141,28 @@ app.post("/adduser", async (request, response) => {
     }
 })
 
-app.post("/validatemail", async(request,response)=>{
-    
-    const {userId} = request.body
-    console.log(userId)
-    try{
-        const validateMail = await prisma.user.update({
-            where:{
-                id : userId
-            },data:{
-                codEmailValidate:null,
-                isEmailValid:true
-            }})
-        if (validateMail){
-            return response.json({success:true})
+app.post("/validatemail", async (request, response) => {
 
-        }else{
+    const { userId } = request.body
+    console.log(userId)
+    try {
+        const validateMail = await prisma.user.update({
+            where: {
+                id: userId
+            }, data: {
+                codEmailValidate: null,
+                isEmailValid: true
+            }
+        })
+        if (validateMail) {
+            return response.json({ success: true })
+
+        } else {
             throw new Error('Falha ao validar e-mail')
-        } 
-       
-    }catch(error){
-        return response.json({success:false,erro:error.message})
+        }
+
+    } catch (error) {
+        return response.json({ success: false, erro: error.message })
     }
 
 })
@@ -225,17 +227,17 @@ app.post("/charts/bar", async (request, response) => {
                             }
                         },
                         { storeId: userId },
-                        {deleted : false}
+                        { deleted: false }
 
                         ]
                     }
                 })
-                
+
                 const sumSells = VerifySells.reduce((acc, item) => {
                     return acc + item.sellValue
                 }, 0)
                 const medTicket = VerifySells.length === 0 ? 0 : sumSells / VerifySells.length
-                dataBarChart.push({ sumSells, month, medTicket, year,initialDate,finalDate })
+                dataBarChart.push({ sumSells, month, medTicket, year, initialDate, finalDate })
                 dataBarChart.sort(function (x, y) { return x.initialDate - y.initialDate }) //order array
             }))
         return response.json({ Success: true, dataBarChart })
@@ -503,16 +505,16 @@ app.post("/charts/topsellingproducts", async (request, response) => {
             }
             )
         )
-        return response.json({Success:true, topSellingProducts })
+        return response.json({ Success: true, topSellingProducts })
     }
     catch (error) {
         return response.json({ Success: false, erro: error })
     }
 })
 
-app.post("/charts/radar", async(request,response) => {
-    try{
-        const {userId} = request.body
+app.post("/charts/radar", async (request, response) => {
+    try {
+        const { userId } = request.body
         const atualMonth = new Date().getMonth() + 1
         const atualYear = new Date().getFullYear()
         const initialDate = new Date(atualMonth > 9 ? `${atualYear}-${atualMonth}-01T03:00:00.000Z` : `${atualYear}-0${atualMonth}-01T03:00:00.000Z`)
@@ -539,22 +541,22 @@ app.post("/charts/radar", async(request,response) => {
             take: 5
         })
 
-        await Promise.all (
-            Payments.map(payment=>{
-                if (payment.typepayment === 'money'){payment.typepayment = 'Dinheiro'}
-                if (payment.typepayment === 'creditcard'){payment.typepayment = 'Crédito'}
-                if (payment.typepayment === 'debitcard'){payment.typepayment = 'Débito'}
-                if (payment.typepayment === 'pix'){payment.typepayment = 'Pix'}
-                if (payment.typepayment === 'others'){payment.typepayment = 'Outros'}
+        await Promise.all(
+            Payments.map(payment => {
+                if (payment.typepayment === 'money') { payment.typepayment = 'Dinheiro' }
+                if (payment.typepayment === 'creditcard') { payment.typepayment = 'Crédito' }
+                if (payment.typepayment === 'debitcard') { payment.typepayment = 'Débito' }
+                if (payment.typepayment === 'pix') { payment.typepayment = 'Pix' }
+                if (payment.typepayment === 'others') { payment.typepayment = 'Outros' }
                 payment.quantity = payment._count.id
                 delete payment._count
             })
         )
 
-        return response.json({Success:true, Payments})
+        return response.json({ Success: true, Payments })
     }
-    catch(error) {
-        return response.json({Success:false, erro: error})
+    catch (error) {
+        return response.json({ Success: false, erro: error })
     }
 })
 // END HOME //
@@ -1199,7 +1201,7 @@ app.post("/findsellers", async (request, response) => {
             //     return response.json({ Success: false, erro: "ERRO: Nenhum vendedor encontrado com os dados fornecidos!" })
             // }
             // else {
-                return response.json({ Success: true, findSellers })
+            return response.json({ Success: true, findSellers })
             // }
         }
         catch (error) {
@@ -1312,7 +1314,7 @@ app.post("/findclients", async (request, response) => {
             //     return response.json({ Success: false, erro: "ERRO: Nenhum cliente encontrado com os dados fornecidos!" })
             // }
             // else {
-                return response.json({ Success: true, findClients })
+            return response.json({ Success: true, findClients })
             // }
         }
         catch (error) {
@@ -1463,4 +1465,101 @@ app.post('/deleteseller', async (request, response) => {
 })
 
 // END INVENTORY MANAGEMENT //
+
+// START SETTINGS //
+
+app.patch("/changepass", async (request, response) => {
+    try {
+        const { storeId, actualPass, newPass } = request.body.data;
+        if (!storeId, !actualPass || !newPass) {
+            throw new Error('Necessário informar todos parametros! (actualPass,newPass,storeId)')
+        }
+        const findUser = await prisma.user.findUnique({ where: { id: storeId } })
+
+        if (findUser === null) {
+            throw new Error("Não foi encontrado usuarios com esse id")
+        }
+        const hashedPassword = await bcrypt.hash(newPass, 11)
+        if (await bcrypt.compare(actualPass, findUser.password)) {
+            const changePassWord = await prisma.user.update({
+                where: { id: storeId },
+                data: { password: hashedPassword }
+            })
+            if (changePassWord) {
+                return response.json({ Success: true })
+            } else {
+                throw new Error("Falha ao atualizar senha!")
+            }
+        } else {
+            throw new Error("Senha atual incorreta!")
+        }
+    } catch (error) {
+        return response.json({ Success: false, erro: error.message })
+    }
+})
+
+app.get("/aboutCorporation", async (request, response) => {
+    try {
+        const { storeId } = request.query
+        if (!storeId) {
+            throw new Error('Informe o storeId!')
+        }
+
+        const resultAboutCorporation = await prisma.user.findUnique({
+            where: {
+                id: parseInt(storeId)
+            }, select: {
+                email: true,
+                name: true,
+                phone: true,
+                adressCep: true,
+                adressNeighborhood: true,
+                adressNumber: true,
+                adressState: true,
+                adressStreet: true,
+                adressCity: true,
+                cellPhone: true,
+                fantasyName:true,
+                cnpj: true
+            }
+        })
+        if (!resultAboutCorporation) {
+            throw new Error('Falha ao localizar dados sobre a empresa!')
+        }
+        return response.json({ Success: true, resultAboutCorporation })
+    } catch (error) {
+        return response.json({ Success: false, erro: error.message })
+    }
+})
+
+app.patch("/changeAboutCorporation", async (request, response) => {
+    try {
+        const { storeId, name, phone, adressCep, adressNeighborhood, adressNumber, adressState, fantasyName,adressStreet, adressCity, cellPhone, cnpj } = request.body.data
+        const updateAbouteCorporation = await prisma.user.update({
+            where: {
+                id: storeId
+            }, data: {
+                adressCep,
+                adressNeighborhood,
+                adressNumber,
+                adressState,
+                adressStreet,
+                adressCity,
+                cellPhone,
+                cnpj,
+                //email,
+                fantasyName,
+                name,
+                phone
+            }
+        })
+        if (!updateAbouteCorporation) {
+            throw new Error('Falha ao atualizar dados sobre a empresa!')
+        }
+        return response.json({ Success: true, updateAbouteCorporation })
+    } catch (error) {
+        return response.json({ Success: false, erro: error.message })
+    }
+})
+// END SETTINGS //
 app.listen(2211, () => console.log('Server Up on 2211 port'));
