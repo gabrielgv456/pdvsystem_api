@@ -9,6 +9,7 @@ const req = require('express/lib/request');
 const sendEmail = require('./mail')
 const auth = require("./auth")
 const atualdate = new Date()
+const ncm = require("./utils/NCM.json")
 const corsOptions = {
     //PRODUCTION:
     //origin: ['https://safyra.com.br','https://www.safya.com.br','https://*.safyra.com.br'],
@@ -762,7 +763,7 @@ app.post("/products", async (request, response) => {
                 })
             }
             else {
-                listProducts.map((product)=>product.totalValue = product.quantity * product.value)
+                listProducts.map((product) => product.totalValue = product.quantity * product.value)
                 return response.json({
 
                     listProducts
@@ -1520,7 +1521,7 @@ app.get("/aboutCorporation", async (request, response) => {
                 adressStreet: true,
                 adressCity: true,
                 cellPhone: true,
-                fantasyName:true,
+                fantasyName: true,
                 cnpj: true
             }
         })
@@ -1535,7 +1536,7 @@ app.get("/aboutCorporation", async (request, response) => {
 
 app.patch("/changeAboutCorporation", async (request, response) => {
     try {
-        const { storeId, name, phone, adressCep, adressNeighborhood, adressNumber, adressState, fantasyName,adressStreet, adressCity, cellPhone, cnpj } = request.body.data
+        const { storeId, name, phone, adressCep, adressNeighborhood, adressNumber, adressState, fantasyName, adressStreet, adressCity, cellPhone, cnpj } = request.body.data
         const updateAbouteCorporation = await prisma.user.update({
             where: {
                 id: storeId
@@ -1559,6 +1560,28 @@ app.patch("/changeAboutCorporation", async (request, response) => {
         }
         return response.json({ Success: true, updateAbouteCorporation })
     } catch (error) {
+        return response.json({ Success: false, erro: error.message })
+    }
+})
+
+app.get("/listNCM", async (request, response) => {
+    try {
+        //https://portalunico.siscomex.gov.br/classif/api/publico/nomenclatura/download/json  ATUALIZAR NCM JSON
+
+        //const validNCM = ncm.Nomenclaturas.filter(item => { item.Data_Inicio < new Date() })
+        const ncmList = ncm.Nomenclaturas
+        await Promise.all(
+            ncmList.map(item => {
+                delete item.Data_Fim
+                delete item.Data_Inicio
+                delete item.Ano_Ato
+                delete item.Numero_Ato
+                delete item.Tipo_Ato
+            })
+        )
+        return response.json({ Success: true, ncmList })
+    }
+    catch (error) {
         return response.json({ Success: false, erro: error.message })
     }
 })

@@ -176,3 +176,18 @@ model Clients {
   storeId            Int
   Sells              Sells[]
 }
+
+model icmsOrigem {
+  id          Int       @id 
+  descricao   String
+}
+
+model icmsCst {
+  id          Int       @id
+  descricao   String        
+}
+
+model itemType {
+  id          Int       @id
+  descricao   String 
+}
