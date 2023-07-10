@@ -138,7 +138,7 @@ app.post("/adduser", async (request, response) => {
         }
     }
     catch (error) {
-        return response.json({ Success: false, erro: error.message })
+        return response.json({ Success: false, erro: error })
     }
 })
 
@@ -163,7 +163,7 @@ app.post("/validatemail", async (request, response) => {
         }
 
     } catch (error) {
-        return response.json({ success: false, erro: error.message })
+        return response.json({ success: false, erro: error })
     }
 
 })
@@ -599,6 +599,7 @@ app.post("/addsell", async (request, response) => {
                     }
 
                 })
+
                 const createTransactionProduct = await prisma.transactionsProducts.create({
                     data: {
                         type: "S",
@@ -648,6 +649,18 @@ app.post("/addsell", async (request, response) => {
                 }
             })
         })
+
+        if (sell.changeValue) {
+            const createChangeTransaction = await prisma.transactions.create({
+                data: {
+                    type: 'exit_change',
+                    description: 'Troco de venda',
+                    value: sell.changeValue,
+                    sellId: createSellonDB.id,
+                    storeId: sell.UserId
+                }
+            })
+        }
         return response.json({ Success: true })
     }
 
@@ -984,7 +997,12 @@ app.post("/addproduct", async (request, response) => {
                 quantity: dataAddProduct.quantity,
                 active: dataAddProduct.active,
 
-
+                cost: dataAddProduct.cost,
+                profitMargin: dataAddProduct.profitMargin,
+                barCode: dataAddProduct.barCode,
+                ncmCode: dataAddProduct.ncmCode,
+                itemTypeId: dataAddProduct.itemTypeId,
+                unitMeasuremnt: dataAddProduct.unitMeasuremnt
             }
         })
 
@@ -1496,7 +1514,7 @@ app.patch("/changepass", async (request, response) => {
             throw new Error("Senha atual incorreta!")
         }
     } catch (error) {
-        return response.json({ Success: false, erro: error.message })
+        return response.json({ Success: false, erro: error })
     }
 })
 
@@ -1530,7 +1548,7 @@ app.get("/aboutCorporation", async (request, response) => {
         }
         return response.json({ Success: true, resultAboutCorporation })
     } catch (error) {
-        return response.json({ Success: false, erro: error.message })
+        return response.json({ Success: false, erro: error })
     }
 })
 
@@ -1560,7 +1578,7 @@ app.patch("/changeAboutCorporation", async (request, response) => {
         }
         return response.json({ Success: true, updateAbouteCorporation })
     } catch (error) {
-        return response.json({ Success: false, erro: error.message })
+        return response.json({ Success: false, erro: error })
     }
 })
 
@@ -1582,7 +1600,18 @@ app.get("/listNCM", async (request, response) => {
         return response.json({ Success: true, ncmList })
     }
     catch (error) {
-        return response.json({ Success: false, erro: error.message })
+        return response.json({ Success: false, erro: error })
+    }
+})
+
+app.get("/listItemType", async (request, response) => {
+    try {
+        const findItemType = await prisma.itemType.findMany()
+        if (findItemType) {
+            return response.json({ Success: true, findItemType })
+        }
+    } catch (error) {
+        return response.json({ Success: false, erro: error })
     }
 })
 // END SETTINGS //

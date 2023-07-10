@@ -51,6 +51,13 @@ model Products {
   itenssells           ItensSell[]
   transactionsProducts TransactionsProducts[]
   quantity             Int
+  cost                 Float?
+  profitMargin         Float?
+  barCode              String?
+  ncmCode              String?
+  itemType             itemType?              @relation(fields: [itemTypeId], references: [id])
+  itemTypeId           Int?
+  unitMeasuremnt       String?
   active               Boolean
 }
 
@@ -190,4 +197,5 @@ model icmsCst {
 model itemType {
   id          Int       @id
   descricao   String 
+  products    Products[]
 }

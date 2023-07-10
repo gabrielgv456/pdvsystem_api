@@ -1,0 +1,35 @@
+-- AlterTable
+ALTER TABLE "Clients" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "ItensSell" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "PaymentSell" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "Products" ADD COLUMN     "barCode" TEXT,
+ADD COLUMN     "cost" DOUBLE PRECISION,
+ADD COLUMN     "itemTypeId" INTEGER,
+ADD COLUMN     "ncmCode" TEXT,
+ADD COLUMN     "profitMargin" DOUBLE PRECISION,
+ADD COLUMN     "unitMeasuremnt" TEXT,
+ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "Sellers" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "Sells" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "Transactions" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "TransactionsProducts" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AddForeignKey
+ALTER TABLE "Products" ADD CONSTRAINT "Products_itemTypeId_fkey" FOREIGN KEY ("itemTypeId") REFERENCES "itemType"("id") ON DELETE SET NULL ON UPDATE CASCADE;
