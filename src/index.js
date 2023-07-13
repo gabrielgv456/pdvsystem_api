@@ -768,7 +768,7 @@ app.post("/products", async (request, response) => {
             const listProducts = await prisma.products.findMany({
                 orderBy: { id: 'desc' },
                 where: { storeId: userId },
-                select: { id: true, name: true, value: true, created_at: true, active: true, quantity: true }
+                select: { id: true, name: true, value: true, created_at: true, active: true, quantity: true, barCode: true, cost: true, itemTypeId: true, ncmCode: true, profitMargin: true, unitMeasuremnt: true, cfopId: true }
             })
             if (listProducts == null) {
                 return response.json({
@@ -1002,6 +1002,7 @@ app.post("/addproduct", async (request, response) => {
                 barCode: dataAddProduct.barCode,
                 ncmCode: dataAddProduct.ncmCode,
                 itemTypeId: dataAddProduct.itemTypeId,
+                cfopId: dataAddProduct.cfopId,
                 unitMeasuremnt: dataAddProduct.unitMeasuremnt
             }
         })
@@ -1609,6 +1610,18 @@ app.get("/listItemType", async (request, response) => {
         const findItemType = await prisma.itemType.findMany()
         if (findItemType) {
             return response.json({ Success: true, findItemType })
+        }
+    } catch (error) {
+        return response.json({ Success: false, erro: error })
+    }
+})
+
+
+app.get("/listCfop", async (request, response) => {
+    try {
+        const findCfop = await prisma.Cfop.findMany()
+        if (findCfop) {
+            return response.json({ Success: true, findCfop })
         }
     } catch (error) {
         return response.json({ Success: false, erro: error })
