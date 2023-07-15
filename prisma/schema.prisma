@@ -59,7 +59,7 @@ model Products {
   itemTypeId           Int?
   cfop                 Cfop?                  @relation(fields: [cfopId],references: [id])
   cfopId               Int?
-  unitMeasuremnt       String?
+  unitMeasurement      String?
   active               Boolean
 }
 
@@ -97,6 +97,7 @@ model Sells {
   sellValue    Float
   valuePayment Float
   deleted      Boolean        @default(false)
+  cost         Float?
 }
 
 model ItensSell {
@@ -112,6 +113,8 @@ model ItensSell {
   valueProduct       Float
   totalValue         Float
   descriptionProduct String
+  costProduct        Float?
+  totalCost          Float?
   created_at         DateTime @default(dbgenerated("CURRENT_TIMESTAMP"))
 }
 

@@ -8,11 +8,11 @@ module.exports = function () {
                 next()
             }
             else {
-                return response.status(400).json({ erro: "Token inválido" })
+                return response.status(401).json({ erro: "Token inválido" })
             }
         }
         else {
-            return response.status(400).json({ erro: "Token não informado" })
+            return response.status(401).json({ erro: "Token não informado" })
         }
     }
 }
