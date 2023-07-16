@@ -42,7 +42,11 @@ module.exports = async function chartsBar(request, response) {
                     return acc + item.sellValue
                 }, 0)
                 const medTicket = VerifySells.length === 0 ? 0 : sumSells / VerifySells.length
-                dataBarChart.push({ sumSells, month, medTicket, year, initialDate, finalDate })
+
+                const listSellFiltered = VerifySells.filter(sell=>sell.cost > 0) 
+                const totalProfit = listSellFiltered.map(item => item.sellValue).reduce((prev, curr) => prev + curr, 0) - listSellFiltered.map(item => item.cost).reduce((prev, curr) => prev + curr, 0) ;   
+
+                dataBarChart.push({ sumSells, month, medTicket, totalProfit, year, initialDate, finalDate })
                 dataBarChart.sort(function (x, y) { return x.initialDate - y.initialDate }) //order array
             }))
         return response.json({ Success: true, dataBarChart })

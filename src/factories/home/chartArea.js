@@ -45,7 +45,11 @@ module.exports = async function chartsArea(request, response) {
                 const totalSells = Sells.reduce((acc, item) => {
                     return acc + item.sellValue
                 }, 0)
-                SellsChartArea.push({ totalSells, day, nameDay })
+
+                const listSellFiltered = Sells.filter(sell=>sell.cost > 0) 
+                const totalProfit = listSellFiltered.map(item => item.sellValue).reduce((prev, curr) => prev + curr, 0) - listSellFiltered.map(item => item.cost).reduce((prev, curr) => prev + curr, 0) ;
+
+                SellsChartArea.push({ totalSells, day, nameDay, totalProfit })
                 SellsChartArea.sort(function (x, y) { return x.day - y.day }) // order array
             }
             catch (error) {
