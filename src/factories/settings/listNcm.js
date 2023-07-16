@@ -1,6 +1,6 @@
 const ncm = require("../../utils/NCM.json")
 
-module.exports = (prisma) => async function listNcm(request, response) {
+module.exports = async function listNcm(request, response) {
     try {
         //https://portalunico.siscomex.gov.br/classif/api/publico/nomenclatura/download/json  ATUALIZAR NCM JSON
 

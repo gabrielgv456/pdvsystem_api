@@ -1,42 +1,40 @@
 const { Router } = require('express');
 const router = Router();
-const { PrismaClient, Prisma } = require('@prisma/client');
 const changePass = require('../factories/settings/changePass');
-const prisma = new PrismaClient()
-const findTransactions = require('../factories/transactions/findTransactions')(prisma);
-const addTransaction = require('../factories/transactions/addTransaction')(prisma);
-const addProduct = require('../factories/inventoryManagement/addProduct')(prisma);
-const editProduct = require('../factories/inventoryManagement/editProduct')(prisma);
-const deleteProduct = require('../factories/inventoryManagement/deleteProduct')(prisma);
-const findTransactionsProducts = require('../factories/inventoryManagement/findTransactionsProducts')(prisma);
-const findSellers = require('../factories/people/findSellers')(prisma);
-const editSeller = require('../factories/people/editSeller')(prisma);
-const addSeller = require('../factories/people/addSeller')(prisma);
-const findClients = require('../factories/people/findClients')(prisma);
-const editClient = require('../factories/people/editClient')(prisma);
-const addClient = require('../factories/people/addClient')(prisma);
-const deleteClient = require('../factories/people/deleteClient')(prisma);
-const deleteSeller = require('../factories/people/deleteSeller')(prisma);
-const aboutCorporation = require('../factories/settings/aboutCorporation')(prisma);
-const changeAboutCorporation = require('../factories/settings/changeAboutCorporation')(prisma);
-const listNcm = require('../factories/settings/listNcm')(prisma);
-const listItemType = require('../factories/settings/listItemType')(prisma);
-const addUser = require('../factories/login/addUser')(prisma);
-const validateMail = require('../factories/login/validateMail')(prisma);
-const logout = require('../factories/login/logout')(prisma);
-const chartBar = require('../factories/home/chartBar')(prisma);
-const chartDoughnut = require('../factories/home/chartDoughnut')(prisma);
-const chartArea = require('../factories/home/chartArea')(prisma);
-const chartBestSellers = require('../factories/home/chartBestSellers')(prisma);
-const chartTopSellingProducts = require('../factories/home/chartTopSellingProducts')(prisma);
-const chartRadar = require('../factories/home/chartRadar')(prisma);
-const findCfop = require('../factories/inventoryManagement/findCfop')(prisma)
-const signIn = require('../factories/login/signin')(prisma)
-const validate = require('../factories/login/validate')(prisma)
-const addSell = require('../factories/sells/addSell')(prisma);
-const deleteSell = require('../factories/sells/deleteSell')(prisma);
-const products = require('../factories/inventoryManagement/products')(prisma);
-const findsSells = require('../factories/controlSells/findSells')(prisma);
+const findTransactions = require('../factories/transactions/findTransactions');
+const addTransaction = require('../factories/transactions/addTransaction');
+const addProduct = require('../factories/inventoryManagement/addProduct');
+const editProduct = require('../factories/inventoryManagement/editProduct');
+const deleteProduct = require('../factories/inventoryManagement/deleteProduct');
+const findTransactionsProducts = require('../factories/inventoryManagement/findTransactionsProducts');
+const findSellers = require('../factories/people/findSellers');
+const editSeller = require('../factories/people/editSeller');
+const addSeller = require('../factories/people/addSeller');
+const findClients = require('../factories/people/findClients');
+const editClient = require('../factories/people/editClient');
+const addClient = require('../factories/people/addClient');
+const deleteClient = require('../factories/people/deleteClient');
+const deleteSeller = require('../factories/people/deleteSeller');
+const aboutCorporation = require('../factories/settings/aboutCorporation');
+const changeAboutCorporation = require('../factories/settings/changeAboutCorporation');
+const listNcm = require('../factories/settings/listNcm');
+const listItemType = require('../factories/settings/listItemType');
+const addUser = require('../factories/login/addUser');
+const validateMail = require('../factories/login/validateMail');
+const logout = require('../factories/login/logout');
+const chartBar = require('../factories/home/chartBar');
+const chartDoughnut = require('../factories/home/chartDoughnut');
+const chartArea = require('../factories/home/chartArea');
+const chartBestSellers = require('../factories/home/chartBestSellers');
+const chartTopSellingProducts = require('../factories/home/chartTopSellingProducts');
+const chartRadar = require('../factories/home/chartRadar');
+const findCfop = require('../factories/inventoryManagement/findCfop')
+const signIn = require('../factories/login/signin')
+const validate = require('../factories/login/validate')
+const addSell = require('../factories/sells/addSell');
+const deleteSell = require('../factories/sells/deleteSell');
+const products = require('../factories/inventoryManagement/products');
+const findsSells = require('../factories/controlSells/findSells');
 
 //START LOGIN//
 router.post("/signin", signIn)
@@ -96,5 +94,6 @@ router.patch("/changeAboutCorporation", changeAboutCorporation)
 router.get("/listNCM", listNcm)
 router.get("/listItemType", listItemType)
 // END SETTINGS //
+
 
 module.exports = router

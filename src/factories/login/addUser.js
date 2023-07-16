@@ -1,8 +1,9 @@
 const { v4 } = require('uuid')
 const bcrypt = require('bcrypt')
 const sendEmail = require('../../services/mail')
+const prisma = require('../../services/prisma')
 
-module.exports = (prisma) => async function addUser(request, response) {
+module.exports = async function addUser(request, response) {
     const { email, password, name, masterkey, ownerName, phone } = request.body
 
     try {

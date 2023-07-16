@@ -1,6 +1,7 @@
 const validateFields = require('../../utils/validateFields');
+const prisma = require('../../services/prisma')
 
-module.exports = (prisma) => async function addProduct(request, response) {
+module.exports = async function addProduct(request, response) {
     
     const { dataAddProduct } = request.body
 

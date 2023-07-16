@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt')
+const prisma = require('../../services/prisma')
 
-
-module.exports = (prisma) => async function changePass(request, response) {
+module.exports = async function changePass(request, response) {
     try {
         const { storeId, actualPass, newPass } = request.body.data;
         if (!storeId, !actualPass || !newPass) {

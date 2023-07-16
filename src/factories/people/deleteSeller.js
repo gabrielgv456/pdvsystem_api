@@ -1,4 +1,6 @@
-module.exports = (prisma) => async function deleteSeller(request, response) {
+const prisma = require('../../services/prisma')
+
+module.exports = async function deleteSeller(request, response) {
     const { dataDeleteSeller } = request.body
 
     try {

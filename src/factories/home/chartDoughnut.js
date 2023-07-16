@@ -1,4 +1,6 @@
-module.exports = (prisma) => async function chartDoughnut(request, response) {
+const prisma = require('../../services/prisma')
+
+module.exports = async function chartDoughnut(request, response) {
 
     try {
 

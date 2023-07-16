@@ -1,4 +1,6 @@
-module.exports = (prisma) => async function deleteSell(request, response) {
+const prisma = require('../../services/prisma')
+
+module.exports = async function deleteSell(request, response) {
 
     const { dataDeleteSell } = request.body
 
@@ -72,6 +74,19 @@ module.exports = (prisma) => async function deleteSell(request, response) {
                     storeId: dataDeleteSell.UserId
                 }
             })
+        }
+        if (dataDeleteSell.removeTransaction) {
+            const deleteTransaction = await prisma.transactions.deleteMany({
+                where: {
+                    AND: [
+                        { storeId: dataDeleteSell.UserId },
+                        { sellId: dataDeleteSell.SellId }
+                    ]
+                }
+            })
+            if (deleteTransaction.count === 0) {
+                throw new Error('Falha ao remover recebimento!')
+            }
         }
 
         if (deleteSellonDB.count <= 0) {

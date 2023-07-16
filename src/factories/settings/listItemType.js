@@ -1,4 +1,6 @@
-module.exports = (prisma) => async function listItemType(request, response) {
+const prisma = require('../../services/prisma')
+
+module.exports = async function listItemType(request, response) {
     try {
         const findItemType = await prisma.itemType.findMany()
         if (findItemType) {

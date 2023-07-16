@@ -1,4 +1,6 @@
-module.exports = (prisma) => async function chartsArea(request, response) {
+const prisma = require('../../services/prisma')
+
+module.exports = async function chartsArea(request, response) {
 
     const { userId } = request.body
     const atualDate = new Date()
@@ -18,7 +20,7 @@ module.exports = (prisma) => async function chartsArea(request, response) {
             const initialDayConsult = new Date((new Date()).setDate(day))
             const initialHourDayConsult = new Date(initialDayConsult.setUTCHours(0, 0, 0, 0))
             const endHourDayConsult = new Date(initialDayConsult.setUTCHours(23, 59, 59, 59))
-            const nameDay = new Date((new Date()).setDate(day)).toLocaleString([], { weekday: 'long' })
+            const nameDay = new Date((new Date()).setDate(day)).toLocaleString('pt-br', { weekday: 'long' })
 
 
             try {

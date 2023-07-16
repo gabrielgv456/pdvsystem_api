@@ -1,4 +1,6 @@
-module.exports = (prisma) => async function deleteClient(request, response) {
+const prisma = require('../../services/prisma')
+
+module.exports = async function deleteClient(request, response) {
 
     const { dataDeleteClient } = request.body
 

@@ -32,5 +32,4 @@ module.exports = async function sendEmail(email,codVerify,ownerName){
         </html>
         `
     })
-    console.log(mailSent)
 }

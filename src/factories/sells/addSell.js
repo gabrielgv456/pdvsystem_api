@@ -1,4 +1,6 @@
-module.exports = (prisma) => async function addSell(request, response) {
+const prisma = require('../../services/prisma')
+
+module.exports = async function addSell(request, response) {
     try {
         const { sell } = request.body
 

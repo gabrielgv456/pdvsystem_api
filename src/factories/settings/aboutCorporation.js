@@ -1,4 +1,6 @@
-module.exports = (prisma) => async function aboutCorporation(request, response) {
+const prisma = require('../../services/prisma')
+
+module.exports = async function aboutCorporation(request, response) {
     try {
         const { storeId } = request.query
         if (!storeId) {

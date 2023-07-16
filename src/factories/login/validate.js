@@ -1,4 +1,6 @@
-module.exports = (prisma) => async function validate(request, response) {
+const prisma = require('../../services/prisma')
+
+module.exports = async function validate(request, response) {
     try {
         const { token } = request.body
 

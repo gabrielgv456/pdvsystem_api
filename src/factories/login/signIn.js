@@ -1,7 +1,8 @@
 const { v4 } = require('uuid')
 const bcrypt = require('bcrypt')
+const prisma = require('../../services/prisma')
 
-module.exports = (prisma) => async function signIn(request, response) {
+module.exports = async function signIn(request, response) {
     try {
         const { email, password } = request.body
         const uuidGenerated = v4()

@@ -1,4 +1,6 @@
-module.exports = (prisma) => async function validateMail(request, response) {
+const prisma = require('../../services/prisma')
+
+module.exports = async function validateMail(request, response) {
     const { userId } = request.body
     try {
         const validateMail = await prisma.user.update({

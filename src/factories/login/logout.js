@@ -1,6 +1,7 @@
 const { v4 } = require('uuid')
+const prisma = require('../../services/prisma')
 
-module.exports = (prisma) => async function logout(request, response) {
+module.exports = async function logout(request, response) {
     
     const { userId } = request.body.dataLogOutUser
     const uuidGenerated = v4()

@@ -1,4 +1,6 @@
-module.exports = (prisma) => async function findCfop(request, response) {
+const prisma = require('../../services/prisma')
+
+module.exports = async function findCfop(request, response) {
     try {
         const findCfop = await prisma.Cfop.findMany()
         if (findCfop) {

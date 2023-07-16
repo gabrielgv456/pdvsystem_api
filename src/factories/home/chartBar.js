@@ -1,4 +1,6 @@
-module.exports = (prisma) => async function chartsBar(request, response) {
+const prisma = require('../../services/prisma')
+
+module.exports = async function chartsBar(request, response) {
     
     const { userId } = request.body
 

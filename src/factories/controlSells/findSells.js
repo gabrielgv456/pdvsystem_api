@@ -1,4 +1,6 @@
-module.exports = (prisma) => async function findSell(request, response) {
+const prisma = require('../../services/prisma')
+
+module.exports = async function findSell(request, response) {
     
     const { datafindSells } = request.body
 
@@ -111,10 +113,10 @@ module.exports = (prisma) => async function findSell(request, response) {
                 }
             })
         )
-        console.log(finalSellswithSellerorClientname)
         //const findsells = await prisma.$queryRaw`SELECT * FROM "public"."ItensSell" WHERE "created_at" = timestamp '2022-06-09 13:27:54' `
 
         if (findsells && findsellsproducts && finalSellswithSellerorClientname) {
+            finalSellswithSellerorClientname.sort(function (y,x) { return x.created_at - y.created_at })
             const finalreturn = { sells: [...finalSellswithSellerorClientname], sellsproducts: [...findsellsproducts] }
             return response.json(finalreturn)
         }

@@ -1,4 +1,6 @@
-module.exports = (prisma) => async function chartRadar(request, response) {
+const prisma = require('../../services/prisma')
+
+module.exports = async function chartRadar(request, response) {
     try {
         const { userId } = request.body
         const atualMonth = new Date().getMonth() + 1

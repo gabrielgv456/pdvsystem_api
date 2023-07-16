@@ -1,4 +1,6 @@
-module.exports = (prisma) => async function deleteProduct(request, response) {
+const prisma = require('../../services/prisma')
+
+module.exports = async function deleteProduct(request, response) {
     
     const { dataDeleteProduct } = request.body
 
@@ -8,7 +10,7 @@ module.exports = (prisma) => async function deleteProduct(request, response) {
             where: { idProduct: dataDeleteProduct.id }
         })
         if (verifyIfExitsSellsThisProduct) {
-            return response.json({ Sucess: false, Erro: 'ERRO: Não é possivel excluir produtos que possuem vendas cadastradas!' })
+            return response.json({ Sucess: false, Erro: 'Não é possivel excluir produtos que possuem vendas cadastradas! Realize a desativação clicando em editar.' })
         }
 
         else {
