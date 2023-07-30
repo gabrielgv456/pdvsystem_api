@@ -43,8 +43,24 @@ module.exports = async function chartsBar(request, response) {
                 }, 0)
                 const medTicket = VerifySells.length === 0 ? 0 : sumSells / VerifySells.length
 
-                const listSellFiltered = VerifySells.filter(sell=>sell.cost > 0) 
-                const totalProfit = listSellFiltered.map(item => item.sellValue).reduce((prev, curr) => prev + curr, 0) - listSellFiltered.map(item => item.cost).reduce((prev, curr) => prev + curr, 0) ;   
+                let totalProfit = 0
+                await Promise.all(
+                    VerifySells.map(async sell => {
+                        const itemSell = await prisma.itensSell.findMany({
+                            where: {
+                                AND: [{
+                                    sellId: sell.id,
+                                    storeId: userId
+                                }]
+                            }
+                        })
+                        const listSellFiltered = itemSell.filter(item => item.totalCost > 0)
+                        totalProfit = totalProfit + (listSellFiltered.map(item => item.totalValue).reduce((prev, curr) => prev + curr, 0) - listSellFiltered.map(item => item.totalCost).reduce((prev, curr) => prev + curr, 0));
+                    })
+                )
+
+                //const listSellFiltered = VerifySells.filter(sell=>sell.cost > 0) 
+                //const totalProfit = listSellFiltered.map(item => item.sellValue).reduce((prev, curr) => prev + curr, 0) - listSellFiltered.map(item => item.cost).reduce((prev, curr) => prev + curr, 0) ;   
 
                 dataBarChart.push({ sumSells, month, medTicket, totalProfit, year, initialDate, finalDate })
                 dataBarChart.sort(function (x, y) { return x.initialDate - y.initialDate }) //order array

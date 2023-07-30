@@ -84,6 +84,7 @@ model PaymentTypes {
 
 model Sells {
   id           Int            @id @default(autoincrement())
+  codRef       Int?
   store        User           @relation(fields: [storeId], references: [id])
   storeId      Int
   seller       Sellers?       @relation(fields: [sellerId], references: [id])

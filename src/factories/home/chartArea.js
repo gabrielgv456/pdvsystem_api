@@ -46,9 +46,21 @@ module.exports = async function chartsArea(request, response) {
                     return acc + item.sellValue
                 }, 0)
 
-                const listSellFiltered = Sells.filter(sell=>sell.cost > 0) 
-                const totalProfit = listSellFiltered.map(item => item.sellValue).reduce((prev, curr) => prev + curr, 0) - listSellFiltered.map(item => item.cost).reduce((prev, curr) => prev + curr, 0) ;
-
+                let totalProfit = 0
+                await Promise.all(
+                    Sells.map(async sell => {
+                        const itemSell = await prisma.itensSell.findMany({
+                            where: {
+                                AND: [{
+                                    sellId: sell.id,
+                                    storeId: userId
+                                }]
+                            }
+                        })
+                        const listSellFiltered = itemSell.filter(item => item.totalCost > 0)
+                        totalProfit = totalProfit + (listSellFiltered.map(item => item.totalValue).reduce((prev, curr) => prev + curr, 0) - listSellFiltered.map(item => item.totalCost).reduce((prev, curr) => prev + curr, 0));
+                    })
+                )
                 SellsChartArea.push({ totalSells, day, nameDay, totalProfit })
                 SellsChartArea.sort(function (x, y) { return x.day - y.day }) // order array
             }

@@ -4,6 +4,14 @@ module.exports = async function addSell(request, response) {
     try {
         const { sell } = request.body
 
+        const nextCodRefSell = await prisma.sells.findFirst({
+            orderBy: {
+                id: 'desc'
+            }, select : {
+                codRef: true
+            }
+        })
+
         const createSellonDB = await prisma.sells.create({
             data: {
                 storeId: sell.UserId,
@@ -11,7 +19,8 @@ module.exports = async function addSell(request, response) {
                 cost: sell.totalCost,
                 valuePayment: sell.valuePayment,
                 clientId: sell.clientId,
-                sellerId: sell.sellerId
+                sellerId: sell.sellerId,
+                codRef: (nextCodRefSell.codRef ?? 1000) + 1
             }
         })
 
@@ -60,7 +69,7 @@ module.exports = async function addSell(request, response) {
                     valueProduct: product.initialvalue,
                     totalValue: product.totalvalue,
                     costProduct: product.initialCost,
-                    totalCost:product.totalCost,
+                    totalCost: product.totalCost,
                     descriptionProduct: product.name
                 }
             });
@@ -80,7 +89,7 @@ module.exports = async function addSell(request, response) {
             const createPaymentTransaction = await prisma.transactions.create({
                 data: {
                     type: payment.type,
-                    description: "Recebimento de venda",
+                    description: "Recebimento de venda nº " + createSellonDB.codRef,
                     value: payment.value,
                     sellId: createSellonDB.id,
                     storeId: sell.UserId
@@ -99,7 +108,7 @@ module.exports = async function addSell(request, response) {
                 }
             })
         }
-        return response.json({ Success: true })
+        return response.json({ Success: true, codRef: createSellonDB.codRef })
     }
 
     catch (error) {
