@@ -37,6 +37,8 @@ model User {
   transactionsProducts TransactionsProducts[]
   Sellers              Sellers[]
   Clients              Clients[]
+  deliveries           Deliveries[]
+  address              Address[]
   Token                String                 @unique
   created_at           DateTime               @default(dbgenerated("CURRENT_TIMESTAMP"))
 }
@@ -95,6 +97,7 @@ model Sells {
   itenssells   ItensSell[]
   paymentsells PaymentSell[]
   transactions Transactions[]
+  deliveries         Deliveries[]
   sellValue    Float
   valuePayment Float
   deleted      Boolean        @default(false)
@@ -117,6 +120,44 @@ model ItensSell {
   costProduct        Float?
   totalCost          Float?
   created_at         DateTime @default(dbgenerated("CURRENT_TIMESTAMP"))
+}
+
+model Deliveries {
+  id              Int         @id @default(autoincrement())
+  store           User        @relation(fields:[storeId], references: [id])
+  storeId         Int
+  sell            Sells       @relation(fields: [sellId], references: [id])
+  sellId          Int
+  client          Clients     @relation(fields: [clientId], references: [id])
+  clientId        Int 
+  address         Address     @relation(fields: [addressId], references: [id])
+  addressId       Int
+  status          String
+  scheduledDate   DateTime
+  created_at      DateTime    @default(dbgenerated("CURRENT_TIMESTAMP"))
+}
+
+model Address {
+  id                  Int          @id @default(autoincrement())
+  store               User         @relation(fields: [storeId], references: [id])
+  storeId             Int
+  addressType         AdressType   @relation(fields: [addressTypeId], references:[id])
+  addressTypeId       Int
+  addressStreet       String?
+  addressNumber       String?
+  addressNeighborhood String?
+  addressComplement   String?
+  addressCity         String?
+  addressState        String?
+  addressCep          String?
+  created_at          DateTime     @default(dbgenerated("CURRENT_TIMESTAMP"))
+  deliveries          Deliveries[]
+}
+
+model AdressType {
+  id          Int     @id @default(autoincrement())
+  type        String  @unique
+  address     Address[]
 }
 
 model PaymentSell {
@@ -188,6 +229,7 @@ model Clients {
   store              User      @relation(fields: [storeId], references: [id])
   storeId            Int
   Sells              Sells[]
+  Deliveries         Deliveries[]
 }
 
 model icmsOrigem {
