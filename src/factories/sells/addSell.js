@@ -113,7 +113,7 @@ module.exports = async function addSell(request, response) {
                     }
                 })
             }
-
+            console.log(sell.delivery)
             if (sell.isDelivery) {
                 const deliveryAddress = await prismaTx.address.create({
                     data: {
@@ -131,7 +131,7 @@ module.exports = async function addSell(request, response) {
                 await prismaTx.deliveries.create({
                     data: {
                         scheduledDate: sell.delivery.scheduledDate,
-                        status: sell.delivery.status,
+                        status: 'Pending',
                         storeId: sell.UserId,
                         sellId: createSellonDB.id,
                         clientId: sell.clientId,

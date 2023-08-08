@@ -128,8 +128,8 @@ model Deliveries {
   storeId         Int
   sell            Sells       @relation(fields: [sellId], references: [id])
   sellId          Int
-  client          Clients     @relation(fields: [clientId], references: [id])
-  clientId        Int 
+  client          Clients?     @relation(fields: [clientId], references: [id])
+  clientId        Int? 
   address         Address     @relation(fields: [addressId], references: [id])
   addressId       Int
   status          String
