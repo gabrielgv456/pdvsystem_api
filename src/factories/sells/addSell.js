@@ -61,7 +61,6 @@ module.exports = async function addSell(request, response) {
                 }
             }
 
-
             //await sell.Products.map(async (product) => {
             for (const product of sell.Products) {
                 const createItensSellonDB = await prismaTx.itensSell.create({
@@ -77,6 +76,33 @@ module.exports = async function addSell(request, response) {
                         descriptionProduct: product.name
                     }
                 });
+
+                if (sell.isDelivery) {
+
+                    const deliveryAddress = await prismaTx.address.create({
+                        data: {
+                            addressTypeId: 1,
+                            addressCep: sell.delivery.addressCep,
+                            addressCity: sell.delivery.addressCity,
+                            addressComplement: sell.delivery.addressComplement,
+                            addressNeighborhood: sell.delivery.addressNeighborhood,
+                            addressNumber: sell.delivery.addressNumber,
+                            addressState: sell.delivery.addressState,
+                            addressStreet: sell.delivery.addressStreet,
+                            storeId: sell.UserId
+                        }
+                    })
+                    await prismaTx.deliveries.create({
+                        data: {
+                            scheduledDate: sell.delivery.scheduledDate,
+                            status: 'Pending',
+                            storeId: sell.UserId,
+                            itemSellId: createItensSellonDB.id,
+                            clientId: sell.clientId,
+                            addressId: deliveryAddress.id
+                        }
+                    })
+                }
                 console.log("Created Products")
             }
 
@@ -113,32 +139,8 @@ module.exports = async function addSell(request, response) {
                     }
                 })
             }
-            console.log(sell.delivery)
-            if (sell.isDelivery) {
-                const deliveryAddress = await prismaTx.address.create({
-                    data: {
-                        addressTypeId: 1,
-                        addressCep: sell.delivery.addressCep,
-                        addressCity: sell.delivery.addressCity,
-                        addressComplement: sell.delivery.addressComplement,
-                        addressNeighborhood: sell.delivery.addressNeighborhood,
-                        addressNumber: sell.delivery.addressNumber,
-                        addressState: sell.delivery.addressState,
-                        addressStreet: sell.delivery.addressStreet,
-                        storeId: sell.UserId
-                    }
-                })
-                await prismaTx.deliveries.create({
-                    data: {
-                        scheduledDate: sell.delivery.scheduledDate,
-                        status: 'Pending',
-                        storeId: sell.UserId,
-                        sellId: createSellonDB.id,
-                        clientId: sell.clientId,
-                        addressId: deliveryAddress.id
-                    }
-                })
-            }
+
+
 
             return response.json({ Success: true, codRef: createSellonDB.codRef })
         })

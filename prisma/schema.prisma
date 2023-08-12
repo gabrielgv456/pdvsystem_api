@@ -97,7 +97,6 @@ model Sells {
   itenssells   ItensSell[]
   paymentsells PaymentSell[]
   transactions Transactions[]
-  deliveries         Deliveries[]
   sellValue    Float
   valuePayment Float
   deleted      Boolean        @default(false)
@@ -120,20 +119,22 @@ model ItensSell {
   costProduct        Float?
   totalCost          Float?
   created_at         DateTime @default(dbgenerated("CURRENT_TIMESTAMP"))
+  deliveries         Deliveries[]
 }
 
 model Deliveries {
   id              Int         @id @default(autoincrement())
   store           User        @relation(fields:[storeId], references: [id])
   storeId         Int
-  sell            Sells       @relation(fields: [sellId], references: [id])
-  sellId          Int
+  itemSell        ItensSell   @relation(fields: [itemSellId], references: [id])
+  itemSellId      Int
   client          Clients?     @relation(fields: [clientId], references: [id])
   clientId        Int? 
   address         Address     @relation(fields: [addressId], references: [id])
   addressId       Int
   status          String
   scheduledDate   DateTime
+  deliveredDate   DateTime?
   created_at      DateTime    @default(dbgenerated("CURRENT_TIMESTAMP"))
 }
 

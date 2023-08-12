@@ -35,6 +35,8 @@ const addSell = require('../factories/sells/addSell');
 const deleteSell = require('../factories/sells/deleteSell');
 const products = require('../factories/inventoryManagement/products');
 const findsSells = require('../factories/controlSells/findSells');
+const findDeliveries = require('../factories/deliveries/findDeliveries');
+const changeStatusDeliveries = require('../factories/deliveries/changeStatusDeliveries');
 
 //START LOGIN//
 router.post("/signin", signIn)
@@ -42,41 +44,46 @@ router.post("/validate", validate)
 router.post("/adduser", addUser)
 router.post("/validatemail", validateMail)
 router.post("/logout", logout)
-// END LOGIN //
+// END LOGIN
 
-// START HOME //
+// START HOME
 router.post("/charts/bar", chartBar)
 router.post("/charts/doughnut", chartDoughnut)
 router.post('/charts/area', chartArea)
 router.post("/charts/bestsellers", chartBestSellers)
 router.post("/charts/topsellingproducts", chartTopSellingProducts)
 router.post("/charts/radar", chartRadar)
-// END HOME //
+// END HOME
 
-// START SELLS //
+// START SELLS
 router.post("/addsell", addSell)
 router.post("/deletesell", deleteSell)
-// END SELLS //
+// END SELLS
 
-// START CONTROL SELLS //
+// START CONTROL SELLS
 router.post("/findsells", findsSells)
-// END CONTROL SELLS //
+// END CONTROL SELLS
 
-// START INVENTORYMANAGEMENT //
+// START DELIVERIES
+router.get("/deliveries", findDeliveries)
+router.patch("/changeStatusDeliveries",changeStatusDeliveries)
+// END DELIVERIES
+
+// START INVENTORYMANAGEMENT
 router.post("/products", products)
 router.get("/listCfop", findCfop)
 router.post("/addproduct", addProduct)
 router.post("/editproduct", editProduct)
 router.post("/deleteproduct", deleteProduct)
 router.post("/findtransactionsproducts", findTransactionsProducts)
-// END INVENTORYMANAGEMENT //
+// END INVENTORYMANAGEMENT
 
-// START TRANSCTIONS // 
+// START TRANSCTIONS 
 router.post("/findtransactions", findTransactions)
 router.post("/addtransaction", addTransaction)
-// END TRANSACTIONS //
+// END TRANSACTIONS
 
-// START PEOPLE //
+// START PEOPLE
 router.post("/findsellers", findSellers)
 router.post('/editseller', editSeller)
 router.post('/addseller', addSeller)
@@ -85,15 +92,15 @@ router.post('/editclient', editClient)
 router.post('/addclient', addClient)
 router.post('/deleteclient', deleteClient)
 router.post('/deleteseller', deleteSeller)
-// END PEOPLE //
+// END PEOPLE
 
-// START SETTINGS //
+// START SETTINGS
 router.patch("/changepass", changePass)
 router.get("/aboutCorporation", aboutCorporation)
 router.patch("/changeAboutCorporation", changeAboutCorporation)
 router.get("/listNCM", listNcm)
 router.get("/listItemType", listItemType)
-// END SETTINGS //
+// END SETTINGS
 
 
 module.exports = router
