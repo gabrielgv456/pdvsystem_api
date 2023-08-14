@@ -3,6 +3,7 @@ const prisma = require('../../services/prisma')
 module.exports = async function addSell(request, response) {
     try {
         const { sell } = request.body
+        console.log(sell)
 
         await prisma.$transaction(async (prismaTx) => {
 
