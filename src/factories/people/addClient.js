@@ -27,6 +27,7 @@ module.exports = async function addClient(request, response) {
                 }
             })
             if (addClient) {
+                console.log({dataClient: addClient})
                 return response.json({ Success: true, dataClient: addClient })
             }
         }
