@@ -117,16 +117,24 @@ module.exports = async function addSell(request, response) {
                         value: payment.value
                     }
                 });
+
                 console.log("Created Payment")
-                const createPaymentTransaction = await prismaTx.transactions.create({
-                    data: {
-                        type: payment.type,
-                        description: "Recebimento de venda nº " + createSellonDB.codRef,
-                        value: payment.value,
-                        sellId: createSellonDB.id,
-                        storeId: sell.UserId
-                    }
-                })
+                if (payment.type !== 'onDelivery') {
+                    const createPaymentTransaction = await prismaTx.transactions.create({
+                        data: {
+                            type: payment.type,
+                            description: "Recebimento de venda nº " + createSellonDB.codRef,
+                            value: payment.value,
+                            sellId: createSellonDB.id,
+                            storeId: sell.UserId
+                        }
+                    })
+                } else {
+                    await prismaTx.deliveries.updateMany({
+                        where: { itemSell: { sell: { id: createSellonDB.id } } },
+                        data: { onDeliveryPayValue: payment.value }
+                    })
+                }
             }
 
             if (sell.changeValue) {
