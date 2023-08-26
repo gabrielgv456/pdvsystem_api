@@ -4,7 +4,6 @@ const validateFields = require('../../utils/validateFields');
 module.exports = async function findDeliveries(request, response) {
     try {
         const dataFindDeliveries = request.query
-        console.log(dataFindDeliveries)
         requiredFields = ['storeId', 'initialDate', 'finalDate']
         validateFields(requiredFields, dataFindDeliveries)
         const resultDeliveries = await prisma.deliveries.findMany({
@@ -16,12 +15,12 @@ module.exports = async function findDeliveries(request, response) {
             orderBy: { id: 'asc' },
             where: {
                 AND: [{
-                    created_at: {
-                        gt: new Date(dataFindDeliveries.initialDate)
+                    scheduledDate: {
+                        gt: new Date(`${dataFindDeliveries.initialDate}T00:00:00Z`)
                     }
                 },
                 {
-                    created_at: {
+                    scheduledDate: {
                         lt: new Date(`${dataFindDeliveries.finalDate}T23:59:59Z`)
                     }
                 },

@@ -100,7 +100,9 @@ module.exports = async function addSell(request, response) {
                             storeId: sell.UserId,
                             itemSellId: createItensSellonDB.id,
                             clientId: sell.clientId,
-                            addressId: deliveryAddress.id
+                            productId: createItensSellonDB.idProduct,
+                            addressId: deliveryAddress.id,
+                            sellId: createItensSellonDB.sellId
                         }
                     })
                 }

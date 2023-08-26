@@ -1,0 +1,36 @@
+-- AlterTable
+ALTER TABLE "Address" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "Clients" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "Deliveries" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "ItensSell" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "PaymentSell" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "Products" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "Sellers" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "Sells" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "Transactions" ADD COLUMN     "deliveryId" INTEGER,
+ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "TransactionsProducts" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AddForeignKey
+ALTER TABLE "Transactions" ADD CONSTRAINT "Transactions_deliveryId_fkey" FOREIGN KEY ("deliveryId") REFERENCES "Deliveries"("id") ON DELETE SET NULL ON UPDATE CASCADE;

@@ -7,9 +7,9 @@ module.exports = async function products(request, response) {
     if (userId) {
         try {
             const listProducts = await prisma.products.findMany({
+                include: { deliveries: { include: { itemSell: true }, where: { status: 'Pending' } } },
                 orderBy: { id: 'desc' },
-                where: { storeId: userId },
-                select: { id: true, name: true, value: true, created_at: true, active: true, quantity: true, barCode: true, cost: true, itemTypeId: true, ncmCode: true, profitMargin: true, unitMeasurement: true, cfopId: true }
+                where: { storeId: userId }
             })
             if (listProducts == null) {
                 return response.json({

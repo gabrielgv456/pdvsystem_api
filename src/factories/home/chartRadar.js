@@ -36,6 +36,7 @@ module.exports = async function chartRadar(request, response) {
                 if (payment.typepayment === 'debitcard') { payment.typepayment = 'Débito' }
                 if (payment.typepayment === 'pix') { payment.typepayment = 'Pix' }
                 if (payment.typepayment === 'others') { payment.typepayment = 'Outros' }
+                if (payment.typepayment === 'onDelivery') { payment.typepayment = 'Na entrega' }
                 payment.quantity = payment._count.id
                 delete payment._count
             })

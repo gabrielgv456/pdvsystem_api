@@ -37,6 +37,8 @@ const products = require('../factories/inventoryManagement/products');
 const findsSells = require('../factories/controlSells/findSells');
 const findDeliveries = require('../factories/deliveries/findDeliveries');
 const changeStatusDeliveries = require('../factories/deliveries/changeStatusDeliveries');
+const editAddressDelivery = require('../factories/deliveries/editAddressDelivery');
+const setPaymentsonDelivery = require('../factories/deliveries/setPaymentsonDelivery');
 
 //START LOGIN//
 router.post("/signin", signIn)
@@ -67,6 +69,8 @@ router.post("/findsells", findsSells)
 // START DELIVERIES
 router.get("/deliveries", findDeliveries)
 router.patch("/changeStatusDeliveries",changeStatusDeliveries)
+router.patch("/changeAddressDelivery",editAddressDelivery)
+router.post("/setPaymentonDelivery",setPaymentsonDelivery)
 // END DELIVERIES
 
 // START INVENTORYMANAGEMENT

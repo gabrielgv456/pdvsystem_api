@@ -63,6 +63,7 @@ model Products {
   cfopId               Int?
   unitMeasurement      String?
   active               Boolean
+  deliveries           Deliveries[]
 }
 
 model TransactionsProducts {
@@ -94,13 +95,14 @@ model Sells {
   client       Clients?       @relation(fields: [clientId], references: [id])
   clientId     Int?           
   created_at   DateTime       @default(dbgenerated("CURRENT_TIMESTAMP"))
-  itenssells   ItensSell[]
-  paymentsells PaymentSell[]
-  transactions Transactions[]
   sellValue    Float
   valuePayment Float
   deleted      Boolean        @default(false)
   cost         Float?
+  itenssells   ItensSell[]
+  paymentsells PaymentSell[]
+  transactions Transactions[]
+  deliveries   Deliveries[]
 }
 
 model ItensSell {
@@ -132,10 +134,15 @@ model Deliveries {
   clientId            Int? 
   address             Address     @relation(fields: [addressId], references: [id])
   addressId           Int
+  product             Products    @relation(fields: [productId],references: [id])
+  productId           Int
+  sell                Sells       @relation(fields: [sellId], references: [id])
+  sellId              Int
   status              String
   scheduledDate       DateTime
   deliveredDate       DateTime?
   onDeliveryPayValue  Float?
+  transactions        Transactions[]
   created_at          DateTime    @default(dbgenerated("CURRENT_TIMESTAMP"))
 }
 
@@ -175,14 +182,16 @@ model PaymentSell {
 }
 
 model Transactions {
-  id          Int      @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   type        String
   description String
-  created_at  DateTime @default(dbgenerated("CURRENT_TIMESTAMP"))
+  created_at  DateTime    @default(dbgenerated("CURRENT_TIMESTAMP"))
   value       Float
-  sell        Sells?   @relation(fields: [sellId], references: [id])
+  sell        Sells?      @relation(fields: [sellId], references: [id])
   sellId      Int?
-  store       User     @relation(fields: [storeId], references: [id])
+  store       User        @relation(fields: [storeId], references: [id])
+  delivery    Deliveries?  @relation(fields: [deliveryId], references: [id])
+  deliveryId  Int?
   storeId     Int
 }
 

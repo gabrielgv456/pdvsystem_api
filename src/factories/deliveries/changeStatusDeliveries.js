@@ -12,7 +12,8 @@ module.exports = async function changeStatusDeliveries(request, response) {
                 itemSellId: { in: dataChangeStatusDeliveries.itensSellToChange }
             },
             data: {
-                status: dataChangeStatusDeliveries.newStatus
+                status: dataChangeStatusDeliveries.newStatus,
+                deliveredDate: dataChangeStatusDeliveries.deliveredDate ?? null
             }
         })
         return response.json({ Success: true })
