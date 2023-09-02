@@ -19,26 +19,16 @@ module.exports = async function changeStatusDeliveries(request, response) {
                     }
                 })
             }
-            const idItensSell = await prismaTx.itensSell.findMany({
+            await prismaTx.deliveries.updateMany({
                 where: {
                     AND: [
                         { sellId: dataSetPaymentsonDelivery.idVenda },
                         { storeId: dataSetPaymentsonDelivery.storeId }
                     ]
+                }, data: {
+                    onDeliveryPayValue: null
                 }
             })
-            for (const item of idItensSell) {
-                await prismaTx.deliveries.updateMany({
-                    where: {
-                        AND: [
-                            { itemSellId: item.id },
-                            { storeId: dataSetPaymentsonDelivery.storeId }
-                        ]
-                    }, data: {
-                        onDeliveryPayValue: null
-                    }
-                })
-            }
         })
         return response.json({ Success: true })
     } catch (error) {

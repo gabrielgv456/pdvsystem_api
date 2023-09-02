@@ -29,6 +29,7 @@ model User {
   codEmailValidate     String?
   password             String
   masterkey            String                 @default("123")
+  urlLogo              String?
   sells                Sells[]
   products             Products[]
   itensSell            ItensSell[]

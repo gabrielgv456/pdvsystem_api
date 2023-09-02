@@ -8,7 +8,11 @@ module.exports = async function signIn(request, response) {
         const uuidGenerated = v4()
 
         const updatetoken = await prisma.user.update({ where: { email: email }, data: { Token: uuidGenerated } })
-        const validateUser = await prisma.user.findUnique({ where: { email: email } })
+        const validateUser = await prisma.user.findUnique({ where: { email: email }, select: {
+            adressCep: true, adressCity: true, adressNeighborhood: true, adressNumber: true,
+            adressState: true, adressStreet: true, cellPhone: true, cnpj: true, email: true, id: true, name: true,
+            phone: true, Token: true, urlLogo: true
+        } })
 
         if (validateUser === null) {
             return response.json({ erro: "Não foi encontrado usuarios com esse email" })
@@ -16,14 +20,7 @@ module.exports = async function signIn(request, response) {
         else {
             if (await bcrypt.compare(password, validateUser.password)) {
                 return response.json({
-                    user: {
-                        id: validateUser.id,
-                        name: validateUser.name,
-                        email: validateUser.email,
-                        masterkey: validateUser.masterkey,
-                        isEmailValid: validateUser.isEmailValid,
-                        codEmailValidate: validateUser.codEmailValidate
-                    },
+                    user: validateUser,
                     token: validateUser.Token
                 })
             }

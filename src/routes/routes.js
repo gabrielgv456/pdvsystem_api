@@ -39,6 +39,8 @@ const findDeliveries = require('../factories/deliveries/findDeliveries');
 const changeStatusDeliveries = require('../factories/deliveries/changeStatusDeliveries');
 const editAddressDelivery = require('../factories/deliveries/editAddressDelivery');
 const setPaymentsonDelivery = require('../factories/deliveries/setPaymentsonDelivery');
+const uploadFile = require('../factories/settings/uploadFile');
+const uploadMulter = require('../factories/files/uploadMulter');
 
 //START LOGIN//
 router.post("/signin", signIn)
@@ -68,9 +70,9 @@ router.post("/findsells", findsSells)
 
 // START DELIVERIES
 router.get("/deliveries", findDeliveries)
-router.patch("/changeStatusDeliveries",changeStatusDeliveries)
-router.patch("/changeAddressDelivery",editAddressDelivery)
-router.post("/setPaymentonDelivery",setPaymentsonDelivery)
+router.patch("/changeStatusDeliveries", changeStatusDeliveries)
+router.patch("/changeAddressDelivery", editAddressDelivery)
+router.post("/setPaymentonDelivery", setPaymentsonDelivery)
 // END DELIVERIES
 
 // START INVENTORYMANAGEMENT
@@ -100,6 +102,7 @@ router.post('/deleteseller', deleteSeller)
 
 // START SETTINGS
 router.patch("/changepass", changePass)
+router.post("/uploadfile", uploadMulter.single('file'), uploadFile)
 router.get("/aboutCorporation", aboutCorporation)
 router.patch("/changeAboutCorporation", changeAboutCorporation)
 router.get("/listNCM", listNcm)

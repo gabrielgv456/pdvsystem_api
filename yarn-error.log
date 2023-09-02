@@ -1,8 +1,8 @@
 Arguments: 
-  C:\Program Files\nodejs\node.exe C:\Users\gabriel.vicente\AppData\Roaming\npm\node_modules\yarn\bin\yarn.js add prisma/client@latest
+  C:\Program Files\nodejs\node.exe C:\Users\gabriel.vicente\AppData\Roaming\npm\node_modules\yarn\bin\yarn.js add multer
 
 PATH: 
-  C:\Program Files (x86)\Embarcadero\Studio\22.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\22.0\Bpl;C:\Program Files (x86)\Embarcadero\Studio\22.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\22.0\Bpl\Win64;C:\Program Files\AdoptOpenJDK\jdk-8.0.242.08-hotspot\bin;C:\Program Files (x86)\Embarcadero\Studio\21.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\21.0\Bpl;C:\Program Files (x86)\Embarcadero\Studio\21.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\21.0\Bpl\Win64;c:\oracle\product\11.2.0\client_2\bin;C:\oracle\product\11.2.0\client_1\bin;C:\Program Files (x86)\Embarcadero\Studio\19.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\19.0\Bpl;C:\Program Files (x86)\Embarcadero\Studio\19.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\19.0\Bpl\Win64;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\ProgramData\chocolatey\bin;C:\Program Files\Microsoft SQL Server\130\Tools\Binn\;D:\Program Files\TortoiseSVN\bin;D:\Program Files (x86)\HK-Software\IBExpert\;D:\Program Files (x86)\HK-Software\IBExpert\tools\;D:\Program Files\PuTTY\;D:\Program Files\heroku\bin;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files\Intel\Intel(R) Management Engine Components\DAL;D:\Program Files\Git\cmd;D:\Program Files\Amazon\AWSCLIV2\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;D:\laragon\bin\php\php-7.2.19-Win32-VC15-x64;D:\composer;C:\Program Files\dotnet\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files (x86)\HP\Common\HPDestPlgIn\;C:\Users\breno\AppData\Local\Programs\Python\Python39;C:\Program Files (x86)\Microsoft SQL Server\150\DTS\Binn\;C:\Program Files\Microsoft SQL Server\150\DTS\Binn\;C:\Program Files (x86)\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\Program Files\PuTTY\;C:\Program Files\nodejs\;C:\Program Files (x86)\HK-Software\IBExpert\;;C:\Program Files (x86)\HK-Software\IBExpert\tools\;C:\Users\gabriel.vicente\AppData\Local\Microsoft\WindowsApps;;C:\Users\gabriel.vicente\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\gabriel.vicente\AppData\Roaming\npm
+  D:\oracleClientGabriel\product\11.2.0\client_1\bin;C:\Program Files (x86)\Embarcadero\Studio\22.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\22.0\Bpl;C:\Program Files (x86)\Embarcadero\Studio\22.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\22.0\Bpl\Win64;C:\Program Files\AdoptOpenJDK\jdk-8.0.242.08-hotspot\bin;C:\Program Files (x86)\Embarcadero\Studio\21.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\21.0\Bpl;C:\Program Files (x86)\Embarcadero\Studio\21.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\21.0\Bpl\Win64;C:\Program Files (x86)\Embarcadero\Studio\19.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\19.0\Bpl;C:\Program Files (x86)\Embarcadero\Studio\19.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\19.0\Bpl\Win64;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\ProgramData\chocolatey\bin;C:\Program Files\Microsoft SQL Server\130\Tools\Binn\;D:\Program Files\TortoiseSVN\bin;D:\Program Files (x86)\HK-Software\IBExpert\;D:\Program Files (x86)\HK-Software\IBExpert\tools\;D:\Program Files\PuTTY\;D:\Program Files\heroku\bin;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files\Intel\Intel(R) Management Engine Components\DAL;D:\Program Files\Amazon\AWSCLIV2\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;D:\laragon\bin\php\php-7.2.19-Win32-VC15-x64;D:\composer;C:\Program Files\dotnet\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files (x86)\HP\Common\HPDestPlgIn\;C:\Users\breno\AppData\Local\Programs\Python\Python39;C:\Program Files (x86)\Microsoft SQL Server\150\DTS\Binn\;C:\Program Files\Microsoft SQL Server\150\DTS\Binn\;C:\Program Files (x86)\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\PuTTY\;C:\Program Files\nodejs\;C:\Program Files (x86)\HK-Software\IBExpert\;C:\Program Files (x86)\HK-Software\IBExpert\tools\;D:\Program Files\Git\cmd;C:\Users\gabriel.vicente\AppData\Local\Microsoft\WindowsApps;C:\Users\gabriel.vicente\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\gabriel.vicente\AppData\Roaming\npm;C:\Users\gabriel.vicente\AppData\Local\GitHubDesktop\bin
 
 Yarn version: 
   1.22.19
@@ -14,29 +14,19 @@ Platform:
   win32 x64
 
 Trace: 
-  Error: https://registry.yarnpkg.com/prisma%2fclient: Request "https://registry.yarnpkg.com/prisma%2fclient" returned a 405
-      at params.callback [as _callback] (C:\Users\gabriel.vicente\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:66154:18)
-      at self.callback (C:\Users\gabriel.vicente\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:140890:22)
-      at Request.emit (node:events:513:28)
-      at Request.<anonymous> (C:\Users\gabriel.vicente\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:141862:10)
-      at Request.emit (node:events:513:28)
-      at IncomingMessage.<anonymous> (C:\Users\gabriel.vicente\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:141784:12)
-      at Object.onceWrapper (node:events:627:28)
-      at IncomingMessage.emit (node:events:525:35)
-      at endReadableNT (node:internal/streams/readable:1359:12)
-      at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+  Error: ENOSPC: no space left on device, write
 
 npm manifest: 
   {
     "name": "pdv",
     "version": "1.0.0",
-    "main": "index.js",
+    "main": "server.js",
     "license": "MIT",
     "scripts": {
-      "dev": "nodemon src/index.js"
+      "dev": "nodemon src/server.js"
     },
     "dependencies": {
-      "@prisma/client": "^3.14.0",
+      "@prisma/client": "^4.10.1",
       "cors": "^2.8.5",
       "express": "^4.18.1",
       "nodemailer": "^6.9.1",
@@ -100,17 +90,17 @@ Lockfile:
       semver "^7.3.5"
       tar "^6.1.11"
   
-  "@prisma/client@^3.14.0":
-    version "3.15.2"
-    resolved "https://registry.yarnpkg.com/@prisma/client/-/client-3.15.2.tgz#2181398147afc79bfe0d83c03a88dc45b49bd365"
-    integrity sha512-ErqtwhX12ubPhU4d++30uFY/rPcyvjk+mdifaZO5SeM21zS3t4jQrscy8+6IyB0GIYshl5ldTq6JSBo1d63i8w==
+  "@prisma/client@^4.10.1":
+    version "4.10.1"
+    resolved "https://registry.yarnpkg.com/@prisma/client/-/client-4.10.1.tgz#c47fd54661ee74b174cee63e9dc418ecf57a6ccd"
+    integrity sha512-VonXLJZybdt8e5XZH5vnIGCRNnIh6OMX1FS3H/yzMGLT3STj5TJ/OkMcednrvELgk8PK89Vo3aSh51MWNO0axA==
     dependencies:
-      "@prisma/engines-version" "3.15.1-1.461d6a05159055555eb7dfb337c9fb271cbd4d7e"
+      "@prisma/engines-version" "4.10.1-2.aead147aa326ccb985dcfed5b065b4fdabd44b19"
   
-  "@prisma/engines-version@3.15.1-1.461d6a05159055555eb7dfb337c9fb271cbd4d7e":
-    version "3.15.1-1.461d6a05159055555eb7dfb337c9fb271cbd4d7e"
-    resolved "https://registry.yarnpkg.com/@prisma/engines-version/-/engines-version-3.15.1-1.461d6a05159055555eb7dfb337c9fb271cbd4d7e.tgz#bf5e2373ca68ce7556b967cb4965a7095e93fe53"
-    integrity sha512-e3k2Vd606efd1ZYy2NQKkT4C/pn31nehyLhVug6To/q8JT8FpiMrDy7zmm3KLF0L98NOQQcutaVtAPhzKhzn9w==
+  "@prisma/engines-version@4.10.1-2.aead147aa326ccb985dcfed5b065b4fdabd44b19":
+    version "4.10.1-2.aead147aa326ccb985dcfed5b065b4fdabd44b19"
+    resolved "https://registry.yarnpkg.com/@prisma/engines-version/-/engines-version-4.10.1-2.aead147aa326ccb985dcfed5b065b4fdabd44b19.tgz#312359d9d00e39e323136d0270876293d315658e"
+    integrity sha512-tsjTho7laDhf9EJ9EnDxAPEf7yrigSMDhniXeU4YoWc7azHAs4GPxRi2P9LTFonmHkJLMOLjR77J1oIP8Ife1w==
   
   "@prisma/engines@4.10.1":
     version "4.10.1"

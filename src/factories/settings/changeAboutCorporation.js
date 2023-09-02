@@ -1,9 +1,9 @@
 const prisma = require('../../services/prisma')
 
 module.exports = async function changeAboutCorporation(request, response) {
-    
     try {
-        const { storeId, name, phone, adressCep, adressNeighborhood, adressNumber, adressState, fantasyName, adressStreet, adressCity, cellPhone, cnpj } = request.body.data
+        const {storeId, name, phone, adressCep, adressNeighborhood, adressNumber, adressState, fantasyName, adressStreet, adressCity, cellPhone, cnpj } = request.body.data
+
         const updateAbouteCorporation = await prisma.user.update({
             where: {
                 id: storeId
