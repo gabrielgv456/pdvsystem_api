@@ -41,6 +41,7 @@ const editAddressDelivery = require('../factories/deliveries/editAddressDelivery
 const setPaymentsonDelivery = require('../factories/deliveries/setPaymentsonDelivery');
 const uploadFile = require('../factories/settings/uploadFile');
 const uploadMulter = require('../factories/files/uploadMulter');
+const deleteLogo = require('../factories/settings/deleteLogo');
 
 //START LOGIN//
 router.post("/signin", signIn)
@@ -107,6 +108,7 @@ router.get("/aboutCorporation", aboutCorporation)
 router.patch("/changeAboutCorporation", changeAboutCorporation)
 router.get("/listNCM", listNcm)
 router.get("/listItemType", listItemType)
+router.delete("/deleteLogo",deleteLogo)
 // END SETTINGS
 
 
