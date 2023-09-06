@@ -1,7 +1,8 @@
 const { v4 } = require('uuid')
 const bcrypt = require('bcrypt')
-const sendEmail = require('../../services/mail')
+const sendEmailVerifyMail = require('../../services/mail')
 const prisma = require('../../services/prisma')
+const generateNumberRandom = require('../../utils/generateNumberRandom')
 
 module.exports = async function addUser(request, response) {
     const { email, password, name, masterkey, ownerName, phone } = request.body
@@ -15,15 +16,8 @@ module.exports = async function addUser(request, response) {
         }
         const hashedpassword = await bcrypt.hash(password, 11)
         const uuidGenerated = v4()
-        function generateRandom() {
-            var stringAleatoria = '';
-            var caracteres = '0123456789';
-            for (var i = 0; i < 6; i++) {
-                stringAleatoria += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
-            }
-            return stringAleatoria;
-        }
-        const codEmailValidate = generateRandom()
+        
+        const codEmailValidate = generateNumberRandom()
 
         const addUserDb = await prisma.user.create({
             data: {
@@ -38,7 +32,7 @@ module.exports = async function addUser(request, response) {
             }
         })
 
-        const mailConfirm = sendEmail(email, codEmailValidate, ownerName)
+        const mailConfirm = sendEmailVerifyMail(email, codEmailValidate, ownerName)
         const idUser = addUserDb.id
 
         if (addUserDb) {

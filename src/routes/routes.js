@@ -29,7 +29,7 @@ const chartBestSellers = require('../factories/home/chartBestSellers');
 const chartTopSellingProducts = require('../factories/home/chartTopSellingProducts');
 const chartRadar = require('../factories/home/chartRadar');
 const findCfop = require('../factories/inventoryManagement/findCfop')
-const signIn = require('../factories/login/signIn')
+const signIn = require('../factories/login/sign')
 const validate = require('../factories/login/validate')
 const addSell = require('../factories/sells/addSell');
 const deleteSell = require('../factories/sells/deleteSell');
@@ -42,13 +42,17 @@ const setPaymentsonDelivery = require('../factories/deliveries/setPaymentsonDeli
 const uploadFile = require('../factories/settings/uploadFile');
 const uploadMulter = require('../factories/files/uploadMulter');
 const deleteLogo = require('../factories/settings/deleteLogo');
+const validateForgotPassword = require('../factories/login/validateForgotPassword');
+const changeForgotPassword = require('../factories/login/changeForgotPassword');
 
 //START LOGIN//
-router.post("/signin", signIn)
+router.post("/signIn", signIn)
 router.post("/validate", validate)
 router.post("/adduser", addUser)
 router.post("/validatemail", validateMail)
 router.post("/logout", logout)
+router.post("/validateForgotPassword",validateForgotPassword)
+router.post("/changeForgotPassword",changeForgotPassword)
 // END LOGIN
 
 // START HOME

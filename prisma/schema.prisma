@@ -27,6 +27,7 @@ model User {
   phone                String?
   isEmailValid         Boolean                @default(false)
   codEmailValidate     String?
+  codEmailPass         String? 
   password             String
   masterkey            String                 @default("123")
   urlLogo              String?

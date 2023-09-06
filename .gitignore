@@ -1,3 +1,4 @@
 node_modules
+files
 # Keep environment variables out of version control
 .env
