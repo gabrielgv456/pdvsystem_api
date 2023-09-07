@@ -44,6 +44,7 @@ const uploadMulter = require('../factories/files/uploadMulter');
 const deleteLogo = require('../factories/settings/deleteLogo');
 const validateForgotPassword = require('../factories/login/validateForgotPassword');
 const changeForgotPassword = require('../factories/login/changeForgotPassword');
+const verifyCodeForgotPassword = require('../factories/login/verifyCodeForgotPassword');
 
 //START LOGIN//
 router.post("/signIn", signIn)
@@ -53,6 +54,7 @@ router.post("/validatemail", validateMail)
 router.post("/logout", logout)
 router.post("/validateForgotPassword",validateForgotPassword)
 router.post("/changeForgotPassword",changeForgotPassword)
+router.get("/verifyCodeForgotPassword",verifyCodeForgotPassword)
 // END LOGIN
 
 // START HOME

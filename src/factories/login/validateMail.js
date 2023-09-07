@@ -12,7 +12,7 @@ module.exports = async function validateMail(request, response) {
             }
         })
         if (validateMail) {
-            return response.json({ success: true })
+            return response.json({ Success: true })
 
         } else {
             throw new Error('Falha ao validar e-mail')

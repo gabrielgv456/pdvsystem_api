@@ -8,7 +8,6 @@ module.exports = async function validateForgotPassword(request, response) {
         const dataValidateForgotPassword = request.body
         validateFields(['email'], dataValidateForgotPassword)
         const codEmailValidate = generateNumberRandom()
-        console.log(dataValidateForgotPassword.email)
         const storeInfo = await prisma.user.findUnique({
             where: { email: dataValidateForgotPassword.email }
         })
@@ -20,7 +19,7 @@ module.exports = async function validateForgotPassword(request, response) {
             where: { id: storeInfo.id },
             data: { codEmailPass: codEmailValidate }
         })
-        return response.json({ Success: true, codEmailValidate })
+        return response.json({ Success: true })
     } catch (error) {
         return response.status(400).json({ Success: false, erro: error.message })
     }

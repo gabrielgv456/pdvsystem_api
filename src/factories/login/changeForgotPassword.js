@@ -4,10 +4,10 @@ const validateFields = require('../../utils/validateFields');
 
 module.exports = async function changeForgotPassword(request, response) {
     try {
-        validateFields(['storeId', 'codEmailValidate', 'newPass'], request.body)
+        validateFields(['email', 'codEmailValidate', 'newPass'], request.body)
 
-        const { storeId, codEmailValidate, newPass } = request.body;
-        const findUser = await prisma.user.findUnique({ where: { id: storeId } })
+        const { email, codEmailValidate, newPass } = request.body;
+        const findUser = await prisma.user.findUnique({ where: { email } })
         const hashedPassword = await bcrypt.hash(newPass, 11)
 
         if (findUser === null) {
@@ -17,7 +17,7 @@ module.exports = async function changeForgotPassword(request, response) {
             throw new Error("Código de validação incorreto!")
         }
         const changePassWord = await prisma.user.update({
-            where: { id: storeId },
+            where: { id: findUser.id },
             data: { password: hashedPassword , codEmailPass: null }
         })
         if (changePassWord) {
