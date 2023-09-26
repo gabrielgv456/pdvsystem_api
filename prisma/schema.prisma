@@ -88,23 +88,24 @@ model PaymentTypes {
 }
 
 model Sells {
-  id           Int            @id @default(autoincrement())
-  codRef       Int?
-  store        User           @relation(fields: [storeId], references: [id])
-  storeId      Int
-  seller       Sellers?       @relation(fields: [sellerId], references: [id])
-  sellerId     Int?
-  client       Clients?       @relation(fields: [clientId], references: [id])
-  clientId     Int?           
-  created_at   DateTime       @default(dbgenerated("CURRENT_TIMESTAMP"))
-  sellValue    Float
-  valuePayment Float
-  deleted      Boolean        @default(false)
-  cost         Float?
-  itenssells   ItensSell[]
-  paymentsells PaymentSell[]
-  transactions Transactions[]
-  deliveries   Deliveries[]
+  id             Int            @id @default(autoincrement())
+  codRef         Int?
+  store          User           @relation(fields: [storeId], references: [id])
+  storeId        Int
+  seller         Sellers?       @relation(fields: [sellerId], references: [id])
+  sellerId       Int?
+  client         Clients?       @relation(fields: [clientId], references: [id])
+  clientId       Int?           
+  created_at     DateTime       @default(dbgenerated("CURRENT_TIMESTAMP"))
+  sellValue      Float
+  discountValue  Float?
+  valuePayment   Float
+  deleted        Boolean        @default(false)
+  cost           Float?
+  itenssells     ItensSell[]
+  paymentsells   PaymentSell[]
+  transactions   Transactions[]
+  deliveries     Deliveries[]
 }
 
 model ItensSell {
@@ -122,6 +123,8 @@ model ItensSell {
   descriptionProduct String
   costProduct        Float?
   totalCost          Float?
+  discount           Float?
+  totalDiscount      Float?
   created_at         DateTime @default(dbgenerated("CURRENT_TIMESTAMP"))
   deliveries         Deliveries[]
 }

@@ -19,6 +19,7 @@ module.exports = async function addSell(request, response) {
                 data: {
                     storeId: sell.UserId,
                     sellValue: sell.totalValue,
+                    discountValue: sell.totalDiscount,
                     cost: sell.totalCost,
                     valuePayment: sell.valuePayment,
                     clientId: sell.clientId,
@@ -70,11 +71,13 @@ module.exports = async function addSell(request, response) {
                         sellId: createSellonDB.id,
                         idProduct: product.id,
                         quantity: product.quantity,
-                        valueProduct: product.initialvalue,
-                        totalValue: product.totalvalue,
+                        valueProduct: product.initialvalue - product.discountValue,
+                        totalValue: product.totalvalue - product.totalDiscount,
                         costProduct: product.initialCost,
                         totalCost: product.totalCost,
-                        descriptionProduct: product.name
+                        descriptionProduct: product.name,
+                        discount: product.discountValue,
+                        totalDiscount: product.totalDiscount
                     }
                 });
 
