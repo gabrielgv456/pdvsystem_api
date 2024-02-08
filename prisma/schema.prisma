@@ -16,6 +16,7 @@ model User {
   name                 String
   fantasyName          String?
   cnpj                 String?
+  ie                   String?
   cellPhone            String?
   adressCep            String?
   adressStreet         String?
@@ -31,6 +32,16 @@ model User {
   password             String
   masterkey            String                 @default("123")
   urlLogo              String?
+  taxCrt               TaxCrt?                @relation(fields: [taxCrtId], references: [id])
+  taxCrtId             Int?     
+  taxRegime            TaxRegime?             @relation(fields: [taxRegimeId], references: [id])
+  taxRegimeId          Int?
+  taxCstPis            TaxCstPis?             @relation(fields: [taxCstPisId], references: [id])
+  taxCstPisId          Int?
+  taxCstPisAliquot        Float? 
+  taxCstCofins         TaxCstCofins?          @relation(fields: [taxCstCofinsId], references: [id])
+  taxCstCofinsId       Int?
+  taxCstCofinsAliquot  Float?               
   sells                Sells[]
   products             Products[]
   itensSell            ItensSell[]
@@ -59,9 +70,9 @@ model Products {
   profitMargin         Float?
   barCode              String?
   ncmCode              String?
-  itemType             itemType?              @relation(fields: [itemTypeId], references: [id])
+  itemType             TaxItemType?              @relation(fields: [itemTypeId], references: [id])
   itemTypeId           Int?
-  cfop                 Cfop?                  @relation(fields: [cfopId],references: [id])
+  cfop                 TaxCfop?                  @relation(fields: [cfopId],references: [id])
   cfopId               Int?
   unitMeasurement      String?
   active               Boolean
@@ -135,7 +146,7 @@ model Deliveries {
   storeId             Int
   itemSell            ItensSell   @relation(fields: [itemSellId], references: [id])
   itemSellId          Int
-  client              Clients?     @relation(fields: [clientId], references: [id])
+  client              Clients?    @relation(fields: [clientId], references: [id])
   clientId            Int? 
   address             Address     @relation(fields: [addressId], references: [id])
   addressId           Int
@@ -231,6 +242,9 @@ model Clients {
   gender             String?
   cpf                String
   email              String?
+  ie                 String?
+  suframa            String?
+  finalCostumer      Boolean?
   birthDate          DateTime?
   phoneNumber        String?
   cellNumber         String?
@@ -244,28 +258,63 @@ model Clients {
   active             Boolean   @default(true)
   store              User      @relation(fields: [storeId], references: [id])
   storeId            Int
+  taxPayerType       TaxPayerType? @relation(fields: [taxPayerTypeId], references: [id])
+  taxPayerTypeId     Int?
+  taxRemige          TaxRegime? @relation(fields: [taxRegimeId], references: [id])
+  taxRegimeId        Int?
   Sells              Sells[]
   Deliveries         Deliveries[]
 }
 
-model icmsOrigem {
-  id          Int       @id 
-  descricao   String
+model TaxIcmsOrigem {
+  id            Int       @id 
+  description   String
 }
 
-model icmsCst {
-  id          Int       @id
-  descricao   String        
+model TaxIcmsCst {
+  id            Int       @id
+  description   String        
 }
 
-model itemType {
-  id          Int       @id
-  descricao   String 
-  products    Products[]
+model TaxItemType {
+  id            Int       @id
+  description   String 
+  products      Products[]
 }
 
-model Cfop {
-  id          Int       @id
-  descricao   String
-  products    Products[]
+model TaxCfop {
+  id            Int       @id
+  description   String
+  products      Products[]
+}
+
+model TaxCrt {
+  id              Int         @id 
+  description     String
+  User            User[]
+}
+
+model TaxRegime {
+  id            Int       @id @default(autoincrement())
+  description   String
+  User          User[]
+  Clients       Clients[]
+}
+
+model TaxCstPis {
+  id            Int       @id 
+  description   String
+  User          User[]
+}
+
+model TaxCstCofins {
+  id            Int       @id
+  description   String
+  User          User[]
+}
+
+model TaxPayerType {
+  id            Int       @id
+  description   String
+  Clients       Clients[]
 }

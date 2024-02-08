@@ -1,41 +1,65 @@
+// @ts-check
 const prisma = require('../../services/prisma')
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
 
 module.exports = async function addClient(request, response) {
 
-    const { dataAddClient } = request.body
+    const { email,
+        adressCep,
+        adressCity,
+        active,
+        adressComplement,
+        adressNeighborhood,
+        adressNumber,
+        adressState,
+        adressStreet,
+        birthDate,
+        cellNumber,
+        cpf,
+        gender,
+        name,
+        phoneNumber,
+        storeId,
+        ie,
+        suframa,
+        taxPayerTypeId,
+        taxRegimeId } = request.body
 
-    if (dataAddClient) {
-        try {
-            const addClient = await prisma.clients.create({
-                data: {
-                    email: dataAddClient.email,
-                    adressCep: dataAddClient.adressCep,
-                    adressCity: dataAddClient.adressCity,
-                    active: dataAddClient.active,
-                    adressComplement: dataAddClient.adressComplement,
-                    adressNeighborhood: dataAddClient.adressNeighborhood,
-                    adressNumber: dataAddClient.adressNumber,
-                    adressState: dataAddClient.adressState,
-                    adressStreet: dataAddClient.adressStreet,
-                    birthDate: dataAddClient.birthDate,
-                    cellNumber: dataAddClient.cellNumber,
-                    cpf: dataAddClient.cpf,
-                    gender: dataAddClient.gender,
-                    name: dataAddClient.name,
-                    phoneNumber: dataAddClient.phoneNumber,
-                    storeId: dataAddClient.storeId,
-                }
-            })
-            if (addClient) {
-                console.log({dataClient: addClient})
-                return response.json({ Success: true, dataClient: addClient })
+    try {
+        const addClient = await prisma.clients.create({
+            data: {
+                email,
+                adressCep,
+                adressCity,
+                active,
+                adressComplement,
+                adressNeighborhood,
+                adressNumber,
+                adressState,
+                adressStreet,
+                birthDate,
+                cellNumber,
+                cpf,
+                gender,
+                name,
+                phoneNumber,
+                storeId,
+                ie,
+                suframa,
+                taxPayerTypeId,
+                taxRegimeId
             }
-        }
-        catch (error) {
-            return response.status(400).json({ Success: false, erro: error.message })
+        })
+        if (addClient) {
+            console.log({ dataClient: addClient })
+            return response.json({ Success: true, dataClient: addClient })
         }
     }
-    else {
-        return response.status(400).json({ Success: false, erro: "Dados invalidos, informe corretamente !" })
+    catch (error) {
+        return response.status(400).json({ Success: false, erro: error.message })
     }
 }

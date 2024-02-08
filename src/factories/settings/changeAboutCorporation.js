@@ -2,7 +2,22 @@ const prisma = require('../../services/prisma')
 
 module.exports = async function changeAboutCorporation(request, response) {
     try {
-        const { storeId, name, phone, adressCep, adressNeighborhood, adressNumber, adressState, fantasyName, adressStreet, adressCity, cellPhone, cnpj } = request.body.data
+        requiredFields = [
+            "storeId",
+            "name",
+            "phone",
+            "adressCep",
+            "adressNeighborhood",
+            "adressNumber",
+            "adressState",
+            "fantasyName",
+            "adressStreet",
+            "adressCity",
+            "cellPhone",
+            "cnpj",
+            "ie"
+        ]
+        const { storeId, name, phone, adressCep, adressNeighborhood, adressNumber, adressState, fantasyName, adressStreet, adressCity, cellPhone, cnpj, ie } = request.body.data
 
         const updateAbouteCorporation = await prisma.user.update({
             where: {
@@ -19,11 +34,12 @@ module.exports = async function changeAboutCorporation(request, response) {
                 //email,
                 fantasyName,
                 name,
-                phone
+                phone,
+                ie
             }, select: {
                 adressCep: true, adressCity: true, adressNeighborhood: true, adressNumber: true,
                 adressState: true, adressStreet: true, cellPhone: true, cnpj: true, email: true, name: true,
-                phone: true, urlLogo: true
+                phone: true, urlLogo: true, ie: true
             }
         })
         if (!updateAbouteCorporation) {

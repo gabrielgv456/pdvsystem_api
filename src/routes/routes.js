@@ -45,6 +45,8 @@ const deleteLogo = require('../factories/settings/deleteLogo');
 const validateForgotPassword = require('../factories/login/validateForgotPassword');
 const changeForgotPassword = require('../factories/login/changeForgotPassword');
 const verifyCodeForgotPassword = require('../factories/login/verifyCodeForgotPassword');
+const fiscalParameters = require('../factories/settings/fiscalParameters/fiscalParameters');
+const changeFiscalParameters = require('../factories/settings/fiscalParameters/changeFiscalParameters');
 
 //START LOGIN//
 router.post("/signIn", signIn)
@@ -115,6 +117,8 @@ router.patch("/changeAboutCorporation", changeAboutCorporation)
 router.get("/listNCM", listNcm)
 router.get("/listItemType", listItemType)
 router.delete("/deleteLogo",deleteLogo)
+router.get("/fiscalParameters", fiscalParameters)
+router.post("/changeFiscalParameters",changeFiscalParameters)
 // END SETTINGS
 
 

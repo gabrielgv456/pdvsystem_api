@@ -22,7 +22,8 @@ module.exports = async function aboutCorporation(request, response) {
                 adressCity: true,
                 cellPhone: true,
                 fantasyName: true,
-                cnpj: true
+                cnpj: true,
+                ie: true
             }
         })
         if (!resultAboutCorporation) {

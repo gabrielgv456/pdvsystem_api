@@ -1,46 +1,104 @@
-const prisma = require('../../services/prisma')
+// @ts-check
+
+const prisma = require('../../services/prisma');
+const validateFields = require('../../utils/validateFields');
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
 
 module.exports = async function editClient(request, response) {
 
-    const { dataEditClient } = request.body
+    try {
+        const requiredFields = [
+            'idClient',
+            'email',
+            'adressCep',
+            'adressCity',
+            'active',
+            'adressComplement',
+            'adressNeighborhood',
+            'adressNumber',
+            'adressState',
+            'adressStreet',
+            'birthDate',
+            'cellNumber',
+            'cpf',
+            'gender',
+            'name',
+            'phoneNumber',
+            'storeId',
+            'ie',
+            'suframa',
+            'taxPayerTypeId',
+            'taxRegimeId'
+        ];
 
-    if (dataEditClient) {
-        try {
-            const editClient = await prisma.clients.updateMany({
-                where: {
-                    AND:
-                        [
-                            { id: dataEditClient.idClient },
-                            { storeId: dataEditClient.storeId }
-                        ]
-                },
-                data: {
-                    email: dataEditClient.email,
-                    adressCep: dataEditClient.adressCep,
-                    adressCity: dataEditClient.adressCity,
-                    adressComplement: dataEditClient.adressComplement,
-                    adressNeighborhood: dataEditClient.adressNeighborhood,
-                    adressNumber: dataEditClient.adressNumber,
-                    adressState: dataEditClient.adressState,
-                    adressStreet: dataEditClient.adressStreet,
-                    birthDate: dataEditClient.birthDate,
-                    cellNumber: dataEditClient.cellNumber,
-                    cpf: dataEditClient.cpf,
-                    gender: dataEditClient.gender,
-                    name: dataEditClient.name,
-                    phoneNumber: dataEditClient.phoneNumber,
+        validateFields(requiredFields, request.body)
 
-                }
-            })
-            if (editClient) {
-                return response.json({ Success: true, dataClient: editClient })
+        const { idClient,
+            email,
+            adressCep,
+            adressCity,
+            active,
+            adressComplement,
+            adressNeighborhood,
+            adressNumber,
+            adressState,
+            adressStreet,
+            birthDate,
+            cellNumber,
+            cpf,
+            gender,
+            name,
+            phoneNumber,
+            storeId,
+            ie,
+            suframa,
+            taxPayerTypeId,
+            taxRegimeId } = request.body
+
+        if (!idClient) { throw new Error('Informe o valor do idClient!') }
+        if (!storeId) { throw new Error('Informe o valor do storeId!') }
+        
+        const editClient = await prisma.clients.updateMany({
+            where: {
+                AND:
+                    [
+                        { id: idClient },
+                        { storeId }
+                    ]
+            },
+            data: {
+                email,
+                adressCep,
+                adressCity,
+                active,
+                adressComplement,
+                adressNeighborhood,
+                adressNumber,
+                adressState,
+                adressStreet,
+                birthDate,
+                cellNumber,
+                cpf,
+                gender,
+                name,
+                phoneNumber,
+                storeId,
+                ie,
+                suframa,
+                taxPayerTypeId,
+                taxRegimeId
             }
-        }
-        catch (error) {
-            return response.status(400).json({ Success: false, erro: error.message })
+        })
+        if (editClient) {
+            return response.json({ Success: true, dataClient: editClient })
         }
     }
-    else {
-        return response.status(400).json({ Success: false, erro: "Dados invalidos, informe corretamente !" })
+    catch (error) {
+        return response.status(400).json({ Success: false, erro: error.message })
     }
 }
