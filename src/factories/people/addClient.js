@@ -8,28 +8,43 @@ const prisma = require('../../services/prisma')
 
 module.exports = async function addClient(request, response) {
 
-    const { email,
-        adressCep,
-        adressCity,
-        active,
-        adressComplement,
-        adressNeighborhood,
-        adressNumber,
-        adressState,
-        adressStreet,
-        birthDate,
-        cellNumber,
-        cpf,
-        gender,
-        name,
-        phoneNumber,
-        storeId,
-        ie,
-        suframa,
-        taxPayerTypeId,
-        taxRegimeId } = request.body
-
     try {
+        const { email,
+            adressCep,
+            adressCity,
+            active,
+            adressComplement,
+            adressNeighborhood,
+            adressNumber,
+            adressState,
+            adressStreet,
+            birthDate,
+            cellNumber,
+            cpf,
+            gender,
+            name,
+            phoneNumber,
+            storeId,
+            ie,
+            suframa,
+            taxPayerTypeId,
+            taxRegimeId } = request.body
+
+        const existsClient = await prisma.clients.findMany({
+            where: {
+                AND:
+                    [
+                        { cpf },
+                        { storeId }
+                    ]
+            },
+            select: {
+                id : true
+            }
+        })
+        if (existsClient.length > 0)
+            throw new Error('Já existe cliente com o documento ' + cpf)
+
         const addClient = await prisma.clients.create({
             data: {
                 email,

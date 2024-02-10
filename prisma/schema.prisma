@@ -70,9 +70,9 @@ model Products {
   profitMargin         Float?
   barCode              String?
   ncmCode              String?
-  itemType             TaxItemType?              @relation(fields: [itemTypeId], references: [id])
+  itemType             TaxItemType?            @relation(fields: [itemTypeId], references: [id])
   itemTypeId           Int?
-  cfop                 TaxCfop?                  @relation(fields: [cfopId],references: [id])
+  cfop                 TaxCfop?                @relation(fields: [cfopId],references: [id])
   cfopId               Int?
   unitMeasurement      String?
   active               Boolean
@@ -99,6 +99,7 @@ model PaymentTypes {
 }
 
 model Sells {
+  @@unique([codRef,storeId])
   id             Int            @id @default(autoincrement())
   codRef         Int?
   store          User           @relation(fields: [storeId], references: [id])
@@ -198,20 +199,21 @@ model PaymentSell {
 }
 
 model Transactions {
-  id          Int         @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   type        String
   description String
-  created_at  DateTime    @default(dbgenerated("CURRENT_TIMESTAMP"))
+  created_at  DateTime     @default(dbgenerated("CURRENT_TIMESTAMP"))
   value       Float
-  sell        Sells?      @relation(fields: [sellId], references: [id])
+  sell        Sells?       @relation(fields: [sellId], references: [id])
   sellId      Int?
-  store       User        @relation(fields: [storeId], references: [id])
+  store       User         @relation(fields: [storeId], references: [id])
   delivery    Deliveries?  @relation(fields: [deliveryId], references: [id])
   deliveryId  Int?
   storeId     Int
 }
 
 model Sellers {
+  @@unique([cpf,storeId])
   id                 Int       @id @default(autoincrement())
   created_at         DateTime  @default(dbgenerated("CURRENT_TIMESTAMP"))
   name               String
@@ -236,7 +238,8 @@ model Sellers {
 }
 
 model Clients {
-  id                 Int       @id @default(autoincrement())
+  @@unique([cpf,storeId])
+  id                 Int       @id @default(autoincrement())      
   created_at         DateTime  @default(dbgenerated("CURRENT_TIMESTAMP"))
   name               String
   gender             String?
@@ -255,12 +258,12 @@ model Clients {
   adressCity         String?
   adressState        String?
   adressCep          String?
-  active             Boolean   @default(true)
-  store              User      @relation(fields: [storeId], references: [id])
-  storeId            Int
+  active             Boolean       @default(true)
+  store              User          @relation(fields: [storeId], references: [id]) 
+    storeId          Int   
   taxPayerType       TaxPayerType? @relation(fields: [taxPayerTypeId], references: [id])
   taxPayerTypeId     Int?
-  taxRemige          TaxRegime? @relation(fields: [taxRegimeId], references: [id])
+  taxRemige          TaxRegime?    @relation(fields: [taxRegimeId], references: [id])
   taxRegimeId        Int?
   Sells              Sells[]
   Deliveries         Deliveries[]
@@ -289,7 +292,7 @@ model TaxCfop {
 }
 
 model TaxCrt {
-  id              Int         @id 
+  id              Int     @id 
   description     String
   User            User[]
 }
