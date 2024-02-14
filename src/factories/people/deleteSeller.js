@@ -1,6 +1,13 @@
-const prisma = require('../../services/prisma')
+//@ts-check
 
-module.exports = async function deleteSeller(request, response) {
+import prisma from '../../services/prisma/index.js'
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function deleteSeller(request, response) {
     const { dataDeleteSeller } = request.body
 
     try {
@@ -16,7 +23,7 @@ module.exports = async function deleteSeller(request, response) {
             return response.json({ Success: true })
         }
         else if (deleteSellerDb.count <= 0) {
-            return response.sjon({ Success: false, erro: 'Nenhum registro encontrado com os parametros fonecidos' })
+            return response.json({ Success: false, erro: 'Nenhum registro encontrado com os parametros fornecidos' })
         }
     }
     catch (error) {

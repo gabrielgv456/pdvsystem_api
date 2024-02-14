@@ -1,4 +1,11 @@
-module.exports = function () {
+//@ts-check
+
+export default function () {
+    /**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ * @param {import('express').NextFunction} next
+ */
     return async function (request, response, next) {
         const authHeader = request.headers.authorization;
         if (authHeader) {

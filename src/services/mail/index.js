@@ -1,20 +1,22 @@
-const nodemailer = require('nodemailer')
-const SMTP_CONFIG = require('../../config/smtp')
+//@ts-check
 
-const transporter = nodemailer.createTransport({
-    host: SMTP_CONFIG.host,
-    port: SMTP_CONFIG.port,
+import { createTransport } from 'nodemailer'
+import { host as _host, port as _port, user as _user, pass as _pass } from '../../config/smtp.js'
+
+const transporter = createTransport({
+    host: _host,
+    port: _port,
     secure: false,
     auth: {
-        user: SMTP_CONFIG.user,
-        pass: SMTP_CONFIG.pass
+        user: _user,
+        pass: _pass
     },
     tls: {
         rejectUnauthorized: false
     }
 })
 
-module.exports = async function sendEmailVerifyMail(email,codVerify,ownerName){
+export async function sendEmailVerifyMail(email,codVerify,ownerName){
     const mailSent = await transporter.sendMail({
         subject: `Verificação de e-mail - Safyra - Código ${codVerify}`,
         from: 'no-reply@safyra.com.br',
@@ -34,7 +36,7 @@ module.exports = async function sendEmailVerifyMail(email,codVerify,ownerName){
     })
 }
 
-module.exports = async function sendEmailChangePass(email,codVerify,name){
+export async function sendEmailChangePass(email,codVerify,name){
     const mailSent = await transporter.sendMail({
         subject: `Recuperação de Senha - Safyra - Código ${codVerify}`,
         from: 'no-reply@safyra.com.br',

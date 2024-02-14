@@ -1,6 +1,13 @@
-const prisma = require('../../services/prisma')
+//@ts-check
 
-module.exports = async function listItemType(request, response) {
+import prisma from '../../services/prisma/index.js'
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function listItemType(request, response) {
     try {
         const findItemType = await prisma.taxItemType.findMany()
         if (findItemType) {

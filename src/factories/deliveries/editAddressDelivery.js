@@ -1,13 +1,18 @@
-const prisma = require('../../services/prisma')
-const validateFields = require('../../utils/validateFields');
+// @ts-check
+import prisma from '../../services/prisma/index.js';
+import validateFields from '../../utils/validateFields.js';
 
-module.exports = async function editAddressDeliveries(request, response) {
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function editAddressDeliveries(request, response) {
     try {
         const { dataChangeAddressDelivery } = request.body
-        requiredFields = ['storeId', 'deliveryId', 'addressId', 'scheduledDate', 'addressComplement', 'addressCep',
+        const requiredFields = ['storeId', 'deliveryId', 'addressId', 'scheduledDate', 'addressComplement', 'addressCep',
             'addressStreet', 'addressNumber', 'addressNeighborhood', 'addressCity', 'addressState']
         validateFields(requiredFields, dataChangeAddressDelivery)
-        console.log(dataChangeAddressDelivery.scheduledDate)
         await prisma.$transaction(async (prismaTx) => {
 
             await prismaTx.address.updateMany({

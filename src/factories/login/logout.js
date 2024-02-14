@@ -1,7 +1,14 @@
-const { v4 } = require('uuid')
-const prisma = require('../../services/prisma')
+//@ts-check
 
-module.exports = async function logout(request, response) {
+import { v4 } from 'uuid'
+import prisma from '../../services/prisma/index.js'
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function logout(request, response) {
     
     const { userId } = request.body.dataLogOutUser
     const uuidGenerated = v4()

@@ -1,8 +1,15 @@
-const prisma = require('../../services/prisma')
+//@ts-check
 
-module.exports = async function changeAboutCorporation(request, response) {
+import prisma from '../../services/prisma/index.js'
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function changeAboutCorporation(request, response) {
     try {
-        requiredFields = [
+        const requiredFields = [
             "storeId",
             "name",
             "phone",

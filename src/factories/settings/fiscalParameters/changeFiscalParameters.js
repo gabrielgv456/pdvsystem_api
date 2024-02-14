@@ -1,10 +1,17 @@
-const prisma = require('../../../services/prisma')
-const validateFields = require('../../../utils/validateFields');
+//@ts-check
 
-module.exports = async function changeFiscalParameters(request, response) {
+import prisma from '../../../services/prisma/index.js';
+import validateFields from '../../../utils/validateFields.js';
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function changeFiscalParameters(request, response) {
     try {
         const  dataChangeFiscalParameters  = request.body
-        requiredFields = ['storeId', 'taxCrtId', 'taxCstCofinsAliquot', 'taxCstCofinsId', 'taxCstPisAliquot', 'taxCstPisId', 'taxRegimeId',]
+        const requiredFields = ['storeId', 'taxCrtId', 'taxCstCofinsAliquot', 'taxCstCofinsId', 'taxCstPisAliquot', 'taxCstPisId', 'taxRegimeId',]
         validateFields(requiredFields, dataChangeFiscalParameters)
         await prisma.user.update({
             where: {

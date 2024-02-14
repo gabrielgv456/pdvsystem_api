@@ -1,10 +1,17 @@
-const { v4 } = require('uuid')
-const bcrypt = require('bcrypt')
-const sendEmailVerifyMail = require('../../services/mail')
-const prisma = require('../../services/prisma')
-const generateNumberRandom = require('../../utils/generateNumberRandom')
+//@ts-check
 
-module.exports = async function addUser(request, response) {
+import { v4 } from 'uuid'
+import { hash } from 'bcrypt'
+import { sendEmailVerifyMail } from '../../services/mail/index.js'
+import prisma from '../../services/prisma/index.js'
+import { generateNumberRandom } from '../../utils/utils.js'
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function addUser(request, response) {
     const { email, password, name, masterkey, ownerName, phone } = request.body
 
     try {
@@ -14,9 +21,9 @@ module.exports = async function addUser(request, response) {
         if (verifyExists) {
             throw new Error('E-mail já cadastrado!')
         }
-        const hashedpassword = await bcrypt.hash(password, 11)
+        const hashedpassword = await hash(password, 11)
         const uuidGenerated = v4()
-        
+
         const codEmailValidate = generateNumberRandom()
 
         const addUserDb = await prisma.user.create({

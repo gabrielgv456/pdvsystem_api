@@ -1,9 +1,16 @@
-const validateFields = require("../../utils/validateFields")
-const sendEmailChangePass = require('../../services/mail')
-const prisma = require('../../services/prisma');
-const generateNumberRandom = require("../../utils/generateNumberRandom");
+//@ts-check
 
-module.exports = async function validateForgotPassword(request, response) {
+import validateFields from "../../utils/validateFields.js";
+import { sendEmailChangePass } from '../../services/mail/index.js';
+import prisma from '../../services/prisma/index.js';
+import { generateNumberRandom } from "../../utils/utils.js";
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function validateForgotPassword(request, response) {
     try {
         const dataValidateForgotPassword = request.body
         validateFields(['email'], dataValidateForgotPassword)

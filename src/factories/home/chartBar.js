@@ -1,13 +1,23 @@
-const prisma = require('../../services/prisma')
+// @ts-check
 
-module.exports = async function chartsBar(request, response) {
-    
-    const { userId } = request.body
+import prisma from '../../services/prisma/index.js'
+import { createSequence } from '../../utils/utils.js'
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function chartsBar(request, response) {
 
     try {
+        const { userId, lastPeriod } = request.query
+        if (!lastPeriod || !userId) {
+            throw new Error(`Parâmetros obrigatórios não informados: ${!lastPeriod && 'lastPeriod'} ${!userId && 'userId' }`);
+        }
         const atualMonth = new Date().getMonth() + 1
         const atualYear = new Date().getFullYear()
-        const qtdMoths = [0, 1, 2, 3, 4, 5] // add to changing months quantity
+        const qtdMoths = createSequence(lastPeriod) // add to changing months quantity
         const monthstoConsult = qtdMoths.map(month => month = new Date().getMonth() + 1 - month)
 
         const dataBarChart = []
@@ -31,7 +41,7 @@ module.exports = async function chartsBar(request, response) {
                                 lt: finalDate
                             }
                         },
-                        { storeId: userId },
+                        { storeId: parseInt(userId.toString()) },
                         { deleted: false }
 
                         ]
@@ -50,12 +60,12 @@ module.exports = async function chartsBar(request, response) {
                             where: {
                                 AND: [{
                                     sellId: sell.id,
-                                    storeId: userId
+                                    storeId: parseInt(userId.toString())
                                 }]
                             }
                         })
-                        const listSellFiltered = itemSell.filter(item => item.totalCost > 0)
-                        totalProfit = totalProfit + (listSellFiltered.map(item => item.totalValue).reduce((prev, curr) => prev + curr, 0) - listSellFiltered.map(item => item.totalCost).reduce((prev, curr) => prev + curr, 0));
+                        const listSellFiltered = itemSell.filter(item => item.totalCost ?? 0 > 0)
+                        totalProfit = totalProfit + (listSellFiltered.map(item => item.totalValue).reduce((prev, curr) => prev + curr, 0) - listSellFiltered.map(item => item.totalCost ?? 0).reduce((prev, curr) => prev + curr, 0));
                     })
                 )
 
@@ -65,7 +75,7 @@ module.exports = async function chartsBar(request, response) {
                 dataBarChart.push({ sumSells, month, medTicket, totalProfit, year, initialDate, finalDate })
                 dataBarChart.sort(function (x, y) { return x.initialDate - y.initialDate }) //order array
             }))
-        return response.json({ Success: true, dataBarChart })
+        return response.json({ Success: true, content: dataBarChart  })
 
     }
     catch (error) {

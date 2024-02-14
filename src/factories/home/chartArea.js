@@ -1,29 +1,38 @@
-const prisma = require('../../services/prisma')
+// @ts-check
 
-module.exports = async function chartsArea(request, response) {
+import prisma from '../../services/prisma/index.js'
+import { createSequence } from '../../utils/utils.js';
 
-    const { userId } = request.body
-    const atualDate = new Date()
-    const firstDayWeek = atualDate.getDate() - atualDate.getDay() // first day this week
-    const endDayWeek = firstDayWeek + 6
-    const qtdDays = [0, 1, 2, 3, 4, 5, 6] // change to add more days
-    const daysToConsult = qtdDays.map(day => firstDayWeek + day)
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
 
-    //var primeiroDiaDaSemana = new Date(dataAtual.setDate(primeiro)).toUTCString();
-    //var ultimoDiaDaSemana = new Date(dataAtual.setDate(ultimo)).toUTCString();
+export default async function chartsArea(request, response) {
 
-    const SellsChartArea = []
+    try {
 
-    await Promise.all(
-        daysToConsult.map(async day => {
+        const { userId, lastPeriod } = request.query
+        if (!lastPeriod || !userId) {
+            throw new Error(`Parâmetros obrigatórios não informados: ${!lastPeriod && 'lastPeriod'} ${!userId && 'userId'}`);
+        }
+        const qtdDays = createSequence(lastPeriod) // change to add more days
+        const daysToConsult = qtdDays.map(day => {
+            const date = new Date()
+            date.setDate(date.getDate() - day)
+            return date
+        })
+        console.log(daysToConsult)
+        const SellsChartArea = []
 
-            const initialDayConsult = new Date((new Date()).setDate(day))
-            const initialHourDayConsult = new Date(initialDayConsult.setUTCHours(0, 0, 0, 0))
-            const endHourDayConsult = new Date(initialDayConsult.setUTCHours(23, 59, 59, 59))
-            const nameDay = new Date((new Date()).setDate(day)).toLocaleString('pt-br', { weekday: 'long' })
+        await Promise.all(
+            daysToConsult.map(async day => {
 
+                const initialDayConsult = day
+                const initialHourDayConsult = new Date(initialDayConsult.setUTCHours(0, 0, 0, 0))
+                const endHourDayConsult = new Date(initialDayConsult.setUTCHours(23, 59, 59, 59))
+                const nameDay = day.toLocaleString('pt-br', { weekday: 'long' })
 
-            try {
                 const Sells = await prisma.sells.findMany({
                     where: {
                         AND: [{
@@ -36,7 +45,7 @@ module.exports = async function chartsArea(request, response) {
                                 lt: endHourDayConsult
                             }
                         },
-                        { storeId: userId },
+                        { storeId: parseInt(userId.toString()) },
 
                         ]
                     }
@@ -53,23 +62,21 @@ module.exports = async function chartsArea(request, response) {
                             where: {
                                 AND: [{
                                     sellId: sell.id,
-                                    storeId: userId
+                                    storeId: parseInt(userId.toString())
                                 }]
                             }
                         })
-                        const listSellFiltered = itemSell.filter(item => item.totalCost > 0)
-                        totalProfit = totalProfit + (listSellFiltered.map(item => item.totalValue).reduce((prev, curr) => prev + curr, 0) - listSellFiltered.map(item => item.totalCost).reduce((prev, curr) => prev + curr, 0));
+                        const listSellFiltered = itemSell.filter(item => item.totalCost ?? 0 > 0)
+                        totalProfit = totalProfit + (listSellFiltered.map(item => item.totalValue).reduce((prev, curr) => prev + curr, 0) - listSellFiltered.map(item => item.totalCost ?? 0).reduce((prev, curr) => prev + curr, 0));
+
                     })
                 )
                 SellsChartArea.push({ totalSells, day, nameDay, totalProfit })
                 SellsChartArea.sort(function (x, y) { return x.day - y.day }) // order array
-            }
-            catch (error) {
-                return response.status(400).json({ Success: false, erro: error.message })
-            }
-
-
-        })
-    )
-    return response.json({ Success: true, SellsChartArea })
+            })
+        )
+        return response.json({ Success: true, content:SellsChartArea })
+    } catch (error) {
+        return response.status(400).json({ Success: false, erro: error.message })
+    }
 }

@@ -1,6 +1,13 @@
-const prisma = require('../../services/prisma')
+//@ts-check
 
-module.exports = async function validateMail(request, response) {
+import prisma from '../../services/prisma/index.js'
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function validateMail(request, response) {
     const { userId } = request.body
     try {
         const validateMail = await prisma.user.update({

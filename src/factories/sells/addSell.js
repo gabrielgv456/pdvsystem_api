@@ -1,9 +1,15 @@
-const prisma = require('../../services/prisma')
+//@ts-check
 
-module.exports = async function addSell(request, response) {
+import prisma from '../../services/prisma/index.js'
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function addSell(request, response) {
     try {
         const { sell } = request.body
-        console.log(sell)
 
         await prisma.$transaction(async (prismaTx) => {
 
@@ -24,7 +30,7 @@ module.exports = async function addSell(request, response) {
                     valuePayment: sell.valuePayment,
                     clientId: sell.clientId,
                     sellerId: sell.sellerId,
-                    codRef: (nextCodRefSell.codRef ?? 1000) + 1
+                    codRef: (nextCodRefSell?.codRef ?? 1000) + 1
                 }
             })
 
@@ -36,6 +42,7 @@ module.exports = async function addSell(request, response) {
                         id: product.id
                     }
                 })
+                if (!searchProduct) { throw new Error(`Não foi encontrado produto com o id ${product.id}`) }
                 if (product.quantity > searchProduct.quantity) {
                     throw new Error('Quantidade maior do que o saldo!')
 

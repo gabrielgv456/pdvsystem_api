@@ -1,18 +1,25 @@
-const bcrypt = require('bcrypt')
-const prisma = require('../../services/prisma');
-const validateFields = require('../../utils/validateFields');
+//@ts-check
 
-module.exports = async function verifyCodeForgotPassword(request, response) {
+import bcrypt from 'bcrypt';
+import prisma from '../../services/prisma/index.js';
+import validateFields from '../../utils/validateFields.js';
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function verifyCodeForgotPassword(request, response) {
     try {
         validateFields(['email', 'codEmailValidate'], request.query)
 
         const { email, codEmailValidate } = request.query;
-        const findUser = await prisma.user.findUnique({ where: { email } })
+        const findUser = await prisma.user.findUnique({ where: { email: email?.toString() } })
 
-        if (findUser === null) {
-            throw new Error("Não foi encontrado usuarios com esse id")
+        if (!findUser) {
+            throw new Error("Não foi encontrado usuarios com esse email")
         }
-        if (!findUser.codEmailPass === codEmailValidate) {
+        if (findUser.codEmailPass !== codEmailValidate?.toString()) {
             throw new Error("Código de validação incorreto!")
         }
 

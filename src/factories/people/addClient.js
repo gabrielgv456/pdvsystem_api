@@ -1,12 +1,13 @@
 // @ts-check
-const prisma = require('../../services/prisma')
+
+import prisma from '../../services/prisma/index.js'
 
 /**
  * @param {import('express').Request} request
  * @param {import('express').Response} response
  */
 
-module.exports = async function addClient(request, response) {
+export default async function addClient(request, response) {
 
     try {
         const { email,
@@ -70,7 +71,6 @@ module.exports = async function addClient(request, response) {
             }
         })
         if (addClient) {
-            console.log({ dataClient: addClient })
             return response.json({ Success: true, dataClient: addClient })
         }
     }

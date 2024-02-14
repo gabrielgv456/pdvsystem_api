@@ -1,14 +1,22 @@
-const prisma = require('../../services/prisma')
+// @ts-check
 
-module.exports = async function chartDoughnut(request, response) {
+import prisma from '../../services/prisma/index.js'
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function chartDoughnut(request, response) {
 
     try {
-
-        const { userId } = request.body
-        const atualMonth = new Date().getMonth() + 1
-        const atualYear = new Date().getFullYear()
-        const initialDate = new Date(atualMonth > 9 ? `${atualYear}-${atualMonth}-01T03:00:00.000Z` : `${atualYear}-0${atualMonth}-01T03:00:00.000Z`)
-        const finalDate = new Date(initialDate.getFullYear(), initialDate.getMonth() + 1, 0)
+        const { userId, lastPeriod } = request.query
+        if (!lastPeriod || !userId) {
+            throw new Error(`Parâmetros obrigatórios não informados: ${!lastPeriod && 'lastPeriod'} ${!userId && 'userId' }`);
+        }
+        const initialDate = new Date()
+        initialDate.setMonth(new Date().getMonth() - (parseInt(lastPeriod.toString())))
+        const finalDate = new Date()
 
         const searchsells = await prisma.sells.findMany({
             where: {
@@ -22,7 +30,7 @@ module.exports = async function chartDoughnut(request, response) {
                         lt: finalDate
                     }
                 },
-                { storeId: userId },
+                { storeId: parseInt(userId.toString()) },
 
                 ]
             }
@@ -56,7 +64,7 @@ module.exports = async function chartDoughnut(request, response) {
 
         return response.json({
             Success: true,
-            doughnutData: {
+            content: {
                 femaleGender: FemaleGender.length,
                 masculineGender: MasculineGender.length,
                 notInformedGender: NotInformedGender.length
@@ -67,7 +75,7 @@ module.exports = async function chartDoughnut(request, response) {
 
     catch (error) {
 
-        return response.status(400).json({ Success: error.message })
+        return response.status(400).json({ Success: false, erro: error.message })
 
     }
 }

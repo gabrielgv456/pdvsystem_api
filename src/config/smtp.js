@@ -5,10 +5,7 @@
 //     pass: 'befkyfqggjseyurk'
 // }
 
-module.exports = {
-    host: 'smtp.zoho.com',
-    port:  587, 
-    user: 'no-reply@safyra.com.br',
-    pass: '2KQqRrwQxxgD'
-    //pass: '#EP+$ovEvu$ruH9C0bRo'
-}
+export const host = 'smtp.zoho.com';
+export const port = 587;
+export const user = 'no-reply@safyra.com.br';
+export const pass = '2KQqRrwQxxgD';

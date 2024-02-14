@@ -1,12 +1,19 @@
-const validateFields = require('../../utils/validateFields');
-const prisma = require('../../services/prisma')
+// @ts-check
 
-module.exports = async function addProduct(request, response) {
+import validateFields from '../../utils/validateFields.js';
+import prisma from '../../services/prisma/index.js';
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function addProduct(request, response) {
     
     const { dataAddProduct } = request.body
 
     try {
-        requiredFields = ['userId', 'name', 'value', 'quantity', 'active', 'cost', 'profitMargin', 'barCode', 'ncmCode', 'cfopId', 'unitMeasurement']
+        const requiredFields = ['userId', 'name', 'value', 'quantity', 'active', 'cost', 'profitMargin', 'barCode', 'ncmCode', 'cfopId', 'unitMeasurement']
         validateFields(requiredFields,dataAddProduct)
 
         const addproduct = await prisma.products.create({

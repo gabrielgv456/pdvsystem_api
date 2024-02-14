@@ -1,7 +1,7 @@
 // @ts-check
 
-const prisma = require('../../services/prisma');
-const validateFields = require('../../utils/validateFields');
+import prisma from '../../services/prisma/index.js';
+import validateFields from '../../utils/validateFields.js';
 
 /**
  * @param {import('express').Request} request
@@ -9,7 +9,7 @@ const validateFields = require('../../utils/validateFields');
  */
 
 
-module.exports = async function editClient(request, response) {
+export default async function editClient(request, response) {
 
     try {
         const requiredFields = [
@@ -33,7 +33,8 @@ module.exports = async function editClient(request, response) {
             'ie',
             'suframa',
             'taxPayerTypeId',
-            'taxRegimeId'
+            'taxRegimeId',
+            'finalCostumer'
         ];
 
         validateFields(requiredFields, request.body)
@@ -58,10 +59,26 @@ module.exports = async function editClient(request, response) {
             ie,
             suframa,
             taxPayerTypeId,
-            taxRegimeId } = request.body
+            taxRegimeId,
+            finalCostumer } = request.body
 
         if (!idClient) { throw new Error('Informe o valor do idClient!') }
         if (!storeId) { throw new Error('Informe o valor do storeId!') }
+
+        const existsClient = await prisma.clients.findMany({
+            where: {
+                AND:
+                    [
+                        { cpf },
+                        { storeId }
+                    ]
+            },
+            select: {
+                id : true
+            }
+        })
+        if (existsClient.length > 0)
+            throw new Error('Já existe cliente com o documento ' + cpf)
         
         const editClient = await prisma.clients.updateMany({
             where: {
@@ -91,7 +108,8 @@ module.exports = async function editClient(request, response) {
                 ie,
                 suframa,
                 taxPayerTypeId,
-                taxRegimeId
+                taxRegimeId,
+                finalCostumer
             }
         })
         if (editClient) {

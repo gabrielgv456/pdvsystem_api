@@ -1,11 +1,20 @@
-const prisma = require('../../services/prisma')
-const validateFields = require('../../utils/validateFields');
+//@ts-check
 
-module.exports = async function findDeliveries(request, response) {
+import prisma from '../../services/prisma/index.js';
+import validateFields from '../../utils/validateFields.js';
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function findDeliveries(request, response) {
     try {
         const dataFindDeliveries = request.query
-        requiredFields = ['storeId', 'initialDate', 'finalDate']
-        validateFields(requiredFields, dataFindDeliveries)
+        const requiredFields = ['storeId', 'initialDate', 'finalDate']
+        validateFields(requiredFields, dataFindDeliveries, true)
+        if (!dataFindDeliveries.storeId?.toString()) {throw new Error('storeId não informado!')}
+
         const resultDeliveries = await prisma.deliveries.findMany({
             include: {
                 address: true,
@@ -24,7 +33,7 @@ module.exports = async function findDeliveries(request, response) {
                         lt: new Date(`${dataFindDeliveries.finalDate}T23:59:59Z`)
                     }
                 },
-                { storeId: parseInt(dataFindDeliveries.storeId) }
+                { storeId: parseInt(dataFindDeliveries.storeId.toString()) }
                 ]
             }
         })

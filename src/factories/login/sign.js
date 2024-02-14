@@ -1,8 +1,8 @@
-const { v4 } = require('uuid')
-const bcrypt = require('bcrypt')
-const prisma = require('../../services/prisma')
+import { v4 } from 'uuid'
+import { compare } from 'bcrypt'
+import prisma from '../../services/prisma/index.js'
 
-module.exports = async function signIn(request, response) {
+export default async function signIn(request, response) {
     try {
         const { email, password } = request.body
         const uuidGenerated = v4()
@@ -14,7 +14,7 @@ module.exports = async function signIn(request, response) {
             return response.json({ erro: "Não foi encontrado usuarios com esse email" })
         }
         else {
-            if (await bcrypt.compare(password, validateUser.password)) {
+            if (await compare(password, validateUser.password)) {
                 delete validateUser.password
                 return response.json({
                     user: validateUser,

@@ -1,7 +1,13 @@
-const prisma = require('../../services/prisma')
+// @ts-check
+import prisma from '../../services/prisma/index.js'
 
-module.exports = async function findSell(request, response) {
-    
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function findSell(request, response) {
+
     const { datafindSells } = request.body
 
     try {
@@ -61,6 +67,8 @@ module.exports = async function findSell(request, response) {
                             }
                         });
 
+                        if (!findSellersName) { throw new Error('Não foi localizado o nome do cliente') }
+
                         const findClientName = await prisma.clients.findUnique({
                             where: {
                                 id: sell.clientId
@@ -69,6 +77,8 @@ module.exports = async function findSell(request, response) {
                                 name: true
                             }
                         });
+
+                        if (!findClientName) { throw new Error('Não foi localizado o nome do cliente') }
 
                         finalSellswithSellerorClientname.push({
                             clientName: findClientName.name,
@@ -86,6 +96,9 @@ module.exports = async function findSell(request, response) {
                                 name: true
                             }
                         });
+
+                        if (!findSellersName) { throw new Error('Não foi localizado o nome do cliente') }
+
                         finalSellswithSellerorClientname.push({
                             sellerName: findSellersName.name,
                             ...sell
@@ -100,6 +113,9 @@ module.exports = async function findSell(request, response) {
                                 name: true
                             }
                         });
+
+                        if (!findClientName) { throw new Error('Não foi localizado o nome do cliente') }
+
                         finalSellswithSellerorClientname.push({
                             clientName: findClientName.name,
                             ...sell
@@ -116,7 +132,7 @@ module.exports = async function findSell(request, response) {
         //const findsells = await prisma.$queryRaw`SELECT * FROM "public"."ItensSell" WHERE "created_at" = timestamp '2022-06-09 13:27:54' `
 
         if (findsells && findsellsproducts && finalSellswithSellerorClientname) {
-            finalSellswithSellerorClientname.sort(function (y,x) { return x.created_at - y.created_at })
+            finalSellswithSellerorClientname.sort(function (y, x) { return x.created_at - y.created_at })
             const finalreturn = { sells: [...finalSellswithSellerorClientname], sellsproducts: [...findsellsproducts] }
             return response.json(finalreturn)
         }

@@ -1,8 +1,18 @@
-const prisma = require('../../services/prisma')
+//@ts-check
 
-module.exports = async function chartBestSellers(request, response) {
+import prisma from '../../services/prisma/index.js'
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function chartBestSellers(request, response) {
     try {
-        const { userId } = request.body
+        const { userId } = request.query
+        if (!userId) {
+            throw new Error(`Parâmetros obrigatórios não informados: 'lastPeriod'`);
+        }
         const atualMonth = new Date().getMonth() + 1
         const atualYear = new Date().getFullYear()
         const initialDate = new Date(atualMonth > 9 ? `${atualYear}-${atualMonth}-01T03:00:00.000Z` : `${atualYear}-0${atualMonth}-01T03:00:00.000Z`)
@@ -11,7 +21,7 @@ module.exports = async function chartBestSellers(request, response) {
         const Sellers =
             await prisma.sellers.findMany({
                 where: {
-                    storeId: userId
+                    storeId: parseInt(userId.toString())
                 },
                 select: {
                     id: true,
@@ -33,7 +43,7 @@ module.exports = async function chartBestSellers(request, response) {
                                 lt: finalDate
                             }
                         },
-                        { storeId: userId },
+                        { storeId: parseInt(userId.toString()) },
                         { sellerId: seller.id }
 
                         ]
@@ -54,22 +64,23 @@ module.exports = async function chartBestSellers(request, response) {
                                 sellId: sell.id
                             }
                         })
-
-                        sell.totalItens = ItensSellsSellers.length
+                        //@ts-ignore
+                        sell.totalItens = ItensSellsSellers.length 
                     })
                 )
 
-                const totalItensSell = SellsSellers.reduce((acc, item) => {
+                const totalItensSell = SellsSellers.reduce((acc, item) => { //@ts-ignore
                     return acc + item.totalItens
                 }, 0)
-
+                //@ts-ignore
                 seller.totalValueSell = totalValueSell
+                //@ts-ignore
                 seller.totalItensSell = totalItensSell
             })
 
         )
 
-        const firstsSellers = Sellers.filter((value, index) => index <= 3)
+        const firstsSellers = Sellers.filter((value, index) => index <= 3) //@ts-ignore
         firstsSellers.sort(function (x, y) { return y.totalValueSell - x.totalValueSell }) // odernar array
 
         if (Sellers) {

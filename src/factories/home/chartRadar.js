@@ -1,12 +1,22 @@
-const prisma = require('../../services/prisma')
+//@ts-check
 
-module.exports = async function chartRadar(request, response) {
+import prisma from '../../services/prisma/index.js'
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+
+export default async function chartRadar(request, response) {
     try {
-        const { userId } = request.body
-        const atualMonth = new Date().getMonth() + 1
-        const atualYear = new Date().getFullYear()
-        const initialDate = new Date(atualMonth > 9 ? `${atualYear}-${atualMonth}-01T03:00:00.000Z` : `${atualYear}-0${atualMonth}-01T03:00:00.000Z`)
-        const finalDate = new Date(initialDate.getFullYear(), initialDate.getMonth() + 1, 0)
+        const { userId, lastPeriod } = request.query
+        if (!lastPeriod || !userId) {
+            throw new Error(`Parâmetros obrigatórios não informados: ${!lastPeriod && 'lastPeriod'} ${!userId && 'userId'}`);
+        }
+        const initialDate = new Date()
+        initialDate.setMonth(new Date().getMonth() - (parseInt(lastPeriod.toString())))
+        const finalDate = new Date()
 
         const Payments = await prisma.paymentSell.groupBy({
             where: {
@@ -20,7 +30,7 @@ module.exports = async function chartRadar(request, response) {
                         lt: finalDate
                     }
                 },
-                { storeId: userId },
+                { storeId: parseInt(userId.toString()) },
                 ]
             },
             _count: { id: true },
@@ -36,13 +46,13 @@ module.exports = async function chartRadar(request, response) {
                 if (payment.typepayment === 'debitcard') { payment.typepayment = 'Débito' }
                 if (payment.typepayment === 'pix') { payment.typepayment = 'Pix' }
                 if (payment.typepayment === 'others') { payment.typepayment = 'Outros' }
-                if (payment.typepayment === 'onDelivery') { payment.typepayment = 'Na entrega' }
-                payment.quantity = payment._count.id
+                if (payment.typepayment === 'onDelivery') { payment.typepayment = 'Na entrega' } //@ts-ignore
+                payment.quantity = payment._count.id //@ts-ignore
                 delete payment._count
             })
         )
 
-        return response.json({ Success: true, Payments })
+        return response.json({ Success: true, content: Payments })
     }
     catch (error) {
         return response.status(400).json({ Success: false, erro: error.message })

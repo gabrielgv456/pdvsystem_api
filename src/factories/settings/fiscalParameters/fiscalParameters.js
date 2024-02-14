@@ -1,6 +1,13 @@
-const prisma = require('../../../services/prisma')
+//@ts-check
 
-module.exports = async function fiscalParameters(request, response) {
+import prisma from '../../../services/prisma/index.js'
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function fiscalParameters(request, response) {
     try {
         const { storeId } = request.query
         if (!storeId) {
@@ -9,7 +16,7 @@ module.exports = async function fiscalParameters(request, response) {
 
         const fiscalParameters = await prisma.user.findUnique({
             where: {
-                id: parseInt(storeId)
+                id: parseInt(storeId.toString())
             },
             select: {
                 taxCrtId: true,

@@ -1,10 +1,17 @@
-const prisma = require('../../services/prisma')
-const validateFields = require('../../utils/validateFields');
+//@ts-check
 
-module.exports = async function changeStatusDeliveries(request, response) {
+import prisma from '../../services/prisma/index.js';
+import validateFields from '../../utils/validateFields.js';
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function changeStatusDeliveries(request, response) {
     try {
         const { dataChangeStatusDeliveries } = request.body
-        requiredFields = ['storeId', 'itensSellToChange', 'newStatus']
+        const requiredFields = ['storeId', 'itensSellToChange', 'newStatus']
         validateFields(requiredFields, dataChangeStatusDeliveries)
         await prisma.deliveries.updateMany({
             where: {

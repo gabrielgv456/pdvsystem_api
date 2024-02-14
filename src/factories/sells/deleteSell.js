@@ -1,6 +1,13 @@
-const prisma = require('../../services/prisma')
+//@ts-check
 
-module.exports = async function deleteSell(request, response) {
+import prisma from '../../services/prisma/index.js'
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function deleteSell(request, response) {
 
     const { dataDeleteSell } = request.body
 
@@ -15,7 +22,7 @@ module.exports = async function deleteSell(request, response) {
                 }
             })
 
-            if (deliveriesShipping.length > 0 ) throw new Error('Existe(m) entrega(s) dessa venda com status "Em entrega", realize a conclusão antes de realizar o estorno!')
+            if (deliveriesShipping.length > 0) throw new Error('Existe(m) entrega(s) dessa venda com status "Em entrega", realize a conclusão antes de realizar o estorno!')
 
             dataDeleteSell.Products.map(async product => {
                 const searchProduct = await prismaTx.products.findUnique({
@@ -23,6 +30,7 @@ module.exports = async function deleteSell(request, response) {
                         id: product.idProduct
                     }
                 })
+                if (!searchProduct) { throw new Error(`Não foi encontrado produto com o id ${product.idProduct}`) }
                 const updateQntProduct = await prismaTx.products.update({
                     where: {
                         id: searchProduct.id
@@ -112,7 +120,7 @@ module.exports = async function deleteSell(request, response) {
                     data: {
                         description: 'Estorno de Venda',
                         type: 'exit',
-                        value: dataDeleteSell.SellValue - deliveriesPendingToPay.onDeliveryPayValue,
+                        value: dataDeleteSell.SellValue - (deliveriesPendingToPay?.onDeliveryPayValue ?? 0),
                         sellId: dataDeleteSell.SellId,
                         storeId: dataDeleteSell.UserId
                     }

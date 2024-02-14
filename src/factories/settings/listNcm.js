@@ -1,11 +1,18 @@
-const ncm = require("../../utils/NCM.json")
+import Nomenclaturas from '../../utils/NCM.json' with { type: "json"};
 
-module.exports = async function listNcm(request, response) {
+//@ts-check
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function listNcm(request, response) {
     try {
         //https://portalunico.siscomex.gov.br/classif/api/publico/nomenclatura/download/json  ATUALIZAR NCM JSON
 
         //const validNCM = ncm.Nomenclaturas.filter(item => { item.Data_Inicio < new Date() })
-        const ncmList = ncm.Nomenclaturas
+        const ncmList = Nomenclaturas
         await Promise.all(
             ncmList.map(item => {
                 delete item.Data_Fim

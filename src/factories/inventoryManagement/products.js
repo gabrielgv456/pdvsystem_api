@@ -1,6 +1,7 @@
-const prisma = require('../../services/prisma')
+import prisma from '../../services/prisma/index.js'
 
-module.exports = async function products(request, response) {
+
+export default async function products(request, response) {
 
     const { userId } = request.body
 

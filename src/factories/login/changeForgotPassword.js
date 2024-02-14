@@ -1,14 +1,21 @@
-const bcrypt = require('bcrypt')
-const prisma = require('../../services/prisma');
-const validateFields = require('../../utils/validateFields');
+//@ts-check
 
-module.exports = async function changeForgotPassword(request, response) {
+import { hash } from 'bcrypt';
+import prisma from '../../services/prisma/index.js';
+import validateFields from '../../utils/validateFields.js';
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function changeForgotPassword(request, response) {
     try {
         validateFields(['email', 'codEmailValidate', 'newPass'], request.body)
 
         const { email, codEmailValidate, newPass } = request.body;
         const findUser = await prisma.user.findUnique({ where: { email } })
-        const hashedPassword = await bcrypt.hash(newPass, 11)
+        const hashedPassword = await hash(newPass, 11)
 
         if (findUser === null) {
             throw new Error("Não foi encontrado usuarios com esse id")

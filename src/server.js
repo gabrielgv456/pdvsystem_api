@@ -1,8 +1,10 @@
-const express = require('express')
+//@ts-check
+
+import express from 'express';
 const app = express();
-const cors = require('cors');
-const auth = require("./middlewares/auth")
-const router = require('./routes/routes');
+import cors from 'cors';
+import auth from "./middlewares/auth/index.js";
+import router from './routes/routes.js';
 const corsOptions = {
     //PRODUCTION:
     origin: ['https://safyra.com.br','https://www.safya.com.br','https://*.safyra.com.br'],

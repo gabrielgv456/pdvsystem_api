@@ -1,15 +1,17 @@
-const fs = require('fs');
-const path = require('path');
+//@ts-check
 
-module.exports = async function saveFilefs(imageData, imageName) {
+import { writeFile } from 'fs';
+import { join } from 'path';
 
-  const imagePath = path.join(process.cwd(), 'files', imageName);
+export default async function saveFilefs(imageData, imageName) {
+
+  const imagePath = join(process.cwd(), 'files', imageName);
 
   // Convert base64 data to buffer
   const buffer = Buffer.from(imageData, 'base64');
 
   // Write the image to the file system
-  fs.writeFile(imagePath, buffer, (error) => {
+  writeFile(imagePath, buffer, (error) => {
     if (error) {
       console.error('Error uploading image:', error);
       throw new Error('Erro ao salvar arquivo! ' + error)

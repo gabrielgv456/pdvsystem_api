@@ -1,18 +1,26 @@
-const validateFields = require('../../utils/validateFields');
-const prisma = require('../../services/prisma')
+//@ts-check
 
-module.exports = async function editProduct(request, response) {
+import validateFields from '../../utils/validateFields.js';
+import prisma from '../../services/prisma/index.js';
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function editProduct(request, response) {
 
     const { dataEditProduct } = request.body
 
     try {
 
-        requiredFields = ['id', 'userId', 'name', 'value', 'quantity', 'active', 'cost', 'profitMargin', 'barCode', 'ncmCode', 'cfopId', 'unitMeasurement']
+        const requiredFields = ['id', 'userId', 'name', 'value', 'quantity', 'active', 'cost', 'profitMargin', 'barCode', 'ncmCode', 'cfopId', 'unitMeasurement']
         validateFields(requiredFields, dataEditProduct)
 
         const searchProduct = await prisma.products.findUnique({
             where: { id: dataEditProduct.id }
         })
+        if (!searchProduct) { throw new Error(`Não foi encontrado produto com o id ${dataEditProduct.id}`) }
 
         try {
             const editproduct = await prisma.products.updateMany({

@@ -1,13 +1,22 @@
-const prisma = require('../../services/prisma')
+//@ts-check
 
-module.exports = async function chartTopSellingProducts(request, response) {
+import prisma from '../../services/prisma/index.js'
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function chartTopSellingProducts(request, response) {
 
     try {
-        const { userId } = request.body
-        const atualMonth = new Date().getMonth() + 1
-        const atualYear = new Date().getFullYear()
-        const initialDate = new Date(atualMonth > 9 ? `${atualYear}-${atualMonth}-01T03:00:00.000Z` : `${atualYear}-0${atualMonth}-01T03:00:00.000Z`)
-        const finalDate = new Date(initialDate.getFullYear(), initialDate.getMonth() + 1, 0)
+        const { userId, lastPeriod } = request.query
+        if (!lastPeriod || !userId) {
+            throw new Error(`Parâmetros obrigatórios não informados: ${!lastPeriod && 'lastPeriod'} ${!userId && 'userId'}`);
+        }
+        const initialDate = new Date()
+        initialDate.setMonth(new Date().getMonth() - (parseInt(lastPeriod.toString())))
+        const finalDate = new Date()
 
 
         const topSellingProducts = await prisma.itensSell.groupBy({
@@ -22,7 +31,7 @@ module.exports = async function chartTopSellingProducts(request, response) {
                         lt: finalDate
                     }
                 },
-                { storeId: userId },
+                { storeId: parseInt(userId.toString()) },
                 ]
             },
             _sum: { quantity: true },
@@ -32,17 +41,18 @@ module.exports = async function chartTopSellingProducts(request, response) {
         })
 
         await Promise.all(
-            topSellingProducts.map(async sell => {
+            topSellingProducts.map(async sell => { //@ts-ignore
                 sell.quantity = sell._sum.quantity
                 const findProducts = await prisma.products.findUnique({
                     where: { id: sell.idProduct }
                 })
-                sell.productName = findProducts.name
+                if (!findProducts) { throw new Error(`Não foi encontrado o produto com id ${sell.idProduct}`) } //@ts-ignore
+                sell.productName = findProducts.name //@ts-ignore
                 delete sell._sum
             }
             )
         )
-        return response.json({ Success: true, topSellingProducts })
+        return response.json({ Success: true, content: topSellingProducts })
     }
     catch (error) {
         return response.status(400).json({ Success: false, erro: error.message })

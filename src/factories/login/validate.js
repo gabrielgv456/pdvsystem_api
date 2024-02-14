@@ -1,6 +1,13 @@
-const prisma = require('../../services/prisma')
+//@ts-check
 
-module.exports = async function validate(request, response) {
+import prisma from '../../services/prisma/index.js'
+
+/**
+ * @param {import('express').Request} request
+ * @param {import('express').Response} response
+ */
+
+export default async function validate(request, response) {
     try {
         const { token } = request.body
 
@@ -11,7 +18,7 @@ module.exports = async function validate(request, response) {
                 phone: true, Token: true, urlLogo: true
             }
         })
-        if (!validateUser.Token) {
+        if (!validateUser?.Token) {
             throw new Error('Token não encotrado')
         }
         if (validateUser.Token === token) {
