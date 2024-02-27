@@ -38,7 +38,7 @@ model User {
   taxRegimeId          Int?
   taxCstPis            TaxCstPis?             @relation(fields: [taxCstPisId], references: [id])
   taxCstPisId          Int?
-  taxCstPisAliquot        Float? 
+  taxCstPisAliquot     Float? 
   taxCstCofins         TaxCstCofins?          @relation(fields: [taxCstCofinsId], references: [id])
   taxCstCofinsId       Int?
   taxCstCofinsAliquot  Float?               
@@ -57,14 +57,14 @@ model User {
 }
 
 model Products {
+  @@unique([codRef,storeId])
   id                   Int                    @id @default(autoincrement())
+  codRef               Int?
   name                 String
   value                Float
   store                User                   @relation(fields: [storeId], references: [id])
   storeId              Int
   created_at           DateTime               @default(dbgenerated("CURRENT_TIMESTAMP"))
-  itenssells           ItensSell[]
-  transactionsProducts TransactionsProducts[]
   quantity             Int
   cost                 Float?
   profitMargin         Float?
@@ -72,11 +72,14 @@ model Products {
   ncmCode              String?
   itemType             TaxItemType?            @relation(fields: [itemTypeId], references: [id])
   itemTypeId           Int?
-  cfop                 TaxCfop?                @relation(fields: [cfopId],references: [id])
-  cfopId               Int?
   unitMeasurement      String?
+  exTipi               String?
+  brand                String?
   active               Boolean
+  itenssells           ItensSell[]
+  transactionsProducts TransactionsProducts[]
   deliveries           Deliveries[]
+  taxIcms              TaxIcms[]
 }
 
 model TransactionsProducts {
@@ -260,7 +263,7 @@ model Clients {
   adressCep          String?
   active             Boolean       @default(true)
   store              User          @relation(fields: [storeId], references: [id]) 
-    storeId          Int   
+  storeId            Int   
   taxPayerType       TaxPayerType? @relation(fields: [taxPayerTypeId], references: [id])
   taxPayerTypeId     Int?
   taxRemige          TaxRegime?    @relation(fields: [taxRegimeId], references: [id])
@@ -269,14 +272,60 @@ model Clients {
   Deliveries         Deliveries[]
 }
 
-model TaxIcmsOrigem {
+// TAXES TABLES START
+
+// 1. PRODUCTS TAXES
+
+model TaxIcms {
+  id                Int             @id @default(autoincrement())
+  product           Products        @relation(fields: [productId], references: [id])
+  productId         Int
+  taxIcmsOrigin     TaxIcmsOrigin   @relation(fields: [taxIcmsOriginId], references: [id])
+  taxIcmsOriginId   Int 
+  fcpAliquot        Float?
+  taxIcmsNfe        TaxIcmsNfe[]
+}
+
+model TaxIcmsOrigin {
   id            Int       @id 
   description   String
+  TaxIcms       TaxIcms[]
+}
+
+model TaxIcmsNfe {
+  id                    Int                  @id @default(autoincrement())
+  taxIcms               TaxIcms              @relation(fields: [taxIcmsId], references: [id])
+  taxIcmsId             Int
+  taxCstIcms            TaxIcmsCst           @relation(fields: [taxCstIcmsId], references: [id])
+  taxCstIcmsId          Int    
+  taxModalityBC         TaxModalityBCICMS?   @relation(fields: [taxModalityBCId], references: [id])
+  taxModalityBCId       Int?
+  taxReasonExemption    TaxReasonExemption?  @relation(fields: [taxReasonExemptionId], references: [id])
+  taxReasonExemptionId  Int?
+  taxCfopState          TaxCfop?             @relation(name: "taxCfopState", fields: [taxCfopStateId], references: [id])
+  taxCfopStateId        Int?
+  taxCfopInterstate     TaxCfop?             @relation(name: "taxCfopInterstate", fields: [taxCfopInterstateId], references: [id])
+  taxCfopInterstateId   Int?
+  taxRedBCICMS          Float?
+  taxAliquotIcms        Float?
+}
+
+model TaxReasonExemption {
+  id            Int       @id
+  description   String   
+  taxIcmsNFe    TaxIcmsNfe[]  
 }
 
 model TaxIcmsCst {
   id            Int       @id
-  description   String        
+  description   String   
+  taxIcmsNFe    TaxIcmsNfe[]     
+}
+
+model TaxModalityBCICMS {
+  id            Int       @id
+  description   String   
+  taxIcmsNFe    TaxIcmsNfe[]    
 }
 
 model TaxItemType {
@@ -286,10 +335,14 @@ model TaxItemType {
 }
 
 model TaxCfop {
-  id            Int       @id
-  description   String
-  products      Products[]
+  id                    Int       @id
+  description           String
+  type                  String    @default("state")
+  taxIcmsNfeState       TaxIcmsNfe[] @relation(name: "taxCfopState")
+  taxIcmsNfeInterstate  TaxIcmsNfe[] @relation(name: "taxCfopInterstate")
 }
+
+// 2. USER TAXES
 
 model TaxCrt {
   id              Int     @id 

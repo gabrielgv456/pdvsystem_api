@@ -17,7 +17,7 @@ export default async function deleteProduct(request, response) {
             where: { idProduct: dataDeleteProduct.id }
         })
         if (verifyIfExitsSellsThisProduct) {
-            return response.json({ Sucess: false, Erro: 'Não é possivel excluir produtos que possuem vendas cadastradas! Realize a desativação clicando em editar.' })
+            return response.json({ Success: false, Erro: 'Não é possivel excluir produtos que possuem vendas cadastradas! Realize a desativação clicando em editar.' })
         }
 
         else {
@@ -40,7 +40,7 @@ export default async function deleteProduct(request, response) {
             })
 
             if (deleteTransationsProducts && deleteproduct) {
-                return response.json({ Sucess: true })
+                return response.json({ Success: true })
             }
         }
 

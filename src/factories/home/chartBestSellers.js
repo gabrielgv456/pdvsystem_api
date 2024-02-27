@@ -5,6 +5,7 @@ import prisma from '../../services/prisma/index.js'
 /**
  * @param {import('express').Request} request
  * @param {import('express').Response} response
+ * 
  */
 
 export default async function chartBestSellers(request, response) {

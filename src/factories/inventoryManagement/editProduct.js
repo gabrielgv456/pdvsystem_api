@@ -6,13 +6,14 @@ import prisma from '../../services/prisma/index.js';
 /**
  * @param {import('express').Request} request
  * @param {import('express').Response} response
+ * 
  */
 
 export default async function editProduct(request, response) {
 
-    const { dataEditProduct } = request.body
-
     try {
+
+        const dataEditProduct = request.body.principal
 
         const requiredFields = ['id', 'userId', 'name', 'value', 'quantity', 'active', 'cost', 'profitMargin', 'barCode', 'ncmCode', 'cfopId', 'unitMeasurement']
         validateFields(requiredFields, dataEditProduct)
@@ -20,10 +21,20 @@ export default async function editProduct(request, response) {
         const searchProduct = await prisma.products.findUnique({
             where: { id: dataEditProduct.id }
         })
+
         if (!searchProduct) { throw new Error(`Não foi encontrado produto com o id ${dataEditProduct.id}`) }
 
-        try {
-            const editproduct = await prisma.products.updateMany({
+        if (searchProduct.codRef !== dataEditProduct.codRef) {
+            const searchCodProduct = await prisma.products.findMany({
+                where: { codRef: dataEditProduct.codRef }
+            })
+
+            if (searchCodProduct.length > 0) { throw new Error(`Já existe produto cadastrado com o código de referência ${dataEditProduct.codRef}`) }
+        }
+
+        await prisma.$transaction(async (prismaTx) => {
+
+            const editproduct = await prismaTx.products.updateMany({
 
                 where: {
                     AND: [
@@ -34,16 +45,20 @@ export default async function editProduct(request, response) {
 
                 data: {
                     name: dataEditProduct.name,
+                    codRef: dataEditProduct.codRef,
+                    exTipi: dataEditProduct.exTipi,
+                    brand: dataEditProduct.brand,
                     value: dataEditProduct.value,
+                    storeId: dataEditProduct.userId,
                     quantity: dataEditProduct.quantity,
                     active: dataEditProduct.active,
-                    barCode: dataEditProduct.barCode,
-                    cfopId: dataEditProduct.cfopId,
                     cost: dataEditProduct.cost,
-                    //itemTypeId: dataEditProduct.itemTypeId,
-                    ncmCode: dataEditProduct.ncmCode,
                     profitMargin: dataEditProduct.profitMargin,
-                    unitMeasurement: dataEditProduct.unitMeasurement
+                    barCode: dataEditProduct.barCode,
+                    ncmCode: dataEditProduct.ncmCode,
+                    cfopId: dataEditProduct.cfopId,
+                    unitMeasurement: dataEditProduct.unitMeasurement,
+                    itemTypeId: dataEditProduct.itemTypeId,
                 }
             })
 
@@ -53,69 +68,35 @@ export default async function editProduct(request, response) {
             }
             else {
                 if (searchProduct.quantity > dataEditProduct.quantity) {
-
-                    try {
-                        const createTransactionEditProduct = await prisma.transactionsProducts.create({
-                            data: {
-                                type: "S",
-                                description: "Ajuste de estoque",
-                                totalQuantity: dataEditProduct.quantity,
-                                quantity: searchProduct.quantity - dataEditProduct.quantity,
-                                productId: dataEditProduct.id,
-                                storeId: dataEditProduct.userId
-                            }
-                        })
-                        if (createTransactionEditProduct && editproduct) {
-                            return response.json({
-                                Sucess: true
-                            })
+                    await prismaTx.transactionsProducts.create({
+                        data: {
+                            type: "S",
+                            description: "Ajuste de estoque",
+                            totalQuantity: dataEditProduct.quantity,
+                            quantity: searchProduct.quantity - dataEditProduct.quantity,
+                            productId: dataEditProduct.id,
+                            storeId: dataEditProduct.userId
                         }
-                    }
-                    catch (error) {
-                        throw new Error("Falha ao criar transação !" + error.message)
-                    }
+                    })
 
                 }
                 if (searchProduct.quantity < dataEditProduct.quantity) {
-
-                    try {
-                        const createTransactionEditProduct = await prisma.transactionsProducts.create({
-                            data: {
-                                type: "E",
-                                description: "Ajuste de estoque",
-                                totalQuantity: dataEditProduct.quantity,
-                                quantity: dataEditProduct.quantity - searchProduct.quantity,
-                                productId: dataEditProduct.id,
-                                storeId: dataEditProduct.userId
-                            }
-                        })
-                        if (createTransactionEditProduct && editproduct) {
-                            return response.json({
-                                Sucess: true
-                            })
+                    await prismaTx.transactionsProducts.create({
+                        data: {
+                            type: "E",
+                            description: "Ajuste de estoque",
+                            totalQuantity: dataEditProduct.quantity,
+                            quantity: dataEditProduct.quantity - searchProduct.quantity,
+                            productId: dataEditProduct.id,
+                            storeId: dataEditProduct.userId
                         }
-                    }
-                    catch (error) {
-                        throw new Error("Falha ao criar transação! " + error.message)
-                    }
-
-                }
-                if (searchProduct.quantity === dataEditProduct.quantity) {
-                    if (editproduct.count > 0) {
-                        return response.json({
-                            Sucess: true
-                        })
-                    }
-
+                    })
                 }
             }
-        }
-        catch (error) {
-            throw new Error("Falha ao editar produto " + error.message)
-        }
-
+        })
+        return response.json({ Success: true })
     }
     catch (error) {
-        return response.status(400).json({ Sucess: false, erro: error.message, message: "Falha ao localizar produto" })
+        return response.status(400).json({ Success: false, erro: error.message })
     }
 }

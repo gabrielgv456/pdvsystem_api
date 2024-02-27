@@ -11,7 +11,7 @@ export default async function addTransaction(request, response) {
     const { dataAddTransaction } = request.body
 
     try {
-        const createPaymentTransaction = await prisma.transactions.create({
+        await prisma.transactions.create({
             data: {
                 type: dataAddTransaction.type,
                 description: dataAddTransaction.description,
@@ -19,11 +19,11 @@ export default async function addTransaction(request, response) {
                 storeId: dataAddTransaction.UserId
             }
         })
-        return response.json({ Sucess: true })
+        return response.json({ Success: true })
 
     } catch (error) {
 
-        return response.status(400).json({ Sucess: false, Erro: error.message })
+        return response.status(400).json({ Success: false, Erro: error.message })
 
     }
 }

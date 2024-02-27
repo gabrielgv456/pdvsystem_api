@@ -10,7 +10,7 @@ const corsOptions = {
     origin: ['https://safyra.com.br','https://www.safya.com.br','https://*.safyra.com.br'],
     //DEVELOPMENT:
     //origin: "*",
-    optionsSucessStatus: 200
+    optionsSuccessStatus: 200
 }
 
 app.use(express.json())

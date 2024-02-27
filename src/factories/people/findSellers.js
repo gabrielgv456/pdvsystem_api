@@ -26,10 +26,10 @@ export default async function findSellers(request, response) {
             // }
         }
         catch (error) {
-            return response.status(400).json({ Sucess: false, erro: error.message })
+            return response.status(400).json({ Success: false, erro: error.message })
         }
     }
     else {
-        return response.status(400).json({ Sucess: false, erro: "Dados invalidos, informe corretamente !" })
+        return response.status(400).json({ Success: false, erro: "Dados invalidos, informe corretamente !" })
     }
 }

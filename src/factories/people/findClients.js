@@ -23,7 +23,7 @@ export default async function findClients(request, response) {
         return response.json({ Success: true, findClients })
     }
     catch (error) {
-        return response.status(400).json({ Sucess: false, erro: error.message })
+        return response.status(400).json({ Success: false, erro: error.message })
     }
 
 }

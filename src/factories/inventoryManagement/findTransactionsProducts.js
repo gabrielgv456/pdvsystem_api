@@ -22,7 +22,7 @@ export default async function findTransactionsProducts(request, response) {
                     ]
             }
         })
-        return response.json({ Sucess: true, findTransactionsProducts })
+        return response.json({ Success: true, findTransactionsProducts })
     }
     catch (error) {
         return response.status(400).json({ erro: error.message })
