@@ -39,7 +39,7 @@ export default async function deleteSell(request, response) {
                         quantity: searchProduct.quantity + product.quantity
                     }
                 })
-                const addTransaction = await prismaTx.transactionsProducts.create({
+                await prismaTx.transactionsProducts.create({
                     data: {
                         type: 'E',
                         description: 'Estorno de Venda',
@@ -69,7 +69,7 @@ export default async function deleteSell(request, response) {
 
             })
 
-            const deleteItensSellonDB = await prismaTx.itensSell.updateMany({
+            await prismaTx.itensSell.updateMany({
                 where:
                 {
                     AND: [
@@ -116,7 +116,7 @@ export default async function deleteSell(request, response) {
                         ]
                     }, select: { onDeliveryPayValue: true }
                 })
-                const AddExitTransactionDb = await prismaTx.transactions.create({
+                await prismaTx.transactions.create({
                     data: {
                         description: 'Estorno de Venda',
                         type: 'exit',

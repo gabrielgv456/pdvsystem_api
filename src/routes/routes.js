@@ -41,7 +41,6 @@ import findDeliveries from '../factories/deliveries/findDeliveries.js';
 import changeStatusDeliveries from '../factories/deliveries/changeStatusDeliveries.js';
 import editAddressDelivery from '../factories/deliveries/editAddressDelivery.js';
 import setPaymentsonDelivery from '../factories/deliveries/setPaymentsonDelivery.js';
-import uploadFile from '../factories/settings/uploadFile.js';
 import multer from '../factories/files/uploadMulter.js';
 import deleteLogo from '../factories/settings/deleteLogo.js';
 import validateForgotPassword from '../factories/login/validateForgotPassword.js';
@@ -49,6 +48,11 @@ import changeForgotPassword from '../factories/login/changeForgotPassword.js';
 import verifyCodeForgotPassword from '../factories/login/verifyCodeForgotPassword.js';
 import fiscalParameters from '../factories/settings/fiscalParameters/fiscalParameters.js';
 import changeFiscalParameters from '../factories/settings/fiscalParameters/changeFiscalParameters.js';
+import findIcmsOptions from '../factories/inventoryManagement/findIcmsOptions.js';
+import uploadproductImage from '../factories/inventoryManagement/uploadProductImage.js';
+import uploadFile from '../factories/files/uploadFile.js';
+import { deleteFile } from '../factories/files/deleteFile.js';
+import productsToSell from '../factories/sells/productsToSell.js';
 
 //START LOGIN//
 router.post("/signIn", signIn)
@@ -56,9 +60,9 @@ router.post("/validate", validate)
 router.post("/adduser", addUser)
 router.post("/validatemail", validateMail)
 router.post("/logout", logout)
-router.post("/validateForgotPassword",validateForgotPassword)
-router.post("/changeForgotPassword",changeForgotPassword)
-router.get("/verifyCodeForgotPassword",verifyCodeForgotPassword)
+router.post("/validateForgotPassword", validateForgotPassword)
+router.post("/changeForgotPassword", changeForgotPassword)
+router.get("/verifyCodeForgotPassword", verifyCodeForgotPassword)
 // END LOGIN
 
 // START HOME
@@ -73,6 +77,7 @@ router.get("/charts/radar", chartRadar)
 // START SELLS
 router.post("/addsell", addSell)
 router.post("/deletesell", deleteSell)
+router.get("/productsToSell", productsToSell)
 // END SELLS
 
 // START CONTROL SELLS
@@ -87,12 +92,14 @@ router.post("/setPaymentonDelivery", setPaymentsonDelivery)
 // END DELIVERIES
 
 // START INVENTORYMANAGEMENT
-router.post("/products", products)
+router.get("/products", products)
 router.get("/listCfop", findCfop)
 router.post("/addproduct", addProduct)
 router.post("/editproduct", editProduct)
 router.post("/deleteproduct", deleteProduct)
 router.post("/findtransactionsproducts", findTransactionsProducts)
+router.get("/findIcmsOptions", findIcmsOptions)
+router.post("/uploadproductImage", multer.single('file'), uploadproductImage)
 // END INVENTORYMANAGEMENT
 
 // START TRANSCTIONS 
@@ -114,14 +121,17 @@ router.post('/deleteseller', deleteSeller)
 // START SETTINGS
 router.patch("/changepass", changePass)
 router.post("/uploadfile", multer.single('file'), uploadFile)
+router.delete("/deleteFile", deleteFile)
 router.get("/aboutCorporation", aboutCorporation)
 router.patch("/changeAboutCorporation", changeAboutCorporation)
 router.get("/listNCM", listNcm)
 router.get("/listItemType", listItemType)
-router.delete("/deleteLogo",deleteLogo)
+router.delete("/deleteLogo", deleteLogo)
 router.get("/fiscalParameters", fiscalParameters)
-router.post("/changeFiscalParameters",changeFiscalParameters)
+router.post("/changeFiscalParameters", changeFiscalParameters)
 // END SETTINGS
+
+router.delete("/deleteFile/:fileName",)
 
 
 export default router

@@ -1,6 +1,5 @@
 //@ts-check
 
-import bcrypt from 'bcrypt';
 import prisma from '../../services/prisma/index.js';
 import validateFields from '../../utils/validateFields.js';
 

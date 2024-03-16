@@ -47,7 +47,7 @@ export default async function addSell(request, response) {
                     throw new Error('Quantidade maior do que o saldo!')
 
                 } else {
-                    const updateQuantityProduct = await prismaTx.products.update({
+                    await prismaTx.products.update({
                         where: {
                             id: product.id
                         },
@@ -57,7 +57,7 @@ export default async function addSell(request, response) {
 
                     })
 
-                    const createTransactionProduct = await prismaTx.transactionsProducts.create({
+                    await prismaTx.transactionsProducts.create({
                         data: {
                             type: "S",
                             description: "Venda nº " + createSellonDB.codRef,
@@ -121,7 +121,7 @@ export default async function addSell(request, response) {
 
             //await sell.Payment.map(async (payment) => {
             for (const payment of sell.Payment) {
-                const createPaymentSellonDB = await prismaTx.paymentSell.create({
+                await prismaTx.paymentSell.create({
                     data: {
                         storeId: sell.UserId,
                         sellId: createSellonDB.id,
@@ -132,7 +132,7 @@ export default async function addSell(request, response) {
 
                 console.log("Created Payment")
                 if (payment.type !== 'onDelivery') {
-                    const createPaymentTransaction = await prismaTx.transactions.create({
+                    await prismaTx.transactions.create({
                         data: {
                             type: payment.type,
                             description: "Recebimento de venda nº " + createSellonDB.codRef,
@@ -150,7 +150,7 @@ export default async function addSell(request, response) {
             }
 
             if (sell.changeValue) {
-                const createChangeTransaction = await prismaTx.transactions.create({
+                await prismaTx.transactions.create({
                     data: {
                         type: 'exit_change',
                         description: 'Troco de venda nº ' + createSellonDB.codRef,

@@ -8,12 +8,12 @@ import validateFields from '../../utils/validateFields.js'
  * @param {import('express').Response} response
  */
 
-module.exports = async function addDelivery(request, response) {
+export default async function addDelivery(request, response) {
     const dataAddDelivery = request.body
     try {
         const requiredFields = ['storeId']
         validateFields(requiredFields, dataAddDelivery)
-        const addDelivery = prisma.$transaction(async (tx) => {
+        prisma.$transaction(async (tx) => {
             tx.deliveries
         })
 

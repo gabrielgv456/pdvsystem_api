@@ -28,20 +28,20 @@ model User {
   phone                String?
   isEmailValid         Boolean                @default(false)
   codEmailValidate     String?
-  codEmailPass         String? 
+  codEmailPass         String?
   password             String
   masterkey            String                 @default("123")
   urlLogo              String?
   taxCrt               TaxCrt?                @relation(fields: [taxCrtId], references: [id])
-  taxCrtId             Int?     
+  taxCrtId             Int?
   taxRegime            TaxRegime?             @relation(fields: [taxRegimeId], references: [id])
   taxRegimeId          Int?
   taxCstPis            TaxCstPis?             @relation(fields: [taxCstPisId], references: [id])
   taxCstPisId          Int?
-  taxCstPisAliquot     Float? 
+  taxCstPisAliquot     Float?
   taxCstCofins         TaxCstCofins?          @relation(fields: [taxCstCofinsId], references: [id])
   taxCstCofinsId       Int?
-  taxCstCofinsAliquot  Float?               
+  taxCstCofinsAliquot  Float?
   sells                Sells[]
   products             Products[]
   itensSell            ItensSell[]
@@ -57,7 +57,6 @@ model User {
 }
 
 model Products {
-  @@unique([codRef,storeId])
   id                   Int                    @id @default(autoincrement())
   codRef               Int?
   name                 String
@@ -70,16 +69,23 @@ model Products {
   profitMargin         Float?
   barCode              String?
   ncmCode              String?
-  itemType             TaxItemType?            @relation(fields: [itemTypeId], references: [id])
+  itemType             TaxItemType?           @relation(fields: [itemTypeId], references: [id])
   itemTypeId           Int?
   unitMeasurement      String?
   exTipi               String?
   brand                String?
+  image                Images?               @relation(fields: [imageId], references: [id])
+  imageId              Int?
   active               Boolean
   itenssells           ItensSell[]
   transactionsProducts TransactionsProducts[]
   deliveries           Deliveries[]
   taxIcms              TaxIcms[]
+  taxIpi               TaxIpi[]
+  taxPis               TaxPis[]
+  taxCofins            TaxCofins[]
+
+  @@unique([codRef, storeId])
 }
 
 model TransactionsProducts {
@@ -102,36 +108,37 @@ model PaymentTypes {
 }
 
 model Sells {
-  @@unique([codRef,storeId])
-  id             Int            @id @default(autoincrement())
-  codRef         Int?
-  store          User           @relation(fields: [storeId], references: [id])
-  storeId        Int
-  seller         Sellers?       @relation(fields: [sellerId], references: [id])
-  sellerId       Int?
-  client         Clients?       @relation(fields: [clientId], references: [id])
-  clientId       Int?           
-  created_at     DateTime       @default(dbgenerated("CURRENT_TIMESTAMP"))
-  sellValue      Float
-  discountValue  Float?
-  valuePayment   Float
-  deleted        Boolean        @default(false)
-  cost           Float?
-  itenssells     ItensSell[]
-  paymentsells   PaymentSell[]
-  transactions   Transactions[]
-  deliveries     Deliveries[]
+  id            Int            @id @default(autoincrement())
+  codRef        Int?
+  store         User           @relation(fields: [storeId], references: [id])
+  storeId       Int
+  seller        Sellers?       @relation(fields: [sellerId], references: [id])
+  sellerId      Int?
+  client        Clients?       @relation(fields: [clientId], references: [id])
+  clientId      Int?
+  created_at    DateTime       @default(dbgenerated("CURRENT_TIMESTAMP"))
+  sellValue     Float
+  discountValue Float?
+  valuePayment  Float
+  deleted       Boolean        @default(false)
+  cost          Float?
+  itenssells    ItensSell[]
+  paymentsells  PaymentSell[]
+  transactions  Transactions[]
+  deliveries    Deliveries[]
+
+  @@unique([codRef, storeId])
 }
 
 model ItensSell {
-  id                 Int      @id @default(autoincrement())
-  store              User     @relation(fields: [storeId], references: [id])
+  id                 Int          @id @default(autoincrement())
+  store              User         @relation(fields: [storeId], references: [id])
   storeId            Int
-  sell               Sells    @relation(fields: [sellId], references: [id])
+  sell               Sells        @relation(fields: [sellId], references: [id])
   sellId             Int
-  product            Products @relation(fields: [idProduct], references: [id])
+  product            Products     @relation(fields: [idProduct], references: [id])
   idProduct          Int
-  deleted            Boolean  @default(false)
+  deleted            Boolean      @default(false)
   quantity           Int
   valueProduct       Float
   totalValue         Float
@@ -140,37 +147,37 @@ model ItensSell {
   totalCost          Float?
   discount           Float?
   totalDiscount      Float?
-  created_at         DateTime @default(dbgenerated("CURRENT_TIMESTAMP"))
+  created_at         DateTime     @default(dbgenerated("CURRENT_TIMESTAMP"))
   deliveries         Deliveries[]
 }
 
 model Deliveries {
-  id                  Int         @id @default(autoincrement())
-  store               User        @relation(fields:[storeId], references: [id])
-  storeId             Int
-  itemSell            ItensSell   @relation(fields: [itemSellId], references: [id])
-  itemSellId          Int
-  client              Clients?    @relation(fields: [clientId], references: [id])
-  clientId            Int? 
-  address             Address     @relation(fields: [addressId], references: [id])
-  addressId           Int
-  product             Products    @relation(fields: [productId],references: [id])
-  productId           Int
-  sell                Sells       @relation(fields: [sellId], references: [id])
-  sellId              Int
-  status              String
-  scheduledDate       DateTime
-  deliveredDate       DateTime?
-  onDeliveryPayValue  Float?
-  transactions        Transactions[]
-  created_at          DateTime    @default(dbgenerated("CURRENT_TIMESTAMP"))
+  id                 Int            @id @default(autoincrement())
+  store              User           @relation(fields: [storeId], references: [id])
+  storeId            Int
+  itemSell           ItensSell      @relation(fields: [itemSellId], references: [id])
+  itemSellId         Int
+  client             Clients?       @relation(fields: [clientId], references: [id])
+  clientId           Int?
+  address            Address        @relation(fields: [addressId], references: [id])
+  addressId          Int
+  product            Products       @relation(fields: [productId], references: [id])
+  productId          Int
+  sell               Sells          @relation(fields: [sellId], references: [id])
+  sellId             Int
+  status             String
+  scheduledDate      DateTime
+  deliveredDate      DateTime?
+  onDeliveryPayValue Float?
+  transactions       Transactions[]
+  created_at         DateTime       @default(dbgenerated("CURRENT_TIMESTAMP"))
 }
 
 model Address {
   id                  Int          @id @default(autoincrement())
   store               User         @relation(fields: [storeId], references: [id])
   storeId             Int
-  addressType         AdressType   @relation(fields: [addressTypeId], references:[id])
+  addressType         AdressType   @relation(fields: [addressTypeId], references: [id])
   addressTypeId       Int
   addressStreet       String?
   addressNumber       String?
@@ -184,9 +191,9 @@ model Address {
 }
 
 model AdressType {
-  id          Int     @id @default(autoincrement())
-  type        String  @unique
-  address     Address[]
+  id      Int       @id @default(autoincrement())
+  type    String    @unique
+  address Address[]
 }
 
 model PaymentSell {
@@ -202,21 +209,20 @@ model PaymentSell {
 }
 
 model Transactions {
-  id          Int          @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   type        String
   description String
-  created_at  DateTime     @default(dbgenerated("CURRENT_TIMESTAMP"))
+  created_at  DateTime    @default(dbgenerated("CURRENT_TIMESTAMP"))
   value       Float
-  sell        Sells?       @relation(fields: [sellId], references: [id])
+  sell        Sells?      @relation(fields: [sellId], references: [id])
   sellId      Int?
-  store       User         @relation(fields: [storeId], references: [id])
-  delivery    Deliveries?  @relation(fields: [deliveryId], references: [id])
+  store       User        @relation(fields: [storeId], references: [id])
+  delivery    Deliveries? @relation(fields: [deliveryId], references: [id])
   deliveryId  Int?
   storeId     Int
 }
 
 model Sellers {
-  @@unique([cpf,storeId])
   id                 Int       @id @default(autoincrement())
   created_at         DateTime  @default(dbgenerated("CURRENT_TIMESTAMP"))
   name               String
@@ -238,12 +244,13 @@ model Sellers {
   store              User      @relation(fields: [storeId], references: [id])
   storeId            Int
   Sells              Sells[]
+
+  @@unique([cpf, storeId])
 }
 
 model Clients {
-  @@unique([cpf,storeId])
-  id                 Int       @id @default(autoincrement())      
-  created_at         DateTime  @default(dbgenerated("CURRENT_TIMESTAMP"))
+  id                 Int           @id @default(autoincrement())
+  created_at         DateTime      @default(dbgenerated("CURRENT_TIMESTAMP"))
   name               String
   gender             String?
   cpf                String
@@ -262,14 +269,26 @@ model Clients {
   adressState        String?
   adressCep          String?
   active             Boolean       @default(true)
-  store              User          @relation(fields: [storeId], references: [id]) 
-  storeId            Int   
+  store              User          @relation(fields: [storeId], references: [id])
+  storeId            Int
   taxPayerType       TaxPayerType? @relation(fields: [taxPayerTypeId], references: [id])
   taxPayerTypeId     Int?
   taxRemige          TaxRegime?    @relation(fields: [taxRegimeId], references: [id])
   taxRegimeId        Int?
   Sells              Sells[]
   Deliveries         Deliveries[]
+
+  @@unique([cpf, storeId])
+}
+
+model Images {
+  id                 Int           @id @default(autoincrement())
+  description        String?
+  nameFile           String?
+  host               String?
+  path               String?
+  owner              String?
+  products           Products[]
 }
 
 // TAXES TABLES START
@@ -277,100 +296,208 @@ model Clients {
 // 1. PRODUCTS TAXES
 
 model TaxIcms {
-  id                Int             @id @default(autoincrement())
-  product           Products        @relation(fields: [productId], references: [id])
-  productId         Int
-  taxIcmsOrigin     TaxIcmsOrigin   @relation(fields: [taxIcmsOriginId], references: [id])
-  taxIcmsOriginId   Int 
-  fcpAliquot        Float?
-  taxIcmsNfe        TaxIcmsNfe[]
+  id              Int              @id @default(autoincrement())
+  product         Products         @relation(fields: [productId], references: [id])
+  productId       Int
+  taxIcmsOrigin   TaxIcmsOrigin    @relation(fields: [taxIcmsOriginId], references: [id])
+  taxIcmsOriginId Int
+  fcpAliquot      Float?
+  taxIcmsNfe      TaxIcmsNfe[]
+  taxIcmsNoPayer  TaxIcmsNoPayer[]
+  taxIcmsNfce     TaxIcmsNfce[]
+  taxIcmsSt       TaxIcmsST[]
 }
 
 model TaxIcmsOrigin {
-  id            Int       @id 
-  description   String
-  TaxIcms       TaxIcms[]
+  id          Int       @id
+  description String
+  TaxIcms     TaxIcms[]
 }
 
 model TaxIcmsNfe {
-  id                    Int                  @id @default(autoincrement())
-  taxIcms               TaxIcms              @relation(fields: [taxIcmsId], references: [id])
-  taxIcmsId             Int
-  taxCstIcms            TaxIcmsCst           @relation(fields: [taxCstIcmsId], references: [id])
-  taxCstIcmsId          Int    
-  taxModalityBC         TaxModalityBCICMS?   @relation(fields: [taxModalityBCId], references: [id])
-  taxModalityBCId       Int?
-  taxReasonExemption    TaxReasonExemption?  @relation(fields: [taxReasonExemptionId], references: [id])
-  taxReasonExemptionId  Int?
-  taxCfopState          TaxCfop?             @relation(name: "taxCfopState", fields: [taxCfopStateId], references: [id])
-  taxCfopStateId        Int?
-  taxCfopInterstate     TaxCfop?             @relation(name: "taxCfopInterstate", fields: [taxCfopInterstateId], references: [id])
-  taxCfopInterstateId   Int?
-  taxRedBCICMS          Float?
-  taxAliquotIcms        Float?
+  id                   Int                 @id @default(autoincrement())
+  taxIcms              TaxIcms             @relation(fields: [taxIcmsId], references: [id])
+  taxIcmsId            Int
+  taxCstIcms           TaxIcmsCst          @relation(fields: [taxCstIcmsId], references: [id])
+  taxCstIcmsId         Int
+  taxModalityBC        TaxModalityBCICMS?  @relation(fields: [taxModalityBCId], references: [id])
+  taxModalityBCId      Int?
+  taxReasonExemption   TaxReasonExemption? @relation(fields: [taxReasonExemptionId], references: [id])
+  taxReasonExemptionId Int?
+  taxCfopState         TaxCfop?            @relation(name: "taxCfopState", fields: [taxCfopStateId], references: [id])
+  taxCfopStateId       Int?
+  taxCfopInterstate    TaxCfop?            @relation(name: "taxCfopInterstate", fields: [taxCfopInterstateId], references: [id])
+  taxCfopInterstateId  Int?
+  taxRedBCICMS         Float?
+  taxAliquotIcms       Float?
+}
+
+model TaxIcmsNfce {
+  id                  Int        @id @default(autoincrement())
+  taxIcms             TaxIcms    @relation(fields: [taxIcmsId], references: [id])
+  taxIcmsId           Int
+  taxCstIcms          TaxIcmsCst @relation(fields: [taxCstIcmsId], references: [id])
+  taxCstIcmsId        Int
+  taxCfop             TaxCfop?   @relation(name: "taxCfop", fields: [taxCfopId], references: [id])
+  taxCfopId           Int?
+  taxCfopDevolution   TaxCfop?   @relation(name: "taxCfopDevolution", fields: [taxCfopDevolutionId], references: [id])
+  taxCfopDevolutionId Int?
+  taxRedBCICMS        Float?
+  taxAliquotIcms      Float?
+}
+
+model TaxIcmsNoPayer {
+  id             Int         @id @default(autoincrement())
+  taxIcms        TaxIcms     @relation(fields: [taxIcmsId], references: [id])
+  taxIcmsId      Int
+  taxCstIcms     TaxIcmsCst? @relation(fields: [taxCstIcmsId], references: [id])
+  taxCstIcmsId   Int?
+  taxRedBCICMS   Float?
+  taxAliquotIcms Float?
 }
 
 model TaxReasonExemption {
-  id            Int       @id
-  description   String   
-  taxIcmsNFe    TaxIcmsNfe[]  
+  id          Int          @id
+  description String
+  taxIcmsNFe  TaxIcmsNfe[]
 }
 
 model TaxIcmsCst {
-  id            Int       @id
-  description   String   
-  taxIcmsNFe    TaxIcmsNfe[]     
+  id             Int              @id
+  description    String
+  taxIcmsNFe     TaxIcmsNfe[]
+  taxIcmsNoPayer TaxIcmsNoPayer[]
+  taxIcmsNfce    TaxIcmsNfce[]
+  taxIcmsST      TaxIcmsST[]
 }
 
 model TaxModalityBCICMS {
-  id            Int       @id
-  description   String   
-  taxIcmsNFe    TaxIcmsNfe[]    
+  id          Int          @id
+  description String
+  taxIcmsNFe  TaxIcmsNfe[]
+  taxIcmsST   TaxIcmsST[]
 }
 
 model TaxItemType {
-  id            Int       @id
-  description   String 
-  products      Products[]
+  id          Int        @id
+  description String
+  products    Products[]
 }
 
 model TaxCfop {
-  id                    Int       @id
+  id                    Int           @id
   description           String
-  type                  String    @default("state")
-  taxIcmsNfeState       TaxIcmsNfe[] @relation(name: "taxCfopState")
-  taxIcmsNfeInterstate  TaxIcmsNfe[] @relation(name: "taxCfopInterstate")
+  type                  String        @default("nfe")
+  environment           String        @default("estadual")
+  taxIcmsNfeState       TaxIcmsNfe[]  @relation(name: "taxCfopState")
+  taxIcmsNfeInterstate  TaxIcmsNfe[]  @relation(name: "taxCfopInterstate")
+  taxIcmsNfce           TaxIcmsNfce[] @relation(name: "taxCfop")
+  taxIcmsNfceDevolution TaxIcmsNfce[] @relation(name: "taxCfopDevolution")
+  taxIcmsSTState        TaxIcmsST[]   @relation(name: "taxCfopStateSt")
+  taxIcmsSTInterstate   TaxIcmsST[]   @relation(name: "taxCfopInterstateSt")
+}
+
+model TaxIcmsST {
+  id                    Int                @id @default(autoincrement())
+  taxIcms               TaxIcms            @relation(fields: [taxIcmsId], references: [id])
+  taxIcmsId             Int
+  taxCstIcmsSt          TaxIcmsCst?        @relation(fields: [taxCstIcmsStId], references: [id])
+  taxCstIcmsStId        Int?
+  taxCfopStateSt        TaxCfop?           @relation(name: "taxCfopStateSt", fields: [taxCfopStateIdSt], references: [id])
+  taxCfopStateIdSt      Int?
+  taxCfopInterstateSt   TaxCfop?           @relation(name: "taxCfopInterstateSt", fields: [taxCfopInterstateIdSt], references: [id])
+  taxCfopInterstateIdSt Int?
+  taxModalityBCSt       TaxModalityBCICMS? @relation(fields: [taxModalityBCIdSt], references: [id])
+  taxModalityBCIdSt     Int?
+  taxMvaPauta           Float?
+  taxRedBCICMSSt        Float?
+  taxAliquotIcmsInner   Float?
+  taxRedBCICMSInner     Float?
+}
+
+model TaxIpi {
+  id                        Int        @id @default(autoincrement())
+  product                   Products   @relation(fields: [productId], references: [id])
+  productId                 Int
+  taxCstIpiExit             TaxCstIpi? @relation(name: "cstIpiExit", fields: [taxCstIpiExitId], references: [id])
+  taxCstIpiExitId           Int?
+  taxCstIpiEntrance         TaxCstIpi? @relation(name: "cstIpiEntrance", fields: [taxCstIpiEntranceId], references: [id])
+  taxCstIpiEntranceId       Int?
+  taxAliquotIpi             Float?
+  taxClassificationClassIpi String?
+  taxStampIpi               String?
+  taxQtdStampControlIpi     Int?
+  taxCodEnquadLegalIpi      String?
+  taxCnpjProd               String?
+}
+
+model TaxCstIpi {
+  id             Int      @id
+  description    String
+  type           String
+  taxIpiExit     TaxIpi[] @relation(name: "cstIpiExit")
+  taxIpiEntrance TaxIpi[] @relation(name: "cstIpiEntrance")
+}
+
+model TaxPis {
+  id                    Int        @id @default(autoincrement())
+  product               Products   @relation(fields: [productId], references: [id])
+  productId             Int
+  taxCstPisExit         TaxCstPis? @relation(name: "cstPisExit", fields: [taxCstPisExitId], references: [id])
+  taxCstPisExitId       Int?
+  taxCstPisEntrance     TaxCstPis? @relation(name: "cstPisEntrance", fields: [taxCstPisEntranceId], references: [id])
+  taxCstPisEntranceId   Int?
+  taxAliquotPisExit     Float?
+  taxAliquotPisEntrance Float?
+}
+
+model TaxCofins {
+  id                       Int           @id @default(autoincrement())
+  product                  Products      @relation(fields: [productId], references: [id])
+  productId                Int
+  taxCstCofinsExit         TaxCstCofins? @relation(name: "cstCofinsExit", fields: [taxCstCofinsExitId], references: [id])
+  taxCstCofinsExitId       Int?
+  taxCstCofinsEntrance     TaxCstCofins? @relation(name: "cstCofinsEntrance", fields: [taxCstCofinsEntranceId], references: [id])
+  taxCstCofinsEntranceId   Int?
+  taxAliquotCofinsExit     Float?
+  taxAliquotCofinsEntrance Float?
 }
 
 // 2. USER TAXES
 
 model TaxCrt {
-  id              Int     @id 
-  description     String
-  User            User[]
+  id          Int    @id
+  description String
+  User        User[]
 }
 
 model TaxRegime {
-  id            Int       @id @default(autoincrement())
-  description   String
-  User          User[]
-  Clients       Clients[]
+  id          Int       @id @default(autoincrement())
+  description String
+  User        User[]
+  Clients     Clients[]
 }
 
 model TaxCstPis {
-  id            Int       @id 
-  description   String
-  User          User[]
+  id             Int      @id
+  description    String
+  User           User[]
+  type           String   @default("entrance")
+  taxPisExit     TaxPis[] @relation(name: "cstPisExit")
+  taxPisEntrance TaxPis[] @relation(name: "cstPisEntrance")
 }
 
 model TaxCstCofins {
-  id            Int       @id
-  description   String
-  User          User[]
+  id                Int         @id
+  description       String
+  User              User[]
+  type              String      @default("entrance")
+  taxCofinsExit     TaxCofins[] @relation(name: "cstCofinsExit")
+  taxCofinsEntrance TaxCofins[] @relation(name: "cstCofinsEntrance")
 }
 
 model TaxPayerType {
-  id            Int       @id
-  description   String
-  Clients       Clients[]
+  id          Int       @id
+  description String
+  Clients     Clients[]
 }

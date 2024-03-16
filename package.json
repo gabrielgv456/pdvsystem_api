@@ -5,7 +5,8 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "lint": "yarn eslint ."
   },
   "dependencies": {
     "@prisma/client": "^4.10.1",
@@ -21,6 +22,10 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@types/node": "^17.0.40"
-  }
+    "@types/node": "^17.0.40",
+    "eslint": "^8.57.0"
+  },
+  "repository": "https://github.com/gabrielgv456/pdvsystem_api.git",
+  "author": "gabrielgv456 <gabrielgv456@gmail.com>",
+  "private": true
 }

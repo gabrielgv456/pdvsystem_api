@@ -39,7 +39,7 @@ export default async function addUser(request, response) {
             }
         })
 
-        const mailConfirm = sendEmailVerifyMail(email, codEmailValidate, ownerName)
+        sendEmailVerifyMail(email, codEmailValidate, ownerName)
         const idUser = addUserDb.id
 
         if (addUserDb) {

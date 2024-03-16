@@ -13,9 +13,8 @@ export default async function chartsBar(request, response) {
     try {
         const { userId, lastPeriod } = request.query
         if (!lastPeriod || !userId) {
-            throw new Error(`Parâmetros obrigatórios não informados: ${!lastPeriod && 'lastPeriod'} ${!userId && 'userId' }`);
+            throw new Error(`Parâmetros obrigatórios não informados: ${!lastPeriod && 'lastPeriod'} ${!userId && 'userId'}`);
         }
-        const atualMonth = new Date().getMonth() + 1
         const atualYear = new Date().getFullYear()
         const qtdMoths = createSequence(lastPeriod) // add to changing months quantity
         const monthstoConsult = qtdMoths.map(month => month = new Date().getMonth() + 1 - month)
@@ -26,8 +25,10 @@ export default async function chartsBar(request, response) {
             monthstoConsult.map(async monthConsult => {
                 const year = monthConsult <= 0 ? atualYear - 1 : atualYear //update year last year
                 const month = monthConsult <= 0 ? monthConsult + 12 : monthConsult //update months last year
-                const initialDate = new Date(month > 9 ? `${year}-${month}-01T03:00:00.000Z` : `${year}-0${month}-01T03:00:00.000Z`)
+                const initialDate = new Date(year, month - 1 , 1)                
                 const finalDate = new Date(initialDate.getFullYear(), initialDate.getMonth() + 1, 0)
+                initialDate.setHours(0, 0, 1)
+                finalDate.setHours(23, 59,59)
 
                 const VerifySells = await prisma.sells.findMany({
                     where: {
@@ -75,7 +76,7 @@ export default async function chartsBar(request, response) {
                 dataBarChart.push({ sumSells, month, medTicket, totalProfit, year, initialDate, finalDate })
                 dataBarChart.sort(function (x, y) { return x.initialDate - y.initialDate }) //order array
             }))
-        return response.json({ Success: true, content: dataBarChart  })
+        return response.json({ Success: true, content: dataBarChart })
 
     }
     catch (error) {
