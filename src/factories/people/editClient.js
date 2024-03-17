@@ -71,22 +71,23 @@ export default async function editClient(request, response) {
                     [
                         { cpf },
                         { storeId }
+                    ], NOT: [
+                        { id: idClient }
                     ]
             },
             select: {
-                id : true
+                id: true
             }
         })
         if (existsClient.length > 0)
             throw new Error('Já existe cliente com o documento ' + cpf)
-        
-        const editClient = await prisma.clients.updateMany({
+
+        const editClient = await prisma.clients.update({
             where: {
-                AND:
-                    [
-                        { id: idClient },
-                        { storeId }
-                    ]
+                id_storeId: {
+                    id: idClient,
+                    storeId
+                }
             },
             data: {
                 email,

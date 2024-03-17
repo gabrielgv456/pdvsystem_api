@@ -52,14 +52,13 @@ export default async function deleteSell(request, response) {
             })
 
 
-            const deleteSellonDB = await prismaTx.sells.updateMany({
+            const deleteSellonDB = await prismaTx.sells.update({
 
-                where:
-                {
-                    AND: [
-                        { id: dataDeleteSell.SellId },
-                        { storeId: dataDeleteSell.UserId }
-                    ]
+                where: {
+                    id_storeId: {
+                        id: dataDeleteSell.SellId,
+                        storeId: dataDeleteSell.UserId
+                    }
                 },
 
                 data:
@@ -139,7 +138,7 @@ export default async function deleteSell(request, response) {
                     throw new Error('Falha ao remover recebimento!')
                 }
             }
-            if (deleteSellonDB.count <= 0) {
+            if (!deleteSellonDB) {
                 response.json({ Success: false, erro: "Nenhum registro encontrado com os parametros fornecidos" })
             } else {
                 response.json({ Success: true, deleteSellonDB })

@@ -39,7 +39,6 @@ export default async function products(request, response) {
                     product.urlImage = ((product.image.host ?? '') + (product.image.path ?? '') + (product.image?.nameFile ?? '')) ?? null
                 }
             }
-            console.log(listProducts)
 
             return response.json({
                 Success: true,

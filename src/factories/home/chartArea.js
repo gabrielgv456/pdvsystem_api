@@ -22,7 +22,7 @@ export default async function chartsArea(request, response) {
             date.setDate(date.getDate() - day)
             return date
         })
-        console.log(daysToConsult)
+        
         const SellsChartArea = []
 
         await Promise.all(

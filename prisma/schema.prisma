@@ -84,7 +84,7 @@ model Products {
   taxIpi               TaxIpi[]
   taxPis               TaxPis[]
   taxCofins            TaxCofins[]
-
+  @@unique([id, storeId])
   @@unique([codRef, storeId])
 }
 
@@ -126,7 +126,7 @@ model Sells {
   paymentsells  PaymentSell[]
   transactions  Transactions[]
   deliveries    Deliveries[]
-
+  @@unique([id,storeId])
   @@unique([codRef, storeId])
 }
 
@@ -171,6 +171,7 @@ model Deliveries {
   onDeliveryPayValue Float?
   transactions       Transactions[]
   created_at         DateTime       @default(dbgenerated("CURRENT_TIMESTAMP"))
+  @@unique([id,storeId])
 }
 
 model Address {
@@ -188,6 +189,7 @@ model Address {
   addressCep          String?
   created_at          DateTime     @default(dbgenerated("CURRENT_TIMESTAMP"))
   deliveries          Deliveries[]
+  @@unique([id,storeId])
 }
 
 model AdressType {
@@ -244,7 +246,7 @@ model Sellers {
   store              User      @relation(fields: [storeId], references: [id])
   storeId            Int
   Sells              Sells[]
-
+  @@unique([id, storeId])
   @@unique([cpf, storeId])
 }
 
@@ -277,7 +279,7 @@ model Clients {
   taxRegimeId        Int?
   Sells              Sells[]
   Deliveries         Deliveries[]
-
+  @@unique([id,storeId])
   @@unique([cpf, storeId])
 }
 
@@ -299,13 +301,14 @@ model TaxIcms {
   id              Int              @id @default(autoincrement())
   product         Products         @relation(fields: [productId], references: [id])
   productId       Int
-  taxIcmsOrigin   TaxIcmsOrigin    @relation(fields: [taxIcmsOriginId], references: [id])
-  taxIcmsOriginId Int
+  taxIcmsOrigin   TaxIcmsOrigin?    @relation(fields: [taxIcmsOriginId], references: [id])
+  taxIcmsOriginId Int?
   fcpAliquot      Float?
   taxIcmsNfe      TaxIcmsNfe[]
   taxIcmsNoPayer  TaxIcmsNoPayer[]
   taxIcmsNfce     TaxIcmsNfce[]
   taxIcmsSt       TaxIcmsST[]
+  @@unique([productId])
 }
 
 model TaxIcmsOrigin {
@@ -318,8 +321,8 @@ model TaxIcmsNfe {
   id                   Int                 @id @default(autoincrement())
   taxIcms              TaxIcms             @relation(fields: [taxIcmsId], references: [id])
   taxIcmsId            Int
-  taxCstIcms           TaxIcmsCst          @relation(fields: [taxCstIcmsId], references: [id])
-  taxCstIcmsId         Int
+  taxCstIcms           TaxIcmsCst?         @relation(fields: [taxCstIcmsId], references: [id])
+  taxCstIcmsId         Int?
   taxModalityBC        TaxModalityBCICMS?  @relation(fields: [taxModalityBCId], references: [id])
   taxModalityBCId      Int?
   taxReasonExemption   TaxReasonExemption? @relation(fields: [taxReasonExemptionId], references: [id])
@@ -330,20 +333,22 @@ model TaxIcmsNfe {
   taxCfopInterstateId  Int?
   taxRedBCICMS         Float?
   taxAliquotIcms       Float?
+  @@unique([taxIcmsId])
 }
 
 model TaxIcmsNfce {
-  id                  Int        @id @default(autoincrement())
-  taxIcms             TaxIcms    @relation(fields: [taxIcmsId], references: [id])
+  id                  Int         @id @default(autoincrement())
+  taxIcms             TaxIcms     @relation(fields: [taxIcmsId], references: [id])
   taxIcmsId           Int
-  taxCstIcms          TaxIcmsCst @relation(fields: [taxCstIcmsId], references: [id])
-  taxCstIcmsId        Int
-  taxCfop             TaxCfop?   @relation(name: "taxCfop", fields: [taxCfopId], references: [id])
+  taxCstIcms          TaxIcmsCst? @relation(fields: [taxCstIcmsId], references: [id])
+  taxCstIcmsId        Int? 
+  taxCfop             TaxCfop?    @relation(name: "taxCfop", fields: [taxCfopId], references: [id])
   taxCfopId           Int?
-  taxCfopDevolution   TaxCfop?   @relation(name: "taxCfopDevolution", fields: [taxCfopDevolutionId], references: [id])
+  taxCfopDevolution   TaxCfop?    @relation(name: "taxCfopDevolution", fields: [taxCfopDevolutionId], references: [id])
   taxCfopDevolutionId Int?
   taxRedBCICMS        Float?
   taxAliquotIcms      Float?
+  @@unique([taxIcmsId])
 }
 
 model TaxIcmsNoPayer {
@@ -354,6 +359,7 @@ model TaxIcmsNoPayer {
   taxCstIcmsId   Int?
   taxRedBCICMS   Float?
   taxAliquotIcms Float?
+  @@unique([taxIcmsId])
 }
 
 model TaxReasonExemption {
@@ -413,6 +419,7 @@ model TaxIcmsST {
   taxRedBCICMSSt        Float?
   taxAliquotIcmsInner   Float?
   taxRedBCICMSInner     Float?
+  @@unique([taxIcmsId])
 }
 
 model TaxIpi {
@@ -429,6 +436,7 @@ model TaxIpi {
   taxQtdStampControlIpi     Int?
   taxCodEnquadLegalIpi      String?
   taxCnpjProd               String?
+  @@unique([productId])
 }
 
 model TaxCstIpi {
@@ -449,6 +457,7 @@ model TaxPis {
   taxCstPisEntranceId   Int?
   taxAliquotPisExit     Float?
   taxAliquotPisEntrance Float?
+  @@unique([productId])
 }
 
 model TaxCofins {
@@ -461,6 +470,7 @@ model TaxCofins {
   taxCstCofinsEntranceId   Int?
   taxAliquotCofinsExit     Float?
   taxAliquotCofinsEntrance Float?
+  @@unique([productId])
 }
 
 // 2. USER TAXES

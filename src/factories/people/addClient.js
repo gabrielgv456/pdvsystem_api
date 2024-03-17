@@ -29,7 +29,8 @@ export default async function addClient(request, response) {
             ie,
             suframa,
             taxPayerTypeId,
-            taxRegimeId } = request.body
+            taxRegimeId,
+            finalCostumer } = request.body
 
         const existsClient = await prisma.clients.findMany({
             where: {
@@ -40,7 +41,7 @@ export default async function addClient(request, response) {
                     ]
             },
             select: {
-                id : true
+                id: true
             }
         })
         if (existsClient.length > 0)
@@ -67,7 +68,8 @@ export default async function addClient(request, response) {
                 ie,
                 suframa,
                 taxPayerTypeId,
-                taxRegimeId
+                taxRegimeId,
+                finalCostumer
             }
         })
         if (addClient) {

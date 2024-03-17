@@ -15,14 +15,16 @@ export default async function editAddressDeliveries(request, response) {
         validateFields(requiredFields, dataChangeAddressDelivery)
         await prisma.$transaction(async (prismaTx) => {
 
-            await prismaTx.address.updateMany({
+            await prismaTx.address.update({
                 where: {
-                    storeId: dataChangeAddressDelivery.storeId,
-                    id: dataChangeAddressDelivery.addressId
+                    id_storeId: {
+                        storeId: dataChangeAddressDelivery.storeId,
+                        id: dataChangeAddressDelivery.addressId
+                    }
                 },
                 data: {
-                    addressCep : dataChangeAddressDelivery.addressCep,
-                    addressCity : dataChangeAddressDelivery.addressCity,
+                    addressCep: dataChangeAddressDelivery.addressCep,
+                    addressCity: dataChangeAddressDelivery.addressCity,
                     addressComplement: dataChangeAddressDelivery.addressComplement,
                     addressNeighborhood: dataChangeAddressDelivery.addressNeighborhood,
                     addressNumber: dataChangeAddressDelivery.addressNumber,

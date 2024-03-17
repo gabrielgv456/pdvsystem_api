@@ -8,17 +8,17 @@ import prisma from '../../services/prisma/index.js'
  */
 
 export default async function EditSeller(request, response) {
-    
+
     const { dataEditSeller } = request.body
 
     if (dataEditSeller) {
         try {
-            const editSeller = await prisma.sellers.updateMany({
+            const editSeller = await prisma.sellers.update({
                 where: {
-                    AND: [
-                        { id: dataEditSeller.idSeller },
-                        { storeId: dataEditSeller.storeId }
-                    ]
+                    id_storeId: {
+                        id: dataEditSeller.idSeller,
+                        storeId: dataEditSeller.storeId
+                    }
                 },
                 data: {
                     email: dataEditSeller.email,
@@ -49,4 +49,4 @@ export default async function EditSeller(request, response) {
     else {
         return response.status(400).json({ Success: false, erro: "Dados invalidos, informe corretamente !" })
     }
- }
+}
