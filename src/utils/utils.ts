@@ -10,3 +10,8 @@ export function generateNumberRandom() {
     }
     return stringAleatoria;
 }
+
+export function onlyNumbers(value:string) {
+    const onlyNumbers = value.replace(/\D/g, '');
+    return Number(onlyNumbers);
+}

@@ -13,20 +13,19 @@ export enum FormaPagamento {
 }
 
 export enum TipoEmissao {
-    Entrada = '0',
-    Saida = '1'
-}
+    Normal = '1', // Emissão normal (não em contingência)
+    ContingenciaFSIA = '2', // Contingência FS-IA, com impressão do DANFE em formulário de segurança
+    ContingenciaSCAN = '3', // Contingência SCAN (Sistema de Contingência do Ambiente Nacional)
+    ContingenciaDPEC = '4', // Contingência DPEC (Declaração Prévia da Emissão em Contingência)
+    ContingenciaFSDA = '5', // Contingência FS-DA, com impressão do DANFE em formulário de segurança
+    ContingenciaSVCAN = '6', // Contingência SVC-AN (SEFAZ Virtual de Contingência do AN)
+    ContingenciaSVCRS = '7'  // Contingência SVC-RS (SEFAZ Virtual de Contingência do RS)
+  }
+  
 
 export enum Ambiente {
-    Normal = '1',
-    Contingencia = '2',
-    SCAN = '3',
-    DPEC = '4',
-    FSDA = '5',
-    SVCAN = '6',
-    SVCRS = '7',
-    SVCSP = '8',
-    OffLine = '9'
+    Producao = '1',
+    Homologacao = '2',
 }
 
 export enum IndFinal {
@@ -40,10 +39,9 @@ export enum IndIntermediador {
     OperacaoComIntermediador = '1'
 }
 export enum Crt {
-    RegimeNormal = '',
     SimplesNacional = 1,
     SimplesExcessoReceita = 2,
-    RegimeNormalRepetido = 3
+    RegimeNormal = 3
 }
 
 export enum IndIEDest {
@@ -97,6 +95,10 @@ export enum CodigoSituacaoTributaria {
     Quinze = '15',
     CinquentaTres = '53',
     SessentaUm = '61'
-  }
-  
+}
+
+export enum tipoSaida {
+    Entrada = 0,
+    Saida = 1
+}
 

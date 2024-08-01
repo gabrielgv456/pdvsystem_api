@@ -1,9 +1,9 @@
-import { Ambiente, CodigoSituacaoTributaria, Crt, finalidadeNFe, FormaPagamento, IndFinal, IndIEDest, IndIntermediador, OrigemMercadoria, TipoEmissao, TipoEntrega } from "./enums/fiscalNotaEnums";
+import { Ambiente, CodigoSituacaoTributaria, Crt, finalidadeNFe, FormaPagamento, IndFinal, IndIEDest, IndIntermediador, OrigemMercadoria, TipoEmissao, TipoEntrega, tipoSaida } from "./enums/fiscalNotaEnums";
 
 // Tipos de endereço
 interface Endereco {
     fone: string;
-    CEP: string;
+    CEP: number;
     logradouro: string;
     numero: string;
     complemento: string;
@@ -322,11 +322,11 @@ interface InfoIntermediador {
 }
 
 // Tipo principal para NFe
-interface NFe {
+export interface CreateFiscalNoteInterface  {
     natOp: string;
     nNF: number;
     indPag: FormaPagamento;
-    tpNF: string;
+    tpNF: tipoSaida;
     tpEmis: TipoEmissao;
     ambiente: Ambiente;
     indFinal: IndFinal;
@@ -362,8 +362,3 @@ interface Entrega {
     UF: string;
   }
 
-// Tipo principal para o objeto completo
-export interface CreateFiscalNoteInterface {
-    profile: string;
-    nfe: NFe;
-}

@@ -1,7 +1,8 @@
 //@ts-check
 
 import { Router } from 'express';
-const router = Router();
+import * as dotenv from 'dotenv';
+dotenv.config();
 import changePass from '../factories/settings/changePass';
 import findTransactions from '../factories/transactions/findTransactions';
 import addTransaction from '../factories/transactions/addTransaction';
@@ -52,6 +53,9 @@ import findIcmsOptions from '../factories/inventoryManagement/findIcmsOptions';
 import uploadFile from '../factories/files/uploadFile';
 import { deleteFile } from '../factories/files/deleteFile';
 import productsToSell from '../factories/sells/productsToSell';
+import { createSellFiscalNote } from '../factories/fiscal/createSellFiscalNote';
+
+const router = Router();
 
 //START LOGIN//
 router.post("/signIn", signIn)
@@ -130,6 +134,7 @@ router.post("/changeFiscalParameters", changeFiscalParameters)
 // END SETTINGS
 
 router.delete("/deleteFile/:fileName",)
+router.post("/createSellFiscalNote", createSellFiscalNote)
 
 
 export default router
