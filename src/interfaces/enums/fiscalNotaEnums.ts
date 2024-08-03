@@ -20,8 +20,8 @@ export enum TipoEmissao {
     ContingenciaFSDA = '5', // Contingência FS-DA, com impressão do DANFE em formulário de segurança
     ContingenciaSVCAN = '6', // Contingência SVC-AN (SEFAZ Virtual de Contingência do AN)
     ContingenciaSVCRS = '7'  // Contingência SVC-RS (SEFAZ Virtual de Contingência do RS)
-  }
-  
+}
+
 
 export enum Ambiente {
     Producao = '1',
@@ -43,6 +43,16 @@ export enum Crt {
     SimplesExcessoReceita = 2,
     RegimeNormal = 3
 }
+
+export enum TipoFrete {
+    mfContaEmitente = '0',
+    mfContaDestinatario = '1',
+    mfContaTerceiros = '2',
+    mfProprioRemetente = '3',
+    mfProprioDestinatario = '4',
+    mfSemFrete = '9'
+}
+
 
 export enum IndIEDest {
     Contribuinte = '1',
@@ -102,3 +112,24 @@ export enum tipoSaida {
     Saida = 1
 }
 
+export enum PaymentType {
+    Dinheiro = '01',
+    Cheque = '02',
+    CartaoCredito = '03',
+    CartaoDebito = '04',
+    CreditoLoja = '05',
+    ValeAlimentacao = '10',
+    ValeRefeicao = '11',
+    ValePresente = '12',
+    ValeCombustivel = '13',
+    DuplicataMercantil = '14',
+    BoletoBancario = '15',
+    DepositoBancario = '16',
+    PagamentoInstantaneo = '17',
+    TransfBancario = '18',
+    ProgramaFidelidade = '19',
+    SemPagamento = '90',
+    RegimeEspecial = '98',
+    Outro = '99'
+  }
+  

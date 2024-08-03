@@ -1,4 +1,4 @@
-import { Ambiente, CodigoSituacaoTributaria, Crt, finalidadeNFe, FormaPagamento, IndFinal, IndIEDest, IndIntermediador, OrigemMercadoria, TipoEmissao, TipoEntrega, tipoSaida } from "./enums/fiscalNotaEnums";
+import { Ambiente, CodigoSituacaoTributaria, Crt, finalidadeNFe, FormaPagamento, IndFinal, IndIEDest, IndIntermediador, OrigemMercadoria, TipoEmissao, TipoEntrega, TipoFrete, tipoSaida } from "./enums/fiscalNotaEnums";
 
 // Tipos de endereço
 interface Endereco {
@@ -26,7 +26,7 @@ interface Emitente {
 interface Destinatario {
     nome: string;
     CNPJCPF: string;
-    indIEDest: IndIEDest;
+    indIEDest: number | IndIEDest;
     IE: string;
     ISUF: string;
     endereco: Endereco;
@@ -95,8 +95,8 @@ interface Imposto {
     vTotTrib: number;
     origemMercadoria: OrigemMercadoria;
     ICMS: {
-        CST: string;
-        CSOSN: string;
+        CST?: string;
+        CSOSN?: string;
         modBC: string;
         vBC: number;
         pICMS: number;
@@ -137,7 +137,7 @@ interface Imposto {
         vICMSUFDest: number;
         vICMSUFRemet: number;
     };
-    II: {
+    II?: {
         vBc: number;
         vDespAdu: number;
         vII: number;
@@ -193,11 +193,11 @@ interface Produto {
     unidadeTrib: string;
     quantidadeTrib: number;
     valorUnitarioTrib: number;
-    valorOutro: number;
-    valorFrete: number;
-    valorSeguro: number;
+    valorOutro?: number;
+    valorFrete?: number;
+    valorSeguro?: number;
     valorDesconto: number;
-    CEST: string;
+    CEST?: string;
     infAdProd: string;
     codBarra: string;
     codBarraTrib: string;
@@ -231,7 +231,7 @@ interface Total {
         vFCPST: number;
         vFCPSTRet: number;
     };
-    retTrib: {
+    retTrib?: {
         vRetPIS: number;
         vRetCOFINS: number;
         vRetCSLL: number;
@@ -244,7 +244,7 @@ interface Total {
 
 // Tipos de transportadora
 interface Transportadora {
-    modFrete: string;
+    modFrete: TipoFrete;
     CNPJCPF: string;
     nome: string;
     IE: string;
@@ -308,11 +308,11 @@ interface Pagamento {
     condicao: string;
     forma: string;
     valor: number;
-    integrado: boolean;
-    tipoIntegracao: string;
-    CNPJ: string;
-    bandeiraCartao: string;
-    codAutorizacao: string;
+    integrado?: boolean;
+    tipoIntegracao?: string;
+    CNPJ?: string;
+    bandeiraCartao?: string;
+    codAutorizacao?: string;
 }
 
 // Tipos de intermediador
@@ -322,7 +322,7 @@ interface InfoIntermediador {
 }
 
 // Tipo principal para NFe
-export interface CreateFiscalNoteInterface  {
+export interface CreateFiscalNoteInterface {
     natOp: string;
     nNF: number;
     indPag: FormaPagamento;
@@ -330,23 +330,23 @@ export interface CreateFiscalNoteInterface  {
     tpEmis: TipoEmissao;
     ambiente: Ambiente;
     indFinal: IndFinal;
-    cUF: string;
+    cUF: number;
     cMunFG: number;
     finalidadeNFe: finalidadeNFe;
     indIntermediador: IndIntermediador;
     emitente: Emitente;
     destinatario: Destinatario;
-    entrega: Entrega; 
+    entrega: Entrega;
     produtos: Produto[];
     total: Total;
-    transportadora: Transportadora;
-    cobrancaFat: CobrancaFat;
-    cobrancaDuplicata: CobrancaDuplicata[];
+    transportadora?: Transportadora;
+    cobrancaFat?: CobrancaFat;
+    cobrancaDuplicata?: CobrancaDuplicata[];
     infAdicional: InfoAdicional;
-    exporta: Exporta;
-    compra: Compra;
+    exporta?: Exporta;
+    compra?: Compra;
     pagamento: Pagamento[];
-    infIntermediador: InfoIntermediador;
+    infIntermediador?: InfoIntermediador;
 }
 
 interface Entrega {
@@ -360,5 +360,5 @@ interface Entrega {
     codMunicipio: number;
     nomeMunicipio: string;
     UF: string;
-  }
+}
 

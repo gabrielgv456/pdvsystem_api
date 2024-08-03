@@ -18,13 +18,15 @@ model User {
   cnpj                 String?
   ie                   String?
   cellPhone            String?
-  adressCep            String?
-  adressStreet         String?
-  adressNumber         String?
-  adressNeighborhood   String?
-  adressCity           String?
-  adressState          String?
-  nameOwner            String?
+  adressCep            String? // desativar
+  adressStreet         String? // desativar
+  adressNumber         String? // desativar
+  adressNeighborhood   String? // desativar
+  adressCity           String? // desativar
+  adressState          String? // desativar
+  nameOwner            String? 
+  addressRelation      Address?               @relation(name: "addressRelation", fields: [addressId], references: [id])
+  addressId            Int?
   phone                String?
   isEmailValid         Boolean                @default(false)
   codEmailValidate     String?
@@ -100,13 +102,6 @@ model TransactionsProducts {
   store         User     @relation(fields: [storeId], references: [id])
   storeId       Int
 }
-
-model PaymentTypes {
-  id           Int           @id @default(autoincrement())
-  type         String        @unique
-  paymentsells PaymentSell[]
-}
-
 model Sells {
   id            Int            @id @default(autoincrement())
   codRef        Int?
@@ -184,12 +179,35 @@ model Address {
   addressNumber       String?
   addressNeighborhood String?
   addressComplement   String?
-  addressCity         String?
-  addressState        String?
+  addressCity         String? //desativar
+  addressState        String? // desativar
   addressCep          String?
+  city                Cities?      @relation(fields: [cityId], references: [id])
+  cityId              Int?
   created_at          DateTime     @default(dbgenerated("CURRENT_TIMESTAMP"))
   deliveries          Deliveries[]
+  user                User[]       @relation(name: "addressRelation")
+  clients             Clients[]
   @@unique([id,storeId])
+}
+
+model Cities {
+  id                Int @id @default(autoincrement())
+  name              String
+  ibge              Int
+  state             States @relation(fields: [stateId], references: [id])
+  stateId           Int
+  latLon            String?
+  cod_tom           Int?
+  address           Address[]
+}
+
+model States {
+  id                Int @id @default(autoincrement())
+  name              String
+  uf                String
+  ibge              Int
+  cities            Cities[]
 }
 
 model AdressType {
@@ -208,6 +226,21 @@ model PaymentSell {
   typepayment String
   value       Float
   created_at  DateTime     @default(dbgenerated("CURRENT_TIMESTAMP"))
+}
+
+model PaymentCondition {
+  id            Int            @id @default(autoincrement())
+  description   String
+  codSefaz      String         @unique
+  paymentTypes  PaymentTypes[]
+}
+model PaymentTypes {
+  id                   Int                @id @default(autoincrement())
+  type                 String             @unique
+  codSefaz             String?            
+  paymentCondition     PaymentCondition?  @relation(fields: [paymentConditionId], references: [id])
+  paymentConditionId   Int?
+  paymentsells         PaymentSell[]
 }
 
 model Transactions {
@@ -263,13 +296,15 @@ model Clients {
   birthDate          DateTime?
   phoneNumber        String?
   cellNumber         String?
-  adressStreet       String?
-  adressNumber       String?
-  adressNeighborhood String?
-  adressComplement   String?
-  adressCity         String?
-  adressState        String?
-  adressCep          String?
+  adressStreet       String? // desabilitar
+  adressNumber       String? // desabilitar
+  adressNeighborhood String? // desabilitar
+  adressComplement   String? // desabilitar
+  adressCity         String? // desabilitar
+  adressState        String? // desabilitar
+  adressCep          String? // desabilitar
+  address            Address?      @relation(fields: [addressId], references: [id])
+  addressId          Int? 
   active             Boolean       @default(true)
   store              User          @relation(fields: [storeId], references: [id])
   storeId            Int
