@@ -159,7 +159,7 @@ export default async function addSell(request: Request, response: Response) {
 
 
 
-            return response.json({ Success: true, codRef: createSellonDB.codRef })
+            return response.json({ Success: true, codRef: createSellonDB.codRef, sellId: createSellonDB.id })
         })
     }
 

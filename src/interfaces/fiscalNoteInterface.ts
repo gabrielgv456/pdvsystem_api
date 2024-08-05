@@ -151,7 +151,7 @@ interface Imposto {
         qBCProd: number;
         vAliqProd: number;
     };
-    PISST: {
+    PISST?: {
         vBc: number;
         pPis: number;
         qBCProd: number;
@@ -167,7 +167,7 @@ interface Imposto {
         qBCProd: number;
         vAliqProd: number;
     };
-    COFINSST: {
+    COFINSST?: {
         vBC: number;
         pCOFINS: number;
         qBCProd: number;
@@ -175,6 +175,19 @@ interface Imposto {
         vCOFINS: number;
         indSomaCOFINSST: string;
     };
+    IPI?: {
+        CST: string;
+        clEnq: string
+        CNPJProd: string
+        cSelo: string
+        qSelo: number
+        cEnq: string
+        vBC: number
+        qUnid?: number
+        vUnid?: number
+        pIPI: number
+        vIPI: number
+    }
 }
 
 // Tipos de produto
@@ -287,8 +300,8 @@ interface CobrancaDuplicata {
 interface InfoAdicional {
     infComplementar: string;
     infAdicionalFisco: string;
-    obsComplementar: { campo: string; texto: string }[];
-    obsFisco: { campo: string; texto: string }[];
+    obsComplementar?: { campo: string; texto: string }[];
+    obsFisco?: { campo: string; texto: string }[];
 }
 
 // Tipos de exportação e compra
@@ -325,15 +338,15 @@ interface InfoIntermediador {
 export interface CreateFiscalNoteInterface {
     natOp: string;
     nNF: number;
-    indPag: FormaPagamento;
+    indPag: string | FormaPagamento;
     tpNF: tipoSaida;
     tpEmis: TipoEmissao;
     ambiente: Ambiente;
     indFinal: IndFinal;
-    cUF: number;
+    cUF: string;
     cMunFG: number;
     finalidadeNFe: finalidadeNFe;
-    indIntermediador: IndIntermediador;
+    indIntermediador?: IndIntermediador;
     emitente: Emitente;
     destinatario: Destinatario;
     entrega: Entrega;
@@ -362,3 +375,26 @@ interface Entrega {
     UF: string;
 }
 
+export type NFeResponse = {
+    NFe: string;
+    tpAmb: string;
+    verAplic: string;
+    cStat: string;
+    cUF: string;
+    xMotivo: string;
+    cMsg: string;
+    xMsg: string;
+    Recibo: string;
+    Protocolo: string;
+    RetWs: string;
+    RetornoWS: string;
+    pathSave: string;
+    xml: string;
+    profile: string
+}
+
+export type danfeGenReqType = {
+    profile: string,
+    NFe: string,
+    xml: string
+}

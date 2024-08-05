@@ -54,6 +54,7 @@ import uploadFile from '../factories/files/uploadFile';
 import { deleteFile } from '../factories/files/deleteFile';
 import productsToSell from '../factories/sells/productsToSell';
 import { createSellFiscalNote } from '../factories/fiscal/createSellFiscalNote';
+import { generateDanfe, useDanfeGeneratorApi } from '../services/api/danfeGenerateApi';
 
 const router = Router();
 
@@ -135,6 +136,8 @@ router.post("/changeFiscalParameters", changeFiscalParameters)
 
 router.delete("/deleteFile/:fileName",)
 router.post("/createSellFiscalNote", createSellFiscalNote)
+
+router.post("/danfeGenerator", generateDanfe)
 
 
 export default router

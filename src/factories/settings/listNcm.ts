@@ -3,14 +3,14 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 const filePath = join(__dirname, '../../utils/NCM.json');
-const nomenclaturas = JSON.parse(readFileSync(filePath, 'utf-8'));
+const {Nomenclaturas} = JSON.parse(readFileSync(filePath, 'utf-8'));
 
 export default async function listNcm(request: Request, response: Response) {
     try {
         //https://portalunico.siscomex.gov.br/classif/api/publico/nomenclatura/download/json  ATUALIZAR NCM JSON
 
         //const validNCM = ncm.Nomenclaturas.filter(item => { item.Data_Inicio < new Date() })
-        const ncmList = nomenclaturas
+        const ncmList = Nomenclaturas
         
         for (const item of ncmList) {
             delete item.Data_Fim
