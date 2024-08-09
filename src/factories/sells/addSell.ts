@@ -90,11 +90,10 @@ export default async function addSell(request: Request, response: Response) {
                         data: {
                             addressTypeId: 1,
                             addressCep: sell.delivery.addressCep,
-                            addressCity: sell.delivery.addressCity,
+                            cityId: sell.delivery.addressCityId, 
                             addressComplement: sell.delivery.addressComplement,
                             addressNeighborhood: sell.delivery.addressNeighborhood,
                             addressNumber: sell.delivery.addressNumber,
-                            addressState: sell.delivery.addressState,
                             addressStreet: sell.delivery.addressStreet,
                             storeId: sell.UserId
                         }

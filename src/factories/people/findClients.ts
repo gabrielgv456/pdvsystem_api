@@ -12,6 +12,12 @@ export default async function findClients(request: Request, response: Response) 
             },
             where: {
                 storeId: userId
+            }, include: {
+                address: {
+                    include: {
+                        city: { include: { state: true } }
+                    }
+                }
             }
         })
         return response.json({ Success: true, findClients })

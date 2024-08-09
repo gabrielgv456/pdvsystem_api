@@ -1,5 +1,5 @@
-export function createSequence(number:number) {
-    return Array.from({ length: number }, (_, index) => index );
+export function createSequence(number: number) {
+    return Array.from({ length: number }, (_, index) => index);
 }
 
 export function generateNumberRandom() {
@@ -11,7 +11,12 @@ export function generateNumberRandom() {
     return stringAleatoria;
 }
 
-export function onlyNumbers(value:string) {
+export function onlyNumbers(value: string) {
     const onlyNumbers = value.replace(/\D/g, '');
     return Number(onlyNumbers);
+}
+
+export function onlyNumbersStr(value: string) {
+    const onlyNumbers = value.replace(/\D/g, '');
+    return onlyNumbers
 }

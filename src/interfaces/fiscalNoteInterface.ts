@@ -341,6 +341,7 @@ export interface CreateFiscalNoteInterface {
     indPag: string | FormaPagamento;
     tpNF: tipoSaida;
     tpEmis: TipoEmissao;
+    serie: number,
     ambiente: Ambiente;
     indFinal: IndFinal;
     cUF: string;

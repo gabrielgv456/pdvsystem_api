@@ -1,65 +1,29 @@
-import { Ambiente, Crt, finalidadeNFe, FormaPagamento, IndFinal, IndIEDest, IndIntermediador, OrigemMercadoria, PaymentType, TipoEmissao, TipoEntrega, TipoFrete, tipoSaida } from '../../interfaces/enums/fiscalNotaEnums';
+import { Ambiente, Crt, finalidadeNFe, fiscalModels, fiscalStatusNf, FormaPagamento, IndFinal, IndIEDest, IndIntermediador, OrigemMercadoria, PaymentType, TipoEmissao, TipoEntrega, TipoFrete, tipoSaida } from '../../interfaces/enums/fiscalNotaEnums';
 import { CreateFiscalNoteInterface, NFeResponse } from '../../interfaces/fiscalNoteInterface';
 import { useFiscalApi } from '../../services/api/fiscalApi';
 import prisma from '../../services/prisma/index';
 import { Request, Response } from 'express'
 import validateFields from '../../utils/validateFields';
-import { onlyNumbers } from '../../utils/utils';
+import { onlyNumbers, onlyNumbersStr } from '../../utils/utils';
 import { useDanfeGeneratorApi } from '../../services/api/danfeGenerateApi';
+import { FiscalNotes } from '@prisma/client';
 
 export const createSellFiscalNote = async (request: Request, response: Response) => {
     try {
         const { sellId, userId } = request.body;
         validateFields(['sellId', 'userId'], request.body)
+
+        const existsFiscalNote = await prisma.fiscalNotes.findFirst({ where: { sellId: sellId } })
+
+        if (existsFiscalNote) {
+            const user = await prisma.user.findFirst({ where: { id: userId } })
+            const profile = user.key + '_' + onlyNumbersStr(user.cnpj)
+            await generateDanfeAndRespond({ NFe: existsFiscalNote.keyNF, profile, xml: existsFiscalNote.xml }, response)
+            return
+        }
+
         const { emiteNfe } = useFiscalApi()
-
-        const sellData = await prisma.sells.findMany({
-            include: {
-                client: { include: { address: { include: { city: { include: { state: true } } } } } },
-                deliveries: { include: { address: { include: { city: { include: { state: true } } } } } },
-                itenssells: {
-                    include: {
-                        product: {
-                            include: {
-                                taxIcms: {
-                                    include: {
-                                        taxIcmsNfe: true,
-                                        taxIcmsNfce: true,
-                                        taxIcmsNoPayer: true,
-                                        taxIcmsOrigin: true,
-                                        taxIcmsSt: true
-                                    }
-                                }, taxCofins: {
-                                    include: {
-                                        taxCstCofinsEntrance: true,
-                                        taxCstCofinsExit: true
-                                    }
-                                }, taxIpi: {
-                                    include: {
-                                        taxCstIpiEntrance: true,
-                                        taxCstIpiExit: true
-                                    }
-                                },
-                                taxPis: {
-                                    include: {
-                                        taxCstPisEntrance: true,
-                                        taxCstPisExit: true
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                paymentsells: { include: { payment: { include: { paymentCondition: true } } } },
-                store: { include: { addressRelation: { include: { city: { include: { state: true } } } } } }
-            }, where: {
-                AND: [
-                    { id: sellId },
-                    { storeId: userId }
-                ]
-            }
-        });
-
+        const sellData = await getSellData(sellId, userId)
 
         if (!sellData) throw new Error("Não foi encontrado venda com o id informado!")
         if (!sellData[0].client?.id) throw new Error("Para emissão de NFe é obrigatório informar o cliente!")
@@ -70,9 +34,11 @@ export const createSellFiscalNote = async (request: Request, response: Response)
             // verificar se precisa considerar o ipi no calculo
         }
 
+        const ambiente = Ambiente.Homologacao
+
         const nfeData: CreateFiscalNoteInterface = {
 
-            ambiente: Ambiente.Homologacao,
+            ambiente: ambiente,
             cMunFG: sellData[0].store.addressRelation.city.ibge,
             cUF: sellData[0].store.addressRelation.city.state.uf,
             finalidadeNFe: finalidadeNFe.Normal,
@@ -82,7 +48,8 @@ export const createSellFiscalNote = async (request: Request, response: Response)
             natOp: "Venda de mercadoria(s)",
             tpEmis: TipoEmissao.Normal,
             tpNF: tipoSaida.Saida,
-            nNF: 14,
+            serie: 1,
+            nNF: sellData[0].store.lastNumberNF ?? 1,
             emitente: {
                 CNPJCPF: sellData[0].store.cnpj,
                 CRT: sellData[0].store.taxCrtId,
@@ -299,10 +266,10 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                     bairro: sellData[0].deliveries[0].address.addressNeighborhood,
                     CEP: onlyNumbers(sellData[0].deliveries[0].address.addressCep),
                     logradouro: sellData[0].deliveries[0].address.addressStreet,
-                    nomeMunicipio: sellData[0].deliveries[0].address.addressCity,
+                    nomeMunicipio: sellData[0].deliveries[0].address.city.name,
                     numero: sellData[0].deliveries[0].address.addressNumber,
                     complemento: sellData[0].deliveries[0].address.addressComplement,
-                    UF: sellData[0].deliveries[0].address.addressState,
+                    UF: sellData[0].deliveries[0].address.city.state.uf,
                     codMunicipio: sellData[0].deliveries[0].address.city.ibge,
                     CNPJCPF: sellData[0].client.cpf
                 }
@@ -390,25 +357,116 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                 }
             }
         }
+
         console.log(totalizedNfe)
         const result: NFeResponse = await emiteNfe(totalizedNfe, userId)
-        console.log(result)
+
+        await prisma.fiscalNotes.create({
+            data: {
+                enviroment: Number(totalizedNfe.ambiente),
+                keyNF: onlyNumbersStr(result.NFe),
+                numberNF: totalizedNfe.nNF,
+                protocol: result.Protocolo,
+                totalAmount: totalizedNfe.total.ICMS.vNF,
+                xml: result.xml,
+                serieNFId: totalizedNfe.serie,
+                sellId: sellData[0].id,
+                modelNFId: fiscalModels.nfe55,
+                statusNFId: fiscalStatusNf.emitida,
+                stateId: sellData[0].store.addressRelation.city.stateId,
+                storeId: userId
+            }
+        })
+
+        await prisma.user.update({
+            data: { lastNumberNF: totalizedNfe.nNF },
+            where: { id: userId }
+        })
+
         if (result.cStat !== '100') throw new Error('Status da emissão: ' + result.cMsg)
-        
-        // Generate Danfe    
-        try {
-            const { generateDanfe } = useDanfeGeneratorApi()
-            const danfe = await generateDanfe({ NFe: result.NFe, profile: result.profile, xml: result.xml })
 
-            response.setHeader('Content-Type', 'application/pdf');
-            response.setHeader('Content-Disposition', `attachment; filename="${result.NFe}.pdf"`);
-
-            return response.send(danfe.data);
-        } catch (error) {
-             return response.status(400).json({ erro: 'A nota fiscal foi emitida, porém ocorreu uma falha ao gerar a DANFE! ' + (error as Error).message });
-        }
+        await generateDanfeAndRespond({ NFe: result.NFe, profile: result.profile, xml: result.xml }, response)
 
     } catch (error) {
         return response.status(400).json({ erro: 'Ocorreu uma falha ao emitir nota fiscal! ' + (error as Error).message });
     }
+}
+
+
+
+interface GenerateDanfeParams {
+    NFe: string;
+    profile: string;
+    xml: string;
+}
+
+export const generateDanfeAndRespond = async (
+    params: GenerateDanfeParams,
+    response: Response
+): Promise<Response> => {
+    try {
+        const { generateDanfe } = useDanfeGeneratorApi();
+        const danfe = await generateDanfe(params);
+
+        response.setHeader('Content-Type', 'application/pdf');
+        response.setHeader('Content-Disposition', `attachment; filename="${params.NFe}.pdf"`);
+
+        return response.send(danfe.data);
+    } catch (error) {
+        return response.status(400).json({
+            erro: 'A nota fiscal foi emitida, porém ocorreu uma falha ao gerar a DANFE! ' + (error as Error).message
+        });
+    }
+};
+
+const getSellData = async (sellId: number, userId: number) => {
+
+    const sellData = await prisma.sells.findMany({
+        include: {
+            client: { include: { address: { include: { city: { include: { state: true } } } } } },
+            deliveries: { include: { address: { include: { city: { include: { state: true } } } } } },
+            itenssells: {
+                include: {
+                    product: {
+                        include: {
+                            taxIcms: {
+                                include: {
+                                    taxIcmsNfe: true,
+                                    taxIcmsNfce: true,
+                                    taxIcmsNoPayer: true,
+                                    taxIcmsOrigin: true,
+                                    taxIcmsSt: true
+                                }
+                            }, taxCofins: {
+                                include: {
+                                    taxCstCofinsEntrance: true,
+                                    taxCstCofinsExit: true
+                                }
+                            }, taxIpi: {
+                                include: {
+                                    taxCstIpiEntrance: true,
+                                    taxCstIpiExit: true
+                                }
+                            },
+                            taxPis: {
+                                include: {
+                                    taxCstPisEntrance: true,
+                                    taxCstPisExit: true
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            paymentsells: { include: { payment: { include: { paymentCondition: true } } } },
+            store: { include: { addressRelation: { include: { city: { include: { state: true } } } } } }
+        }, where: {
+            AND: [
+                { id: sellId },
+                { storeId: userId }
+            ]
+        }
+    });
+
+    return sellData
 }

@@ -55,6 +55,7 @@ import { deleteFile } from '../factories/files/deleteFile';
 import productsToSell from '../factories/sells/productsToSell';
 import { createSellFiscalNote } from '../factories/fiscal/createSellFiscalNote';
 import { generateDanfe, useDanfeGeneratorApi } from '../services/api/danfeGenerateApi';
+import getCities from '../factories/people/getCities';
 
 const router = Router();
 
@@ -119,6 +120,7 @@ router.post('/editclient', editClient)
 router.post('/addclient', addClient)
 router.post('/deleteclient', deleteClient)
 router.post('/deleteseller', deleteSeller)
+router.get('/cities', getCities)
 // END PEOPLE
 
 // START SETTINGS

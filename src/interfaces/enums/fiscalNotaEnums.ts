@@ -131,5 +131,20 @@ export enum PaymentType {
     SemPagamento = '90',
     RegimeEspecial = '98',
     Outro = '99'
-  }
-  
+}
+
+
+export enum fiscalModels {
+    nfe55 = 1,
+    nfce65 = 2
+}
+
+export enum fiscalSeries {
+    serie1 = 1
+}
+
+export enum fiscalStatusNf {
+    emitida = 1,
+    cancelada = 2,
+    inutilizada = 3
+}

@@ -20,6 +20,7 @@ export default async function changeStatusDeliveries(request:Request, response :
                     }
                 })
             }
+            // atualiza todas as entregas podendo ser mais de um item 
             await prismaTx.deliveries.updateMany({
                 where: {
                     AND: [

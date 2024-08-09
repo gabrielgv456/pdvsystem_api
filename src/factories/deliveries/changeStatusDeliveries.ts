@@ -3,7 +3,7 @@ import validateFields from '../../utils/validateFields';
 import { Request, Response } from 'express'
 
 
-export default async function changeStatusDeliveries(request:Request, response : Response) {
+export default async function changeStatusDeliveries(request: Request, response: Response) {
     try {
         const { dataChangeStatusDeliveries } = request.body
         const requiredFields = ['storeId', 'itensSellToChange', 'newStatus']
@@ -23,3 +23,4 @@ export default async function changeStatusDeliveries(request:Request, response :
         return response.status(400).json({ Success: false, Erro: (error as Error).message })
     }
 }
+

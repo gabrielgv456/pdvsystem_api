@@ -3,16 +3,18 @@ import validateFields from '../../utils/validateFields';
 import { Request, Response } from 'express'
 
 
-export default async function findDeliveries(request:Request, response : Response) {
+export default async function findDeliveries(request: Request, response: Response) {
+
     try {
+
         const dataFindDeliveries = request.query
         const requiredFields = ['storeId', 'initialDate', 'finalDate']
         validateFields(requiredFields, dataFindDeliveries, true)
-        if (!dataFindDeliveries.storeId?.toString()) {throw new Error('storeId não informado!')}
+        if (!dataFindDeliveries.storeId?.toString()) { throw new Error('storeId não informado!') }
 
         const resultDeliveries = await prisma.deliveries.findMany({
             include: {
-                address: true,
+                address: { include: { city: { include: { state: true } } } },
                 client: true,
                 itemSell: { include: { sell: true } }
             },

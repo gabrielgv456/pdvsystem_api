@@ -2,11 +2,11 @@ import prisma from '../../services/prisma/index';
 import validateFields from '../../utils/validateFields';
 import { Request, Response } from 'express'
 
-export default async function editAddressDeliveries(request:Request, response : Response) {
+export default async function editAddressDeliveries(request: Request, response: Response) {
     try {
-        const { dataChangeAddressDelivery } = request.body
+        const { dataChangeAddressDelivery }: typeRequestDeliveryAdressChange = request.body
         const requiredFields = ['storeId', 'deliveryId', 'addressId', 'scheduledDate', 'addressComplement', 'addressCep',
-            'addressStreet', 'addressNumber', 'addressNeighborhood', 'addressCity', 'addressState']
+            'addressStreet', 'addressNumber', 'addressNeighborhood']
         validateFields(requiredFields, dataChangeAddressDelivery)
         await prisma.$transaction(async (prismaTx) => {
 
@@ -19,19 +19,20 @@ export default async function editAddressDeliveries(request:Request, response : 
                 },
                 data: {
                     addressCep: dataChangeAddressDelivery.addressCep,
-                    addressCity: dataChangeAddressDelivery.addressCity,
+                    cityId: dataChangeAddressDelivery.cityId,
                     addressComplement: dataChangeAddressDelivery.addressComplement,
                     addressNeighborhood: dataChangeAddressDelivery.addressNeighborhood,
                     addressNumber: dataChangeAddressDelivery.addressNumber,
-                    addressState: dataChangeAddressDelivery.addressState,
                     addressStreet: dataChangeAddressDelivery.addressStreet
                 }
             })
 
-            await prismaTx.deliveries.updateMany({
+            await prismaTx.deliveries.update({
                 where: {
-                    storeId: dataChangeAddressDelivery.storeId,
-                    addressId: dataChangeAddressDelivery.addressId
+                    id_storeId: {
+                        id: dataChangeAddressDelivery.deliveryId,
+                        storeId: dataChangeAddressDelivery.storeId,
+                    }
                 },
                 data: {
                     scheduledDate: dataChangeAddressDelivery.scheduledDate
@@ -44,3 +45,48 @@ export default async function editAddressDeliveries(request:Request, response : 
         return response.status(400).json({ Success: false, Erro: (error as Error).message })
     }
 }
+
+type typeRequestDeliveryAdressChange = {
+    dataChangeAddressDelivery: content
+}
+
+type content = {
+    scheduledDate: string | null;
+    addressId: number;
+    deliveryId: number;
+    storeId: number;
+    id: number;
+} & AddressType
+
+type AddressType = {
+    id: number;
+    storeId: number;
+    addressTypeId: number;
+    addressStreet: string;
+    addressNumber: string | null;
+    addressNeighborhood: string;
+    addressComplement: string | null;
+    addressCep: string | null;
+    cityId: number | null;
+    created_at: string;
+    city?: CityStateType | null;
+};
+
+interface State {
+    id: number;
+    name: string;
+    uf: string;
+    ibge: number;
+}
+
+export interface CityStateType {
+    id: number;
+    name: string;
+    ibge: number;
+    stateId: number;
+    latLon: string | null;
+    cod_tom: number | null;
+    state: State;
+}
+
+
