@@ -7,21 +7,19 @@ export default async function validate(request: Request, response: Response) {
 
         const validateUser = await prisma.user.findFirst({
             where: { Token: token }, select: {
-                adressCep: true, adressCity: true, adressNeighborhood: true, adressNumber: true,
-                adressState: true, adressStreet: true, cellPhone: true, cnpj: true, email: true, id: true, name: true,
-                phone: true, Token: true, urlLogo: true
+                address: { include: { city: { include: { state: true } } } }, cellPhone: true, cnpj: true, email: true, id: true, name: true,
+                phone: true, Token: true, urlLogo: true, masterkey: true
             }
         })
-        if (!validateUser?.Token) {
-            throw new Error('Token não encotrado')
-        }
-        if (validateUser.Token === token) {
-            return response.json({
-                valid: true,
-                user: validateUser,
-                token: validateUser.Token
-            })
-        }
+
+        if (!validateUser?.Token) { throw new Error('Token não encotrado') }
+        if (validateUser.Token !== token) { throw new Error('Token inválido') }
+
+        return response.status(200).json({
+            valid: true,
+            user: validateUser,
+            token: validateUser.Token
+        })
 
     }
     catch (error) {

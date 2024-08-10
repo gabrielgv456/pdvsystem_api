@@ -66,8 +66,7 @@ export default async function editClient(request: Request, response: Response) {
                             addressNeighborhood: address.addressNeighborhood,
                             addressStreet: address.addressStreet,
                             addressNumber: address.addressNumber,
-                            addressTypeId: address.addressTypeId,
-                            storeId: storeId
+                            addressTypeId: address.addressTypeId
                         },
                         where: { id_storeId: { id: getAddress.id, storeId } }
                     })
@@ -110,7 +109,7 @@ export default async function editClient(request: Request, response: Response) {
     }
 }
 
-const requiredFields = [
+const requiredFields: Array<keyof requestAddEditClientType> = [
     "id",
     "email",
     "active",

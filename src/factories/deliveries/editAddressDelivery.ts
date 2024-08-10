@@ -5,7 +5,7 @@ import { Request, Response } from 'express'
 export default async function editAddressDeliveries(request: Request, response: Response) {
     try {
         const { dataChangeAddressDelivery }: typeRequestDeliveryAdressChange = request.body
-        const requiredFields = ['storeId', 'deliveryId', 'addressId', 'scheduledDate', 'addressComplement', 'addressCep',
+        const requiredFields : Array<keyof content> = ['storeId', 'deliveryId', 'addressId', 'scheduledDate', 'addressComplement', 'addressCep',
             'addressStreet', 'addressNumber', 'addressNeighborhood']
         validateFields(requiredFields, dataChangeAddressDelivery)
         await prisma.$transaction(async (prismaTx) => {

@@ -19,12 +19,6 @@ model User {
   cnpj                 String?
   ie                   String?
   cellPhone            String?
-  adressCep            String? // desativar
-  adressStreet         String? // desativar
-  adressNumber         String? // desativar
-  adressNeighborhood   String? // desativar
-  adressCity           String? // desativar
-  adressState          String? // desativar
   nameOwner            String? 
   addressRelation      Address?               @relation(name: "addressRelation", fields: [addressId], references: [id])
   addressId            Int?

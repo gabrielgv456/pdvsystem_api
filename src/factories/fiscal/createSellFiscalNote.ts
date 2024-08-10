@@ -49,7 +49,7 @@ export const createSellFiscalNote = async (request: Request, response: Response)
             tpEmis: TipoEmissao.Normal,
             tpNF: tipoSaida.Saida,
             serie: 1,
-            nNF: sellData[0].store.lastNumberNF ?? 1,
+            nNF: sellData[0].store.lastNumberNF + 1 ?? 1,
             emitente: {
                 CNPJCPF: sellData[0].store.cnpj,
                 CRT: sellData[0].store.taxCrtId,
@@ -99,10 +99,10 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                     NCM: String(onlyNumbers(item.product.ncmCode)),
                     unidade: item.product.unitMeasurement,
                     unidadeTrib: item.product.unitMeasurement,
-                    precoVenda: item.totalValue,
+                    precoVenda: item.totalValue + item.discount,
                     valorDesconto: item.discount,
-                    valorUnitario: item.valueProduct,
-                    valorUnitarioTrib: item.valueProduct,
+                    valorUnitario: item.valueProduct + item.discount,
+                    valorUnitarioTrib: item.valueProduct + item.discount,
                     infAdProd: "",
                     //CEST: "", // Código Especificador da Substituição Tributária
                     CFOP: sellData[0].client.address.city.stateId === sellData[0].store.addressRelation.city.stateId ?
