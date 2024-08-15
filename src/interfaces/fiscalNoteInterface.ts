@@ -111,6 +111,8 @@ interface Imposto {
         vBCFCPST: number;
         pFCPST: number;
         vFCPST: number;
+        pFCP: number;
+        vFCP: number;
         vBCSTRet: number;
         pST: number;
         vICMSSubstituto: number;
@@ -123,9 +125,6 @@ interface Imposto {
         pICMSEfet: number;
         vICMSEfet: number;
         vICMSSTDeson: number;
-        pFCPDif: number;
-        vFCPDif: number;
-        vFCPEfet: number;
     };
     ICMSUFDest: {
         vBCUFDest: number;

@@ -7,6 +7,9 @@ import validateFields from '../../utils/validateFields';
 import { onlyNumbers, onlyNumbersStr } from '../../utils/utils';
 import { useDanfeGeneratorApi } from '../../services/api/danfeGenerateApi';
 import { FiscalNotes } from '@prisma/client';
+import { BaseCofins, BaseIcmsProprio, BaseIPI, BaseReduzidaIcmsProprio, Cofins01, Cofins02, Cofins03, Fcp, FcpEfetivo, Icms101, Icms900, Ipi50AdValorem, Ipi50Especifico, ValorIcmsProprio } from '../../services/taxesCalculator';
+import { ICofins01, ICofins03 } from '../../services/taxesCalculator/interfaces/cofins';
+import Utils from '../../services/taxesCalculator/utils';
 
 export const createSellFiscalNote = async (request: Request, response: Response) => {
     try {
@@ -18,7 +21,7 @@ export const createSellFiscalNote = async (request: Request, response: Response)
         if (existsFiscalNote) {
             const user = await prisma.user.findFirst({ where: { id: userId } })
             const profile = user.key + '_' + onlyNumbersStr(user.cnpj)
-            await generateDanfeAndRespond({ NFe: existsFiscalNote.keyNF, profile, xml: existsFiscalNote.xml }, response)
+            await generateDanfeAndRespond({ NFe: existsFiscalNote.keyNF, profile, xml: existsFiscalNote.xml, model: 'NFE' }, response)
             return
         }
 
@@ -29,10 +32,6 @@ export const createSellFiscalNote = async (request: Request, response: Response)
         if (!sellData[0].client?.id) throw new Error("Para emissão de NFe é obrigatório informar o cliente!")
         if (sellData[0].deleted ?? false) throw new Error("Essa venda já foi excluída")
 
-        function calcBC(valueProducts: number, redBCICMS: number, finalCostumer: Boolean) {
-            return valueProducts - (valueProducts * redBCICMS / 100)
-            // verificar se precisa considerar o ipi no calculo
-        }
 
         const ambiente = Ambiente.Homologacao
 
@@ -137,17 +136,14 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                             pRedBC: (String(sellData[0].client.taxPayerTypeId) === IndIEDest.NaoContribuinte) ?
                                 item.product.taxIcms[0].taxIcmsNoPayer[0].taxRedBCICMS :
                                 item.product.taxIcms[0].taxIcmsNfe[0].taxRedBCICMS, // Percentual de Redução da BC ICMS
-                            vBC: calcBC(item.totalValue, item.product.taxIcms[0].taxIcmsNfe[0].taxRedBCICMS, sellData[0].client.finalCostumer), // Valor da BC ICMS
-                            vICMS: calcBC(item.totalValue, item.product.taxIcms[0].taxIcmsNfe[0].taxRedBCICMS, sellData[0].client.finalCostumer) * (item.product.taxIcms[0].taxIcmsNfe[0].taxAliquotIcms / 100), // Valor do ICMS
+                            vBC: undefined, // Valor da BC ICMS
+                            vICMS: undefined, // Valor do ICMS
                             pFCP: item.product.taxIcms[0].fcpAliquot,
-                            vFCP: calcBC(item.totalValue, item.product.taxIcms[0].taxIcmsNfe[0].taxRedBCICMS, sellData[0].client.finalCostumer) * (item.product.taxIcms[0].fcpAliquot / 100),
+                            vFCP: undefined,
                             motDesICMS: item.product.taxIcms[0].taxIcmsNfe[0].taxReasonExemptionId, // Motivo desoneração ICMS
                             pCredSN: undefined,         // Alíquota aplicável de cálculo do crédito (Simples Nacional)
-                            pFCPDif: undefined,         // Percentual do Fundo de Combate à Pobreza devido na operação própria
                             pFCPST: undefined,          // Percentual do Fundo de Combate à Pobreza devido na substituição tributária
                             pFCPSTRet: undefined,       // Percentual do Fundo de Combate à Pobreza retido anteriormente na substituição tributária
-                            vFCPDif: undefined,         // Valor do Fundo de Combate à Pobreza devido na operação própria
-                            vFCPEfet: undefined,        // Valor efetivo do Fundo de Combate à Pobreza
                             vFCPST: undefined,          // Valor do Fundo de Combate à Pobreza devido na substituição tributária
                             vFCPSTRet: undefined,       // Valor do Fundo de Combate à Pobreza retido anteriormente na substituição tributária
                             pICMSEfet: undefined,       // Alíquota do ICMS efetivo
@@ -170,16 +166,16 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                         COFINS: {
                             CST: String(item.product.taxCofins?.[0].taxCstCofinsExit?.id).padStart(2, '0') ?? "",
                             pCOFINS: item.product.taxCofins[0].taxAliquotCofinsExit,
-                            vBC: item.totalValue,
-                            vCOFINS: item.totalValue * (item.product.taxCofins[0].taxAliquotCofinsExit / 100),
+                            vBC: undefined,//item.totalValue,
+                            vCOFINS: undefined,//item.totalValue * (item.product.taxCofins[0].taxAliquotCofinsExit / 100),
                             vAliqProd: undefined,
                             qBCProd: undefined,
                         },
                         PIS: {
                             CST: String(item.product.taxPis[0].taxCstPisExitId), // Código de Situação Tributária    
                             pPIS: item.product.taxPis[0].taxAliquotPisExit, // Percentual do PIS (se aplicável, caso contrário, 0)
-                            vBC: item.totalValue, // Valor da base de cálculo (se aplicável, caso contrário, 0)
-                            vPIS: item.totalValue * (item.product.taxPis[0].taxAliquotPisExit / 100), // Valor do PIS (se aplicável, caso contrário, 0)
+                            vBC: undefined, // Valor da base de cálculo (se aplicável, caso contrário, 0)
+                            vPIS: undefined, // Valor do PIS (se aplicável, caso contrário, 0)
                             vAliqProd: undefined, // Alíquota em valor
                             qBCProd: undefined // Quantidade vendida (se aplicável, caso contrário, 0)                      
                         },
@@ -192,9 +188,9 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                                 CNPJProd: item.product.taxIpi[0].taxCnpjProd, // CNPJ do Produtor, obrigatório nos casos de exportação direta ou indireta
                                 cSelo: item.product.taxIpi[0].taxStampIpi, // Código do Selo de Controle do IPI
                                 qSelo: item.product.taxIpi[0].taxQtdStampControlIpi, // Quantidade de Selos de Controle do IPI   
-                                vBC: item.totalValue, // Valor da Base de Cálculo do IPI
+                                vBC: undefined, // Valor da Base de Cálculo do IPI
                                 pIPI: item.product.taxIpi[0].taxAliquotIpi, // Alíquota do IPI
-                                vIPI: item.totalValue * (item.product.taxIpi[0].taxAliquotIpi / 100) // Valor do IPI
+                                vIPI: undefined // Valor do IPI
                                 //qUnid: item.product.taxIpi[0].taxQtdUnidIpi, // Quantidade total na unidade padrão, só preenche se for valor fixo e nao percentual
                                 //vUnid: item.product.taxIpi[0].taxValorUnidIpi // Valor por Unidade do IPI, só preenche se for valor fixo e nao percentual
                             }
@@ -330,17 +326,126 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                 // }
             }
         }
-
+        console.log(nfeData.produtos[0].imposto)
         const totalizedNfe: CreateFiscalNoteInterface = {
             ...nfeData,
             produtos: nfeData.produtos.map(item => {
+
+                //ICMS
+                let bcICMS = 0
+                let valueICMS = 0
+                let valueFCP = 0
+
+                if (nfeData.emitente.CRT = Crt.SimplesNacional) {
+                    switch (item.imposto.ICMS.CSOSN) {
+                        case '101': // 101 - Simples Nacional - Tributada pelo Simples Nacional com permissão de crédito
+                            const icms101 = new Icms101(item.valorUnitario, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, 0, item.imposto.ICMS.pRedBC)
+                            bcICMS = icms101.calculaBaseIcmsProprio()
+                            valueICMS = new ValorIcmsProprio(bcICMS, item.imposto.ICMS.pICMS).calculaValorIcmsProprio()
+                            valueFCP = new Fcp(bcICMS, item.imposto.ICMS.pFCP).calculaValorFCP()
+                            break;
+                        case '900':  // 900 - Simples Nacional - Outros
+                            bcICMS = new BaseReduzidaIcmsProprio(item.valorUnitario, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, item.imposto.ICMS.pRedBC, item.imposto.IPI.vIPI,).calculaBaseReduzidaIcmsProprio()
+                            valueICMS = new ValorIcmsProprio(bcICMS, item.imposto.ICMS.pICMS).calculaValorIcmsProprio()
+                            valueFCP = new Fcp(bcICMS, item.imposto.ICMS.pFCP).calculaValorFCP()
+                        // Nas condições abaixo não há cobrança de tributo    
+                        case '102': // 102 - Simples Nacional - Tributada pelo Simples Nacional sem permissão de crédito
+                        case '103': // 103 - Simples Nacional - Isenção do ICMS no Simples Nacional para faixa de receita bruta
+                        case '300': // 300 - Simples Nacional - Imune
+                        case '400': // 400 - Simples Nacional - Não tributada pelo Simples Nacional
+                        case '500': // 500 - Simples Nacional - ICMS cobrado anteriormente por substituição tributária (substituído) ou por antecipação 500 - Simples Nacional - ICMS cobrado anteriormente por substituição tributária (substituído) ou por antecipação
+                        case '':
+                        case null:
+                            break;
+                        default:
+                            throw new Error(`CSOSN ICMS ${item.imposto.ICMS.CSOSN} não esperado!`)
+                    }
+                }
+
+                //COFINS
+                let bcCOFINS = 0
+                let valueCOFINS = 0
+                switch (item.imposto.COFINS.CST) {
+                    case '01': // 01 - Operação Tributável com Alíquota Básica
+                        const cofins01 = new Cofins01(item.valorUnitario, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, item.imposto.COFINS.pCOFINS, valueICMS);
+                        bcCOFINS = cofins01.calculaBaseCofins()
+                        valueCOFINS = cofins01.calculaValorCofins()
+                        break;
+                    case '02': // 02 - Operação Tributável com Alíquota Diferenciada
+                        const cofins02 = new Cofins02(item.valorUnitario, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, item.imposto.COFINS.pCOFINS, valueICMS)
+                        bcCOFINS = cofins02.calculaBaseCofins()
+                        valueCOFINS = cofins02.calculaValorCofins()
+                        break;
+                    case '03': // 03 - Operação Tributável com Alíquota por Unidade de Medida de Produto
+                        bcCOFINS = new BaseCofins(item.valorUnitario, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, valueICMS).calcularBaseCofins()
+                        valueCOFINS = new Cofins03(bcCOFINS, item.imposto.COFINS.pCOFINS).calculaValorCofins();
+                        break;
+                    case '49': // 49 - Outras Operações de Saída    
+                    case '99': // 99 - Outras Operações
+                        bcCOFINS = new BaseCofins(item.valorUnitario, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, valueICMS).calcularBaseCofins()
+                        valueCOFINS = Utils.roundToNearest(bcCOFINS * (item.imposto.COFINS.pCOFINS / 100));
+                        break;
+                    // Nas condições abaixo não há cobrança de tributo
+                    case '04': // 04 - Operação Tributável Monofásica - Revenda a Alíquota Zero
+                    case '05': // 05 - Operação Tributável por Substituição Tributária
+                    case '06': // 06 - Operação Tributável a Alíquota Zero 
+                    case '07': // 07 - Operação Isenta da Contribuição
+                    case '08': // 08 - Operação sem Incidência da Contribuição  
+                    case '09': // 09 - Operação com Suspensão da Contribuição
+                    case null:
+                    case '':
+                        break;
+                    default:
+                        throw new Error(`CST COFINS ${item.imposto.COFINS.CST} não esperado!`)
+                }
+
+                //IPI
+                let bcIPI = 0
+                let valorIPI = 0
+                if (item.imposto.IPI) {
+                    switch (item.imposto.IPI.CST) {
+                        case '50': // 50 - Saída Tributada
+                            const Ipi50AdValor = new Ipi50AdValorem(item.valorUnitario, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, item.imposto.IPI.pIPI)
+                            bcIPI = Ipi50AdValor.calculaBaseIPI()
+                            valorIPI = Ipi50AdValor.calculaValorIPI()
+                            break;
+                        case '99': // 99 - Outras Saídas
+                            bcIPI = new BaseIPI(item.valorUnitario, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto).calculaBaseIPI()
+                            valorIPI = Utils.roundToNearest(bcIPI * (item.imposto.IPI.pIPI / 100))
+                            break;
+                        // Nas condições abaixo não há cobrança de tributo    
+                        case '51': // 51 - Saída Tributável com Alíquota Zero   
+                        case '52': // 52 - Saída Isenta
+                        case '53': // 53 - Saída Não-Tributada 
+                        case '54': // 54 - Saída Imune
+                        case '55': // 55 - Saída com Suspensão
+                        case null:
+                        case '':
+                            break;
+                        default:
+                            throw new Error(`CST IPI ${item.imposto.IPI.CST} não esperado!`)
+                    }
+                }
+
                 return {
                     ...item, imposto: {
                         ...item.imposto,
-                        vTotTrib:
-                            item.imposto.ICMS.vICMS +
-                            item.imposto.COFINS.vCOFINS +
-                            item.imposto.PIS.vPIS
+                        ICMS: {
+                            ...item.imposto.ICMS,
+                            vBC: valueICMS,
+                            vICMS: valueICMS,
+                            vFCP: valueFCP
+                        }, COFINS: {
+                            ...item.imposto.COFINS,
+                            vBC: bcCOFINS,
+                            vCOFINS: valueCOFINS
+                        },
+                        IPI: {
+                            ...item.imposto.IPI,
+                            vBC: bcIPI,
+                            vIPI: valorIPI
+                        },
+                        vTotTrib: valueICMS + valueCOFINS + valorIPI + valueFCP
                     }
                 }
             })
@@ -385,7 +490,7 @@ export const createSellFiscalNote = async (request: Request, response: Response)
 
         if (result.cStat !== '100') throw new Error('Status da emissão: ' + result.cMsg)
 
-        await generateDanfeAndRespond({ NFe: result.NFe, profile: result.profile, xml: result.xml }, response)
+        await generateDanfeAndRespond({ NFe: result.NFe, profile: result.profile, xml: result.xml, model: 'NFE' }, response)
 
     } catch (error) {
         return response.status(400).json({ erro: 'Ocorreu uma falha ao emitir nota fiscal! ' + (error as Error).message });
@@ -398,6 +503,7 @@ interface GenerateDanfeParams {
     NFe: string;
     profile: string;
     xml: string;
+    model: 'NFCE' | 'NFE'
 }
 
 export const generateDanfeAndRespond = async (
