@@ -2,14 +2,13 @@ import { Request, Response } from 'express'
 import prisma from '../../services/prisma/index'
 import { Sells } from '@prisma/client'
 
-type SellswithSellerorClientnameType = adicionalSellType & Sells 
+type SellswithSellerorClientnameType = adicionalSellType & Sells
 
 type adicionalSellType = {
-    sellerName?: string
-    clientName?: string
+    existsFiscalNote: boolean
 }
 
-export default async function findSell(request:Request, response : Response) {
+export default async function findSell(request: Request, response: Response) {
 
     const { datafindSells } = request.body
 
@@ -31,6 +30,10 @@ export default async function findSell(request:Request, response : Response) {
                 { deleted: false }
 
                 ]
+            },
+            include: {
+                client: true,
+                seller: true
             }
         })
 
@@ -54,82 +57,22 @@ export default async function findSell(request:Request, response : Response) {
             }
         })
 
-        let finalSellswithSellerorClientname : SellswithSellerorClientnameType[] = []
+        let finalSellswithSellerorClientname: SellswithSellerorClientnameType[] = []
 
         await Promise.all(
             findsells.map(async (sell) => {
-                if (sell.sellerId || sell.clientId) {
-                    if (sell.sellerId && sell.clientId) {
-                        const findSellersName = await prisma.sellers.findUnique({
-                            where: {
-                                id: sell.sellerId
-                            },
-                            select: {
-
-                                name: true
-                            }
-                        });
-
-                        if (!findSellersName) { throw new Error('Não foi localizado o nome do cliente') }
-
-                        const findClientName = await prisma.clients.findUnique({
-                            where: {
-                                id: sell.clientId
-                            },
-                            select: {
-                                name: true
-                            }
-                        });
-
-                        if (!findClientName) { throw new Error('Não foi localizado o nome do cliente') }
-
-                        finalSellswithSellerorClientname.push({
-                            clientName: findClientName.name,
-                            sellerName: findSellersName.name,
-                            ...sell
-                        })
+                const fiscalNotes = await prisma.fiscalNotes.findFirst({
+                    where: {
+                        AND: [
+                            { sellId: sell.id },
+                            { statusNFId: 1 }
+                        ]
                     }
-                    else if (sell.sellerId) {
-                        const findSellersName = await prisma.sellers.findUnique({
-                            where: {
-                                id: sell.sellerId
-                            },
-                            select: {
-
-                                name: true
-                            }
-                        });
-
-                        if (!findSellersName) { throw new Error('Não foi localizado o nome do cliente') }
-
-                        finalSellswithSellerorClientname.push({
-                            sellerName: findSellersName.name,
-                            ...sell
-                        })
-                    }
-                    else if (sell.clientId) {
-                        const findClientName = await prisma.clients.findUnique({
-                            where: {
-                                id: sell.clientId
-                            },
-                            select: {
-                                name: true
-                            }
-                        });
-
-                        if (!findClientName) { throw new Error('Não foi localizado o nome do cliente') }
-
-                        finalSellswithSellerorClientname.push({
-                            clientName: findClientName.name,
-                            ...sell
-                        })
-                    }
-
-
-                }
-                else {
-                    finalSellswithSellerorClientname.push({ ...sell })
-                }
+                })
+                finalSellswithSellerorClientname.push({
+                    existsFiscalNote: fiscalNotes ? fiscalNotes.id > 0 : false,
+                    ...sell
+                })
             })
         )
         //const findsells = await prisma.$queryRaw`SELECT * FROM "public"."ItensSell" WHERE "created_at" = timestamp '2022-06-09 13:27:54' `
@@ -137,6 +80,7 @@ export default async function findSell(request:Request, response : Response) {
         if (findsells && findsellsproducts && finalSellswithSellerorClientname) {
             finalSellswithSellerorClientname.sort(function (y, x) { return x.created_at.getTime() - y.created_at.getTime() })
             const finalreturn = { sells: [...finalSellswithSellerorClientname], sellsproducts: [...findsellsproducts] }
+            console.log(findsells)
             return response.json(finalreturn)
         }
     }

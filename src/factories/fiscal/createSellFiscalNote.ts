@@ -6,8 +6,7 @@ import { Request, Response } from 'express'
 import validateFields from '../../utils/validateFields';
 import { onlyNumbers, onlyNumbersStr } from '../../utils/utils';
 import { useDanfeGeneratorApi } from '../../services/api/danfeGenerateApi';
-import { FiscalNotes } from '@prisma/client';
-import { BaseCofins, BaseIcmsProprio, BaseIPI, BaseReduzidaIcmsProprio, Cofins01, Cofins02, Cofins03, Fcp, FcpEfetivo, Icms101, Icms900, Ipi50AdValorem, Ipi50Especifico, ValorIcmsProprio } from '../../services/taxesCalculator';
+import { BaseCofins, BaseIcmsProprio, BaseIPI, BaseReduzidaIcmsProprio, Cofins01, Cofins02, Cofins03, Fcp, FcpEfetivo, Icms00, Icms10, Icms101, Icms20, Icms30, Icms51, Icms70, Icms90, Icms900, Ipi50AdValorem, Ipi50Especifico, ValorIcmsProprio } from '../../services/taxesCalculator';
 import { ICofins01, ICofins03 } from '../../services/taxesCalculator/interfaces/cofins';
 import Utils from '../../services/taxesCalculator/utils';
 
@@ -35,6 +34,7 @@ export const createSellFiscalNote = async (request: Request, response: Response)
 
         const ambiente = Ambiente.Homologacao
 
+        // Preenche dados principais e valores
         const nfeData: CreateFiscalNoteInterface = {
 
             ambiente: ambiente,
@@ -98,19 +98,19 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                     NCM: String(onlyNumbers(item.product.ncmCode)),
                     unidade: item.product.unitMeasurement,
                     unidadeTrib: item.product.unitMeasurement,
-                    precoVenda: item.totalValue + item.discount,
-                    valorDesconto: item.discount,
-                    valorUnitario: item.valueProduct + item.discount,
-                    valorUnitarioTrib: item.valueProduct + item.discount,
+                    valorTotalProdutos: item.totalValue + (item.discount ?? 0),
+                    valorDesconto: item.discount ?? 0,
+                    valorUnitarioComerc: item.valueProduct + (item.discount ?? 0),
+                    valorUnitarioTrib: item.valueProduct + (item.discount ?? 0),
                     infAdProd: "",
                     //CEST: "", // Código Especificador da Substituição Tributária
                     CFOP: sellData[0].client.address.city.stateId === sellData[0].store.addressRelation.city.stateId ?
                         String(item.product.taxIcms[0].taxIcmsNfe[0].taxCfopStateId) :
                         String(item.product.taxIcms[0].taxIcmsNfe[0].taxCfopInterstateId),
                     extIPI: item.product.exTipi, // Código Exceção da Tabela de IPI
-                    //valorSeguro: 0,
-                    //valorFrete: 0,
-                    //valorOutro: 0,
+                    valorSeguro: 0,
+                    valorFrete: 0,
+                    valorOutro: 0,
                     imposto: {
                         origemMercadoria: OrigemMercadoria.Nacional,
                         ICMS: {
@@ -130,54 +130,54 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                                 }
                             ), // Código de Situação Tibutaria
                             modBC: String(item.product.taxIcms[0].taxIcmsNfe[0].taxModalityBCId),
-                            pICMS: (String(sellData[0].client.taxPayerTypeId) === IndIEDest.NaoContribuinte) ?
+                            pICMS: ((String(sellData[0].client.taxPayerTypeId) === IndIEDest.NaoContribuinte) ?
                                 item.product.taxIcms[0].taxIcmsNoPayer[0].taxAliquotIcms :
-                                item.product.taxIcms[0].taxIcmsNfe[0].taxAliquotIcms, // Aliquota ICMS
-                            pRedBC: (String(sellData[0].client.taxPayerTypeId) === IndIEDest.NaoContribuinte) ?
+                                item.product.taxIcms[0].taxIcmsNfe[0].taxAliquotIcms) ?? 0, // Aliquota ICMS
+                            pRedBC: ((String(sellData[0].client.taxPayerTypeId) === IndIEDest.NaoContribuinte) ?
                                 item.product.taxIcms[0].taxIcmsNoPayer[0].taxRedBCICMS :
-                                item.product.taxIcms[0].taxIcmsNfe[0].taxRedBCICMS, // Percentual de Redução da BC ICMS
-                            vBC: undefined, // Valor da BC ICMS
-                            vICMS: undefined, // Valor do ICMS
-                            pFCP: item.product.taxIcms[0].fcpAliquot,
-                            vFCP: undefined,
+                                item.product.taxIcms[0].taxIcmsNfe[0].taxRedBCICMS) ?? 0, // Percentual de Redução da BC ICMS
+                            vBC: 0, // Valor da BC ICMS
+                            vICMS: 0, // Valor do ICMS
+                            pFCP: item.product.taxIcms[0].fcpAliquot ?? 0,
+                            vFCP: 0,
                             motDesICMS: item.product.taxIcms[0].taxIcmsNfe[0].taxReasonExemptionId, // Motivo desoneração ICMS
-                            pCredSN: undefined,         // Alíquota aplicável de cálculo do crédito (Simples Nacional)
-                            pFCPST: undefined,          // Percentual do Fundo de Combate à Pobreza devido na substituição tributária
-                            pFCPSTRet: undefined,       // Percentual do Fundo de Combate à Pobreza retido anteriormente na substituição tributária
-                            vFCPST: undefined,          // Valor do Fundo de Combate à Pobreza devido na substituição tributária
-                            vFCPSTRet: undefined,       // Valor do Fundo de Combate à Pobreza retido anteriormente na substituição tributária
-                            pICMSEfet: undefined,       // Alíquota do ICMS efetivo
-                            pICMSST: undefined,         // Alíquota do ICMS na substituição tributária
-                            pMVAST: undefined,          // Percentual de Margem de Valor Agregado na substituição tributária
-                            pRedBCEfet: undefined,      // Percentual de redução da base de cálculo efetiva
-                            pRedBCST: undefined,        // Percentual de redução da base de cálculo na substituição tributária
-                            pST: undefined,             // Alíquota do ICMS na substituição tributária (ST)
-                            vBCEfet: undefined,         // Valor da base de cálculo efetiva
-                            vBCFCPST: undefined,        // Valor da base de cálculo do Fundo de Combate à Pobreza na substituição tributária
-                            vBCFCPSTRet: undefined,     // Valor da base de cálculo do Fundo de Combate à Pobreza retido anteriormente na substituição tributária
-                            vBCST: undefined,           // Valor da base de cálculo do ICMS na substituição tributária
-                            vBCSTRet: undefined,        // Valor da base de cálculo do ICMS retido anteriormente na substituição tributária
-                            vICMSEfet: undefined,       // Valor do ICMS efetivo
-                            vICMSST: undefined,         // Valor do ICMS na substituição tributária
-                            vICMSSTDeson: undefined,    // Valor do ICMS desonerado na substituição tributária
-                            vICMSSTRet: undefined,      // Valor do ICMS retido anteriormente na substituição tributária
-                            vICMSSubstituto: undefined  // Valor do ICMS do substituto tributário                                               
+                            pCredSN: 0,         // Alíquota aplicável de cálculo do crédito (Simples Nacional)
+                            pFCPST: 0,          // Percentual do Fundo de Combate à Pobreza devido na substituição tributária
+                            pFCPSTRet: 0,       // Percentual do Fundo de Combate à Pobreza retido anteriormente na substituição tributária
+                            vFCPST: 0,          // Valor do Fundo de Combate à Pobreza devido na substituição tributária
+                            vFCPSTRet: 0,       // Valor do Fundo de Combate à Pobreza retido anteriormente na substituição tributária
+                            pICMSEfet: 0,       // Alíquota do ICMS efetivo
+                            pICMSST: 0,         // Alíquota do ICMS na substituição tributária
+                            pMVAST: 0,          // Percentual de Margem de Valor Agregado na substituição tributária
+                            pRedBCEfet: 0,      // Percentual de redução da base de cálculo efetiva
+                            pRedBCST: 0,        // Percentual de redução da base de cálculo na substituição tributária
+                            pST: 0,             // Alíquota do ICMS na substituição tributária (ST)
+                            vBCEfet: 0,         // Valor da base de cálculo efetiva
+                            vBCFCPST: 0,        // Valor da base de cálculo do Fundo de Combate à Pobreza na substituição tributária
+                            vBCFCPSTRet: 0,     // Valor da base de cálculo do Fundo de Combate à Pobreza retido anteriormente na substituição tributária
+                            vBCST: 0,           // Valor da base de cálculo do ICMS na substituição tributária
+                            vBCSTRet: 0,        // Valor da base de cálculo do ICMS retido anteriormente na substituição tributária
+                            vICMSEfet: 0,       // Valor do ICMS efetivo
+                            vICMSST: 0,         // Valor do ICMS na substituição tributária
+                            vICMSSTDeson: 0,    // Valor do ICMS desonerado na substituição tributária
+                            vICMSSTRet: 0,      // Valor do ICMS retido anteriormente na substituição tributária
+                            vICMSSubstituto: 0  // Valor do ICMS do substituto tributário                                               
                         },
                         COFINS: {
                             CST: String(item.product.taxCofins?.[0].taxCstCofinsExit?.id).padStart(2, '0') ?? "",
-                            pCOFINS: item.product.taxCofins[0].taxAliquotCofinsExit,
-                            vBC: undefined,//item.totalValue,
-                            vCOFINS: undefined,//item.totalValue * (item.product.taxCofins[0].taxAliquotCofinsExit / 100),
-                            vAliqProd: undefined,
-                            qBCProd: undefined,
+                            pCOFINS: item.product.taxCofins[0].taxAliquotCofinsExit ?? 0,
+                            vBC: 0,//item.totalValue,
+                            vCOFINS: 0,//item.totalValue * (item.product.taxCofins[0].taxAliquotCofinsExit / 100),
+                            vAliqProd: 0,
+                            qBCProd: 0,
                         },
                         PIS: {
                             CST: String(item.product.taxPis[0].taxCstPisExitId), // Código de Situação Tributária    
-                            pPIS: item.product.taxPis[0].taxAliquotPisExit, // Percentual do PIS (se aplicável, caso contrário, 0)
-                            vBC: undefined, // Valor da base de cálculo (se aplicável, caso contrário, 0)
-                            vPIS: undefined, // Valor do PIS (se aplicável, caso contrário, 0)
-                            vAliqProd: undefined, // Alíquota em valor
-                            qBCProd: undefined // Quantidade vendida (se aplicável, caso contrário, 0)                      
+                            pPIS: item.product.taxPis[0].taxAliquotPisExit ?? 0, // Percentual do PIS (se aplicável, caso contrário, 0)
+                            vBC: 0, // Valor da base de cálculo (se aplicável, caso contrário, 0)
+                            vPIS: 0, // Valor do PIS (se aplicável, caso contrário, 0)
+                            vAliqProd: 0, // Alíquota em valor
+                            qBCProd: 0 // Quantidade vendida (se aplicável, caso contrário, 0)                      
                         },
                         ...(item.product.taxIpi[0].taxCstIpiExitId &&
                         {
@@ -188,9 +188,9 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                                 CNPJProd: item.product.taxIpi[0].taxCnpjProd, // CNPJ do Produtor, obrigatório nos casos de exportação direta ou indireta
                                 cSelo: item.product.taxIpi[0].taxStampIpi, // Código do Selo de Controle do IPI
                                 qSelo: item.product.taxIpi[0].taxQtdStampControlIpi, // Quantidade de Selos de Controle do IPI   
-                                vBC: undefined, // Valor da Base de Cálculo do IPI
-                                pIPI: item.product.taxIpi[0].taxAliquotIpi, // Alíquota do IPI
-                                vIPI: undefined // Valor do IPI
+                                vBC: 0, // Valor da Base de Cálculo do IPI
+                                pIPI: item.product.taxIpi[0].taxAliquotIpi ?? 0, // Alíquota do IPI
+                                vIPI: 0 // Valor do IPI
                                 //qUnid: item.product.taxIpi[0].taxQtdUnidIpi, // Quantidade total na unidade padrão, só preenche se for valor fixo e nao percentual
                                 //vUnid: item.product.taxIpi[0].taxValorUnidIpi // Valor por Unidade do IPI, só preenche se for valor fixo e nao percentual
                             }
@@ -227,7 +227,7 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                         //     vII: 0,
                         //     vIOF: 0
                         // },
-                        vTotTrib: undefined
+                        vTotTrib: 0
                     }
                 }
             }),
@@ -326,28 +326,113 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                 // }
             }
         }
-        console.log(nfeData.produtos[0].imposto)
-        const totalizedNfe: CreateFiscalNoteInterface = {
+
+        // Calcula impostos e tributações
+        const NfeWithTaxes: CreateFiscalNoteInterface = {
             ...nfeData,
             produtos: nfeData.produtos.map(item => {
+
+                //IPI
+                let bcIPI = 0
+                let valorIPI = 0
+                if (item.imposto.IPI) {
+                    switch (item.imposto.IPI.CST) {
+                        case '50': // 50 - Saída Tributada
+                            const Ipi50AdValor = new Ipi50AdValorem(item.valorTotalProdutos, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, item.imposto.IPI.pIPI)
+                            bcIPI = Ipi50AdValor.calculaBaseIPI()
+                            valorIPI = Ipi50AdValor.calculaValorIPI()
+                            break;
+                        case '99': // 99 - Outras Saídas
+                            bcIPI = new BaseIPI(item.valorTotalProdutos, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto).calculaBaseIPI()
+                            valorIPI = Utils.roundToNearest(bcIPI * (item.imposto.IPI.pIPI / 100))
+                            break;
+                        // Nas condições abaixo não há cobrança de tributo    
+                        case '51': // 51 - Saída Tributável com Alíquota Zero   
+                        case '52': // 52 - Saída Isenta
+                        case '53': // 53 - Saída Não-Tributada 
+                        case '54': // 54 - Saída Imune
+                        case '55': // 55 - Saída com Suspensão
+                        case null:
+                        case '':
+                            break;
+                        default:
+                            throw new Error(`CST IPI ${item.imposto.IPI.CST} não esperado!`)
+                    }
+                }
 
                 //ICMS
                 let bcICMS = 0
                 let valueICMS = 0
                 let valueFCP = 0
 
-                if (nfeData.emitente.CRT = Crt.SimplesNacional) {
+                if (nfeData.emitente.CRT === Crt.RegimeNormal) {
+
+                    switch (item.imposto.ICMS.CST) {
+                        case '00': // 00 - Tributada integralmente
+                            const icms00 = new Icms00(item.valorTotalProdutos, item.valorFrete, item.valorSeguro, item.valorOutro, valorIPI, item.valorDesconto, item.imposto.ICMS.pICMS)
+                            bcICMS = icms00.calculaBaseIcmsProprio()
+                            valueICMS = icms00.calculaValorIcmsProprio()
+                            valueFCP = new Fcp(bcICMS, item.imposto.ICMS.pFCP).calculaValorFCP()
+                            break;
+                        case '10': // 10 - Tributada e com cobrança do ICMS por substituição tributária
+                            // ajustar
+                            const icms10 = new Icms10(item.valorTotalProdutos, item.valorFrete, item.valorSeguro, item.valorOutro, valorIPI, item.valorDesconto, item.imposto.ICMS.pICMS, item.imposto.ICMS.pICMSST, 0, 0)
+                            bcICMS = icms10.calculaBaseIcmsProprio()
+                            valueICMS = icms10.calculaValorIcmsProprio()
+                            valueFCP = new Fcp(bcICMS, item.imposto.ICMS.pFCP).calculaValorFCP()
+                            break;
+                        case '20': // 20 - Com redução de base de cálculo
+                            const icms20 = new Icms20(item.valorTotalProdutos, item.valorFrete, item.valorSeguro, item.valorOutro, valorIPI, item.valorDesconto, item.imposto.ICMS.pICMS, item.imposto.ICMS.pRedBC)
+                            bcICMS = icms20.calculaBaseReduzidaIcmsProprio()
+                            valueICMS = icms20.calculaValorIcmsProprio()
+                            valueFCP = new Fcp(bcICMS, item.imposto.ICMS.pFCP).calculaValorFCP()
+                            break;
+                        case '30': // Isenta ou não tributada e com cobrança do ICMS por substituição tributária
+                            const icms30 = new Icms30(item.valorTotalProdutos, item.valorFrete, item.valorSeguro, item.valorOutro, valorIPI, item.valorDesconto, item.imposto.ICMS.pICMS, item.imposto.ICMS.pICMSST, 0, 0)
+                            bcICMS = icms30.calculaBaseIcmsProprio()
+                            valueICMS = icms30.calculaValorIcmsProprio()
+                            valueFCP = new Fcp(bcICMS, item.imposto.ICMS.pFCP).calculaValorFCP()
+                            break;
+                        case '70': // 70 - Com redução de base de cálculo e cobrança do ICMS por substituição tributária
+                            // ajustar
+                            const icms70 = new Icms70(item.valorTotalProdutos, item.valorFrete, item.valorSeguro, item.valorOutro, valorIPI, item.valorDesconto, item.imposto.ICMS.pICMS, item.imposto.ICMS.pICMSST, 0, item.imposto.ICMS.pRedBC, 0)
+                            bcICMS = icms70.calculaBaseIcmsProprio()
+                            valueICMS = icms70.calculaValorIcmsProprio()
+                            valueFCP = new Fcp(bcICMS, item.imposto.ICMS.pFCP).calculaValorFCP()
+                            break;
+                        case '90': // 90 - Outros (outras situações que não se enquadram nos códigos anteriores)    
+                            const icms90 = new Icms90(item.valorTotalProdutos, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, item.imposto.ICMS.pICMS, item.imposto.ICMS.pICMSST, 0, valorIPI, item.imposto.ICMS.pRedBC, 0)
+                            bcICMS = icms90.calculaBaseIcmsProprio()
+                            valueICMS = icms90.calculaValorIcmsProprio()
+                            valueFCP = new Fcp(bcICMS, item.imposto.ICMS.pFCP).calculaValorFCP()
+                            break;
+                        case '40': // 40 - Isenta   
+                        case '41': // 41 - Não tributada
+                        case '50': // 50 - Suspensão
+                        case '60': // 60 - ICMS cobrado anteriormente por substituição tributária
+                        case '':
+                        case null:
+                            break;
+                        default:
+                            throw new Error(`CST ICMS ${item.imposto.ICMS.CST} não esperado!`)
+                    }
+
+                }
+                // CSOSN - Somente de Simples Nacional 101 pra cima
+                if ((nfeData.emitente.CRT === Crt.SimplesNacional) || (nfeData.emitente.CRT === Crt.SimplesExcessoReceita)) {
                     switch (item.imposto.ICMS.CSOSN) {
+
                         case '101': // 101 - Simples Nacional - Tributada pelo Simples Nacional com permissão de crédito
-                            const icms101 = new Icms101(item.valorUnitario, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, 0, item.imposto.ICMS.pRedBC)
+                            const icms101 = new Icms101(item.valorTotalProdutos, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, 0, item.imposto.ICMS.pRedBC)
                             bcICMS = icms101.calculaBaseIcmsProprio()
                             valueICMS = new ValorIcmsProprio(bcICMS, item.imposto.ICMS.pICMS).calculaValorIcmsProprio()
                             valueFCP = new Fcp(bcICMS, item.imposto.ICMS.pFCP).calculaValorFCP()
                             break;
                         case '900':  // 900 - Simples Nacional - Outros
-                            bcICMS = new BaseReduzidaIcmsProprio(item.valorUnitario, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, item.imposto.ICMS.pRedBC, item.imposto.IPI.vIPI,).calculaBaseReduzidaIcmsProprio()
+                            bcICMS = new BaseReduzidaIcmsProprio(item.valorTotalProdutos, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, item.imposto.ICMS.pRedBC, item.imposto.IPI.vIPI,).calculaBaseReduzidaIcmsProprio()
                             valueICMS = new ValorIcmsProprio(bcICMS, item.imposto.ICMS.pICMS).calculaValorIcmsProprio()
                             valueFCP = new Fcp(bcICMS, item.imposto.ICMS.pFCP).calculaValorFCP()
+                            break;
                         // Nas condições abaixo não há cobrança de tributo    
                         case '102': // 102 - Simples Nacional - Tributada pelo Simples Nacional sem permissão de crédito
                         case '103': // 103 - Simples Nacional - Isenção do ICMS no Simples Nacional para faixa de receita bruta
@@ -367,22 +452,22 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                 let valueCOFINS = 0
                 switch (item.imposto.COFINS.CST) {
                     case '01': // 01 - Operação Tributável com Alíquota Básica
-                        const cofins01 = new Cofins01(item.valorUnitario, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, item.imposto.COFINS.pCOFINS, valueICMS);
+                        const cofins01 = new Cofins01(item.valorTotalProdutos, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, item.imposto.COFINS.pCOFINS, valueICMS);
                         bcCOFINS = cofins01.calculaBaseCofins()
                         valueCOFINS = cofins01.calculaValorCofins()
                         break;
                     case '02': // 02 - Operação Tributável com Alíquota Diferenciada
-                        const cofins02 = new Cofins02(item.valorUnitario, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, item.imposto.COFINS.pCOFINS, valueICMS)
+                        const cofins02 = new Cofins02(item.valorTotalProdutos, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, item.imposto.COFINS.pCOFINS, valueICMS)
                         bcCOFINS = cofins02.calculaBaseCofins()
                         valueCOFINS = cofins02.calculaValorCofins()
                         break;
                     case '03': // 03 - Operação Tributável com Alíquota por Unidade de Medida de Produto
-                        bcCOFINS = new BaseCofins(item.valorUnitario, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, valueICMS).calcularBaseCofins()
+                        bcCOFINS = new BaseCofins(item.valorTotalProdutos, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, valueICMS).calcularBaseCofins()
                         valueCOFINS = new Cofins03(bcCOFINS, item.imposto.COFINS.pCOFINS).calculaValorCofins();
                         break;
                     case '49': // 49 - Outras Operações de Saída    
                     case '99': // 99 - Outras Operações
-                        bcCOFINS = new BaseCofins(item.valorUnitario, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, valueICMS).calcularBaseCofins()
+                        bcCOFINS = new BaseCofins(item.valorTotalProdutos, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, valueICMS).calcularBaseCofins()
                         valueCOFINS = Utils.roundToNearest(bcCOFINS * (item.imposto.COFINS.pCOFINS / 100));
                         break;
                     // Nas condições abaixo não há cobrança de tributo
@@ -399,40 +484,13 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                         throw new Error(`CST COFINS ${item.imposto.COFINS.CST} não esperado!`)
                 }
 
-                //IPI
-                let bcIPI = 0
-                let valorIPI = 0
-                if (item.imposto.IPI) {
-                    switch (item.imposto.IPI.CST) {
-                        case '50': // 50 - Saída Tributada
-                            const Ipi50AdValor = new Ipi50AdValorem(item.valorUnitario, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, item.imposto.IPI.pIPI)
-                            bcIPI = Ipi50AdValor.calculaBaseIPI()
-                            valorIPI = Ipi50AdValor.calculaValorIPI()
-                            break;
-                        case '99': // 99 - Outras Saídas
-                            bcIPI = new BaseIPI(item.valorUnitario, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto).calculaBaseIPI()
-                            valorIPI = Utils.roundToNearest(bcIPI * (item.imposto.IPI.pIPI / 100))
-                            break;
-                        // Nas condições abaixo não há cobrança de tributo    
-                        case '51': // 51 - Saída Tributável com Alíquota Zero   
-                        case '52': // 52 - Saída Isenta
-                        case '53': // 53 - Saída Não-Tributada 
-                        case '54': // 54 - Saída Imune
-                        case '55': // 55 - Saída com Suspensão
-                        case null:
-                        case '':
-                            break;
-                        default:
-                            throw new Error(`CST IPI ${item.imposto.IPI.CST} não esperado!`)
-                    }
-                }
 
                 return {
                     ...item, imposto: {
                         ...item.imposto,
                         ICMS: {
                             ...item.imposto.ICMS,
-                            vBC: valueICMS,
+                            vBC: bcICMS,
                             vICMS: valueICMS,
                             vFCP: valueFCP
                         }, COFINS: {
@@ -440,30 +498,39 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                             vBC: bcCOFINS,
                             vCOFINS: valueCOFINS
                         },
-                        IPI: {
-                            ...item.imposto.IPI,
-                            vBC: bcIPI,
-                            vIPI: valorIPI
-                        },
+                        ...(item.imposto.IPI?.CST &&
+                        {
+                            IPI: {
+                                ...item.imposto.IPI,
+                                vBC: bcIPI,
+                                vIPI: valorIPI
+                            }
+                        }),
                         vTotTrib: valueICMS + valueCOFINS + valorIPI + valueFCP
                     }
                 }
             })
-            ,
+        }
+
+        // Preenche totais
+        const totalizedNfe: CreateFiscalNoteInterface = {
+            ...NfeWithTaxes,
             total: {
                 ICMS: {
                     ...nfeData.total.ICMS,
-                    vBC: nfeData.produtos.reduce((acc, product) => { return acc + product.imposto.ICMS.vBC }, 0),
-                    vCOFINS: nfeData.produtos.reduce((acc, product) => { return acc + product.imposto.COFINS.vCOFINS }, 0),
-                    vDesc: nfeData.produtos.reduce((acc, product) => { return acc + product.valorDesconto }, 0),
-                    vICMS: nfeData.produtos.reduce((acc, product) => { return acc + product.imposto.ICMS.vICMS }, 0),
-                    vPIS: nfeData.produtos.reduce((acc, product) => { return acc + product.imposto.PIS.vPIS }, 0),
-                    vProd: nfeData.produtos.reduce((acc, product) => { return acc + product.precoVenda }, 0)
+                    vBC: NfeWithTaxes.produtos.reduce((acc, product) => { return acc + product.imposto.ICMS.vBC }, 0),
+                    vCOFINS: NfeWithTaxes.produtos.reduce((acc, product) => { return acc + product.imposto.COFINS.vCOFINS }, 0),
+                    vDesc: NfeWithTaxes.produtos.reduce((acc, product) => { return acc + product.valorDesconto }, 0),
+                    vICMS: NfeWithTaxes.produtos.reduce((acc, product) => { return acc + product.imposto.ICMS.vICMS }, 0),
+                    vPIS: NfeWithTaxes.produtos.reduce((acc, product) => { return acc + product.imposto.PIS.vPIS }, 0),
+                    vProd: NfeWithTaxes.produtos.reduce((acc, product) => { return acc + product.valorTotalProdutos }, 0),
+                    vTotTrib: NfeWithTaxes.produtos.reduce((acc, product) => { return acc + product.imposto.vTotTrib }, 0)
                 }
             }
         }
 
         console.log(totalizedNfe)
+        console.log(totalizedNfe.produtos[0].imposto)
         const result: NFeResponse = await emiteNfe(totalizedNfe, userId)
 
         await prisma.fiscalNotes.create({

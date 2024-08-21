@@ -12,17 +12,19 @@ export default async function addProduct(request: Request, response: Response) {
         validateFields(requiredFields, data.principal)
 
         await prisma.$transaction(async (prismaTx) => {
-            const verifyCodRefExists = await prismaTx.products.findMany({
-                where: {
-                    AND: [{
-                        codRef: data.principal.codRef
-                    }, {
-                        storeId: data.principal.userId
-                    }]
+            if (data.principal.codRef) {
+                const verifyCodRefExists = await prismaTx.products.findMany({
+                    where: {
+                        AND: [{
+                            codRef: data.principal.codRef
+                        }, {
+                            storeId: data.principal.userId
+                        }]
+                    }
+                })
+                if (verifyCodRefExists.length > 0) {
+                    throw new Error(`Já existe produto cadastrado com o código de referência ${data.principal.codRef}`)
                 }
-            })
-            if (verifyCodRefExists.length > 0) {
-                throw new Error(`Já existe produto cadastrado com o código de referência ${data.principal.codRef}`)
             }
 
             const addproduct = await prismaTx.products.create({

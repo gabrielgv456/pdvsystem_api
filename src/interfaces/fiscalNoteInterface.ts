@@ -199,8 +199,8 @@ interface Produto {
     CFOP: string;
     unidade: string;
     quantidade: number;
-    precoVenda: number;
-    valorUnitario: number;
+    valorTotalProdutos: number;
+    valorUnitarioComerc: number;
     EANTrib: string;
     unidadeTrib: string;
     quantidadeTrib: number;

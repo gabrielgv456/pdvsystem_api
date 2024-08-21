@@ -5,7 +5,13 @@
     "module": "CommonJS",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "baseUrl": "./",
+    "paths": {
+      "@shared/*": [
+        "src/shared-ttpes/src/types/*"
+      ]
+    }
   },
   "include": [
     "src/**/*"
