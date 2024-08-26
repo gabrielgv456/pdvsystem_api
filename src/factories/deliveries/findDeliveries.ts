@@ -1,3 +1,4 @@
+import { sharedDeliveriesResponse, sharedDeliveriesError } from '@shared/api/deliveries/findDeliveries';
 import prisma from '../../services/prisma/index';
 import validateFields from '../../utils/validateFields';
 import { Request, Response } from 'express'
@@ -34,9 +35,11 @@ export default async function findDeliveries(request: Request, response: Respons
                 ]
             }
         })
-        return response.json({ Success: true, resultDeliveries })
+        const result: sharedDeliveriesResponse = { Success: true, resultDeliveries }
+        return response.json(result)
     }
     catch (error) {
-        return response.status(400).json({ Success: false, Erro: (error as Error).message })
+        const result: sharedDeliveriesError = { Success: false, Erro: (error as Error).message }
+        return response.status(400).json(result)
     }
 }

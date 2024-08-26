@@ -1,4 +1,4 @@
-import { Ambiente, CodigoSituacaoTributaria, Crt, finalidadeNFe, FormaPagamento, IndFinal, IndIEDest, IndIntermediador, OrigemMercadoria, TipoEmissao, TipoEntrega, TipoFrete, tipoSaida } from "./enums/fiscalNotaEnums";
+import { Ambiente, CodigoSituacaoTributaria, Crt, finalidadeNFe, FormaPagamento, IndFinal, IndIEDest, IndIntermediador, IndPresencaComprador, OrigemMercadoria, TipoEmissao, TipoEntrega, TipoFrete, tipoSaida } from "./enums/fiscalNotaEnums";
 
 // Tipos de endereço
 interface Endereco {
@@ -347,8 +347,9 @@ export interface CreateFiscalNoteInterface {
     cMunFG: number;
     finalidadeNFe: finalidadeNFe;
     indIntermediador?: IndIntermediador;
+    indPresenca: IndPresencaComprador;
     emitente: Emitente;
-    destinatario: Destinatario;
+    destinatario?: Destinatario;
     entrega: Entrega;
     produtos: Produto[];
     total: Total;
@@ -386,8 +387,6 @@ export type NFeResponse = {
     xMsg: string;
     Recibo: string;
     Protocolo: string;
-    RetWs: string;
-    RetornoWS: string;
     pathSave: string;
     xml: string;
     profile: string

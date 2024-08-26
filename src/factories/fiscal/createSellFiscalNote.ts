@@ -1,4 +1,4 @@
-import { Ambiente, Crt, finalidadeNFe, fiscalModels, fiscalStatusNf, FormaPagamento, IndFinal, IndIEDest, IndIntermediador, OrigemMercadoria, PaymentType, TipoEmissao, TipoEntrega, TipoFrete, tipoSaida } from '../../interfaces/enums/fiscalNotaEnums';
+import { Ambiente, Crt, finalidadeNFe, fiscalModels, fiscalStatusNf, FormaPagamento, IndFinal, IndIEDest, IndIntermediador, IndPresencaComprador, OrigemMercadoria, PaymentType, TipoEmissao, TipoEntrega, TipoFrete, tipoSaida } from '../../interfaces/enums/fiscalNotaEnums';
 import { CreateFiscalNoteInterface, NFeResponse } from '../../interfaces/fiscalNoteInterface';
 import { useFiscalApi } from '../../services/api/fiscalApi';
 import prisma from '../../services/prisma/index';
@@ -17,18 +17,25 @@ export const createSellFiscalNote = async (request: Request, response: Response)
 
         const existsFiscalNote = await prisma.fiscalNotes.findFirst({ where: { sellId: sellId } })
 
+
         if (existsFiscalNote) {
             const user = await prisma.user.findFirst({ where: { id: userId } })
             const profile = user.key + '_' + onlyNumbersStr(user.cnpj)
-            await generateDanfeAndRespond({ NFe: existsFiscalNote.keyNF, profile, xml: existsFiscalNote.xml, model: 'NFE' }, response)
+            await generateDanfeAndRespond({ NFe: existsFiscalNote.keyNF, profile, xml: existsFiscalNote.xml, model: (existsFiscalNote.modelNFId === 1 ? 'NFE' : 'NFCE') }, response)
             return
         }
+
+        enum modelEnum {
+            'NFCE' = 'NFCE',
+            'NFE' = 'NFE'
+        }
+        const model: modelEnum = false ? modelEnum.NFCE : modelEnum.NFE;
 
         const { emiteNfe } = useFiscalApi()
         const sellData = await getSellData(sellId, userId)
 
         if (!sellData) throw new Error("Não foi encontrado venda com o id informado!")
-        if (!sellData[0].client?.id) throw new Error("Para emissão de NFe é obrigatório informar o cliente!")
+        if (model === modelEnum.NFE && !sellData[0].client?.id) throw new Error("Para emissão de NFe é obrigatório informar o cliente!")
         if (sellData[0].deleted ?? false) throw new Error("Essa venda já foi excluída")
 
 
@@ -41,14 +48,15 @@ export const createSellFiscalNote = async (request: Request, response: Response)
             cMunFG: sellData[0].store.addressRelation.city.ibge,
             cUF: sellData[0].store.addressRelation.city.state.uf,
             finalidadeNFe: finalidadeNFe.Normal,
-            indFinal: (sellData[0].client.finalCostumer ?? true) ? IndFinal.ConsumidorFinal : IndFinal.NaoConsumidorFinal,
+            indFinal: (sellData[0].client?.finalCostumer ?? true) ? IndFinal.ConsumidorFinal : IndFinal.NaoConsumidorFinal,
+            indPresenca: IndPresencaComprador.pcPresencial,
             //indIntermediador: IndIntermediador.OperacaoSemIntermediador,
             indPag: sellData[0].paymentsells[0].payment.paymentCondition.codSefaz === FormaPagamento.Outras ? undefined : sellData[0].paymentsells[0].payment.paymentCondition.codSefaz,
             natOp: "Venda de mercadoria(s)",
             tpEmis: TipoEmissao.Normal,
             tpNF: tipoSaida.Saida,
-            serie: 1,
-            nNF: sellData[0].store.lastNumberNF + 1 ?? 1,
+            serie: model === modelEnum.NFE ? 1 : 2,
+            nNF: model === modelEnum.NFE ? (sellData[0].store.lastNumberNF + 1 ?? 1) : (sellData[0].store.lastNumberNFCE + 1 ?? 1),
             emitente: {
                 CNPJCPF: sellData[0].store.cnpj,
                 CRT: sellData[0].store.taxCrtId,
@@ -67,24 +75,26 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                     fone: sellData[0].store.phone,
                 }
             },
-            destinatario: {
-                CNPJCPF: sellData[0].client.cpf,
-                IE: sellData[0].client.ie,
-                nome: sellData[0].client.name,
-                indIEDest: sellData[0].client.taxPayerTypeId,
-                ISUF: sellData[0].client.suframa,
-                endereco: {
-                    bairro: sellData[0].client.address.addressNeighborhood,
-                    CEP: onlyNumbers(sellData[0].client.address.addressCep),
-                    codMunicipio: sellData[0].client.address.city.ibge,
-                    complemento: sellData[0].client.address.addressComplement,
-                    logradouro: sellData[0].client.address.addressStreet,
-                    nomeMunicipio: sellData[0].client.address.city.name,
-                    numero: sellData[0].client.address.addressNumber,
-                    UF: sellData[0].client.address.city.state.uf,
-                    fone: sellData[0].client.phoneNumber
+            ...(sellData[0].client?.cpf && {
+                destinatario: {
+                    CNPJCPF: sellData[0].client.cpf,
+                    IE: sellData[0].client.ie,
+                    nome: sellData[0].client.name,
+                    indIEDest: sellData[0].client.taxPayerTypeId,
+                    ISUF: sellData[0].client.suframa,
+                    endereco: {
+                        bairro: sellData[0].client.address.addressNeighborhood,
+                        CEP: onlyNumbers(sellData[0].client.address.addressCep),
+                        codMunicipio: sellData[0].client.address.city.ibge,
+                        complemento: sellData[0].client.address.addressComplement,
+                        logradouro: sellData[0].client.address.addressStreet,
+                        nomeMunicipio: sellData[0].client.address.city.name,
+                        numero: sellData[0].client.address.addressNumber,
+                        UF: sellData[0].client.address.city.state.uf,
+                        fone: sellData[0].client.phoneNumber
+                    }
                 }
-            },
+            }),
             produtos: sellData[0].itenssells.map((item) => {
                 return {
                     descricao: item.descriptionProduct,
@@ -104,9 +114,15 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                     valorUnitarioTrib: item.valueProduct + (item.discount ?? 0),
                     infAdProd: "",
                     //CEST: "", // Código Especificador da Substituição Tributária
-                    CFOP: sellData[0].client.address.city.stateId === sellData[0].store.addressRelation.city.stateId ?
-                        String(item.product.taxIcms[0].taxIcmsNfe[0].taxCfopStateId) :
-                        String(item.product.taxIcms[0].taxIcmsNfe[0].taxCfopInterstateId),
+                    CFOP: model === modelEnum.NFE ? (
+                        !sellData[0].client?.cpf ? String(item.product.taxIcms[0].taxIcmsNfe[0].taxCfopStateId) :
+                            (sellData[0].client.address.city.stateId === sellData[0].store.addressRelation.city.stateId ?
+                                String(item.product.taxIcms[0].taxIcmsNfe[0].taxCfopStateId) :
+                                String(item.product.taxIcms[0].taxIcmsNfe[0].taxCfopInterstateId))
+                    ) : (
+                        String(item.product.taxIcms[0].taxIcmsNfce[0].taxCfopId)
+                    )
+                    ,
                     extIPI: item.product.exTipi, // Código Exceção da Tabela de IPI
                     valorSeguro: 0,
                     valorFrete: 0,
@@ -114,28 +130,38 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                     imposto: {
                         origemMercadoria: OrigemMercadoria.Nacional,
                         ICMS: {
-                            ...(sellData[0].store.taxCrtId === Crt.SimplesNacional ?
+                            ...(sellData[0].store.taxCrtId === Crt.SimplesNacional || (nfeData.emitente.CRT === Crt.SimplesExcessoReceita) ?
                                 {
-                                    CSOSN: (String(sellData[0].client.taxPayerTypeId) === IndIEDest.NaoContribuinte) ?
+                                    CSOSN: (String(sellData[0].client?.taxPayerTypeId ?? 9) === IndIEDest.NaoContribuinte) ?
                                         String(item.product.taxIcms[0].taxIcmsNoPayer[0].taxCstIcmsId)
                                         :
-                                        String(item.product.taxIcms[0].taxIcmsNfe[0].taxCstIcmsId)
+                                        (model === modelEnum.NFE ?
+                                            String(item.product.taxIcms[0].taxIcmsNfe[0].taxCstIcmsId) :
+                                            String(item.product.taxIcms[0].taxIcmsNfce[0].taxCstIcmsId))
                                 } // Somente simples nacional - Código de Situação da Operação no Simples Nacional
                                 :
                                 {
-                                    CST: (String(sellData[0].client.taxPayerTypeId) === IndIEDest.NaoContribuinte) ?
+                                    CST: (String(sellData[0].client?.taxPayerTypeId ?? 9) === IndIEDest.NaoContribuinte) ?
                                         String(item.product.taxIcms[0].taxIcmsNoPayer[0].taxCstIcmsId)
                                         :
-                                        String(item.product.taxIcms[0].taxIcmsNfe[0].taxCstIcmsId)
+                                        (model === modelEnum.NFE ?
+                                            String(item.product.taxIcms[0].taxIcmsNfe[0].taxCstIcmsId) :
+                                            String(item.product.taxIcms[0].taxIcmsNfce[0].taxCstIcmsId))
                                 }
                             ), // Código de Situação Tibutaria
                             modBC: String(item.product.taxIcms[0].taxIcmsNfe[0].taxModalityBCId),
-                            pICMS: ((String(sellData[0].client.taxPayerTypeId) === IndIEDest.NaoContribuinte) ?
+                            pICMS: ((String(sellData[0].client?.taxPayerTypeId ?? 9) === IndIEDest.NaoContribuinte) ?
                                 item.product.taxIcms[0].taxIcmsNoPayer[0].taxAliquotIcms :
-                                item.product.taxIcms[0].taxIcmsNfe[0].taxAliquotIcms) ?? 0, // Aliquota ICMS
-                            pRedBC: ((String(sellData[0].client.taxPayerTypeId) === IndIEDest.NaoContribuinte) ?
+                                (model === modelEnum.NFE ?
+                                    (item.product.taxIcms[0].taxIcmsNfe[0].taxAliquotIcms ?? 0) :
+                                    (item.product.taxIcms[0].taxIcmsNfce[0].taxAliquotIcms ?? 0)
+                                )), // Aliquota ICMS
+                            pRedBC: ((String(sellData[0].client?.taxPayerTypeId ?? 9) === IndIEDest.NaoContribuinte) ?
                                 item.product.taxIcms[0].taxIcmsNoPayer[0].taxRedBCICMS :
-                                item.product.taxIcms[0].taxIcmsNfe[0].taxRedBCICMS) ?? 0, // Percentual de Redução da BC ICMS
+                                (model === modelEnum.NFE ?
+                                    (item.product.taxIcms[0].taxIcmsNfe[0].taxRedBCICMS ?? 0) : // Percentual de Redução da BC ICMS
+                                    (item.product.taxIcms[0].taxIcmsNfce[0].taxRedBCICMS ?? 0)))
+                            ,
                             vBC: 0, // Valor da BC ICMS
                             vICMS: 0, // Valor do ICMS
                             pFCP: item.product.taxIcms[0].fcpAliquot ?? 0,
@@ -267,7 +293,7 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                     complemento: sellData[0].deliveries[0].address.addressComplement,
                     UF: sellData[0].deliveries[0].address.city.state.uf,
                     codMunicipio: sellData[0].deliveries[0].address.city.ibge,
-                    CNPJCPF: sellData[0].client.cpf
+                    CNPJCPF: sellData[0].client?.cpf ?? ''
                 }
             }),
             pagamento: sellData[0].paymentsells.map(itemPay => {
@@ -429,7 +455,7 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                             valueFCP = new Fcp(bcICMS, item.imposto.ICMS.pFCP).calculaValorFCP()
                             break;
                         case '900':  // 900 - Simples Nacional - Outros
-                            bcICMS = new BaseReduzidaIcmsProprio(item.valorTotalProdutos, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, item.imposto.ICMS.pRedBC, item.imposto.IPI.vIPI,).calculaBaseReduzidaIcmsProprio()
+                            bcICMS = new BaseReduzidaIcmsProprio(item.valorTotalProdutos, item.valorFrete, item.valorSeguro, item.valorOutro, item.valorDesconto, item.imposto.ICMS.pRedBC, (item.imposto.IPI?.vIPI ?? 0),).calculaBaseReduzidaIcmsProprio()
                             valueICMS = new ValorIcmsProprio(bcICMS, item.imposto.ICMS.pICMS).calculaValorIcmsProprio()
                             valueFCP = new Fcp(bcICMS, item.imposto.ICMS.pFCP).calculaValorFCP()
                             break;
@@ -531,7 +557,7 @@ export const createSellFiscalNote = async (request: Request, response: Response)
 
         console.log(totalizedNfe)
         console.log(totalizedNfe.produtos[0].imposto)
-        const result: NFeResponse = await emiteNfe(totalizedNfe, userId)
+        const result: NFeResponse = await emiteNfe(totalizedNfe, userId, model)
 
         await prisma.fiscalNotes.create({
             data: {
@@ -543,21 +569,28 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                 xml: result.xml,
                 serieNFId: totalizedNfe.serie,
                 sellId: sellData[0].id,
-                modelNFId: fiscalModels.nfe55,
+                modelNFId: model === modelEnum.NFE ? fiscalModels.nfe55 : fiscalModels.nfce65,
                 statusNFId: fiscalStatusNf.emitida,
                 stateId: sellData[0].store.addressRelation.city.stateId,
                 storeId: userId
             }
         })
 
+
+
         await prisma.user.update({
-            data: { lastNumberNF: totalizedNfe.nNF },
+            data: {
+                ...(model === modelEnum.NFCE ?
+                    { lastNumberNFCE: totalizedNfe.nNF } :
+                    { lastNumberNF: totalizedNfe.nNF })
+            }
+            ,
             where: { id: userId }
         })
 
         if (result.cStat !== '100') throw new Error('Status da emissão: ' + result.cMsg)
 
-        await generateDanfeAndRespond({ NFe: result.NFe, profile: result.profile, xml: result.xml, model: 'NFE' }, response)
+        await generateDanfeAndRespond({ NFe: result.NFe, profile: result.profile, xml: result.xml, model }, response)
 
     } catch (error) {
         return response.status(400).json({ erro: 'Ocorreu uma falha ao emitir nota fiscal! ' + (error as Error).message });
@@ -580,11 +613,8 @@ export const generateDanfeAndRespond = async (
     try {
         const { generateDanfe } = useDanfeGeneratorApi();
         const danfe = await generateDanfe(params);
-
-        response.setHeader('Content-Type', 'application/pdf');
-        response.setHeader('Content-Disposition', `attachment; filename="${params.NFe}.pdf"`);
-
-        return response.send(danfe.data);
+        console.log(danfe)
+        return response.status(200).json(danfe);
     } catch (error) {
         return response.status(400).json({
             erro: 'A nota fiscal foi emitida, porém ocorreu uma falha ao gerar a DANFE! ' + (error as Error).message

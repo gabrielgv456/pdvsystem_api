@@ -53,6 +53,16 @@ export enum TipoFrete {
     mfSemFrete = '9'
 }
 
+export enum IndPresencaComprador {
+    pcNao = '0',
+    pcPresencial = '1',
+    pcInternet = '2',
+    pcTeleatendimento = '3',
+    pcEntregaDomicilio = '4',
+    pcPresencialForaEstabelecimento = '5',
+    pcOutros = '9'
+}
+
 
 export enum IndIEDest {
     Contribuinte = '1',

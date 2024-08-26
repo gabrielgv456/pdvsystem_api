@@ -4,9 +4,11 @@
   "main": "dist/server.js",
   "license": "MIT",
   "scripts": {
-    "dev": "nodemon src/server.ts",
+    "dev": "yarn pull-shared-types && nodemon src/server.ts",
     "lint": "yarn eslint .",
-    "build": "rimraf dist && tsc -p tsconfig-build.json"
+    "build": "rimraf dist && tsc -p tsconfig-build.json",
+    "pull-shared-types": "cd src/shared-types && git pull origin HEAD",
+    "commit-shared-types": "cd src/shared-types && git pull origin HEAD && git add . && git commit -m \"updates\" && git push -u origin HEAD"
   },
   "dependencies": {
     "@prisma/client": "^5.17.0",

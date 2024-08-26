@@ -1,3 +1,4 @@
+import { fiscalParametersError, fiscalParametersSuccess } from '@shared/api/settings/fiscalParameters'
 import prisma from '../../../services/prisma/index'
 import { Request, Response } from 'express'
 
@@ -26,8 +27,11 @@ export default async function fiscalParameters(request: Request, response: Respo
         const cstPisOptions = await prisma.taxCstPis.findMany()
         const regimeOptions = await prisma.taxRegime.findMany()
 
-        return response.json({ Success: true, fiscalParameters, crtOptions, cstCofinsOptions, cstPisOptions, regimeOptions })
+        const result: fiscalParametersSuccess = { Success: true, fiscalParameters, crtOptions, cstCofinsOptions, cstPisOptions, regimeOptions }
+
+        return response.json(result)
     } catch (error) {
-        return response.status(400).json({ Success: false, erro: (error as Error).message })
+        const result: fiscalParametersError = { Success: false, erro: (error as Error).message }
+        return response.status(400).json(result)
     }
 }

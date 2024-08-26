@@ -29,7 +29,8 @@ model User {
   masterkey            String                 @default("123")
   urlLogo              String?
   lastNumberNF         Int?
-  plans                Plans?                  @relation(fields: [planId], references: [id])
+  lastNumberNFCE       Int?
+  plans                Plans?                 @relation(fields: [planId], references: [id])
   planId               Int? // mudar para obrigatorio futuramente
   addressRelation      Address?               @relation(name: "addressRelation", fields: [addressId], references: [id])
   addressId            Int?

@@ -41,16 +41,17 @@ export const useFiscalApi = () => ({
         return response.data
     },
 
-    emiteNfe: async (body: CreateFiscalNoteInterface, userId: number) => {
+    emiteNfe: async (body: CreateFiscalNoteInterface, userId: number, model: 'NFCE' | 'NFE') => {
 
+        const pathApi = (model === 'NFCE') ? '/emitenfce' : '/emitenfe'
         const { tokenGenerate } = useFiscalApi()
         const fiscalApi = await loadApi(userId)
-        const response = await fiscalApi.post('/emitenfe', body);
+        const response = await fiscalApi.post(pathApi, body);
 
         if (response.status === 401) {
             const { key, cnpj } = await prisma.user.findUnique({ where: { id: userId } })
             const token = await tokenGenerate({ key, user: String(onlyNumbers(cnpj)) }, userId)
-            const result = await fiscalApi.post('/emitenfe', body, { headers: { Authorization: 'Bearer ' + token.tokenJWT } });
+            const result = await fiscalApi.post(pathApi, body, { headers: { Authorization: 'Bearer ' + token.tokenJWT } });
             if (result.data.error) throw new Error(result.data.erro)
             if (result.status !== 200) throw new Error('Código de erro: ' + response.status)
         } else {
