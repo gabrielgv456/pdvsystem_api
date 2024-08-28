@@ -9,19 +9,35 @@ export default async function fiscalParameters(request: Request, response: Respo
             throw new Error('Informe o storeId!')
         }
 
-        const fiscalParameters = await prisma.user.findUnique({
+        const findFiscalParameters = await prisma.user.findUnique({
             where: {
                 id: parseInt(storeId.toString())
             },
             select: {
+                lastNumberNF: true,
+                lastNumberNFCE: true,
+                passCert: true,
+                validityCert: true,
                 taxCrtId: true,
                 taxRegimeId: true,
                 taxCstPisId: true,
                 taxCstPisAliquot: true,
                 taxCstCofinsAliquot: true,
-                taxCstCofinsId: true
+                taxCstCofinsId: true,
+                fileCertId: true,
+                fileCert: true,
+                codCSC: true
             }
         })
+
+        const fiscalParameters = {
+            urlFileCert: ((findFiscalParameters.fileCert?.host ?? '') +
+                (findFiscalParameters.fileCert?.path ?? '') +
+                (findFiscalParameters.fileCert?.nameFile ?? '')) ?? null,
+            passCert: null,
+            ...findFiscalParameters
+        }
+
         const crtOptions = await prisma.taxCrt.findMany()
         const cstCofinsOptions = await prisma.taxCstCofins.findMany()
         const cstPisOptions = await prisma.taxCstPis.findMany()

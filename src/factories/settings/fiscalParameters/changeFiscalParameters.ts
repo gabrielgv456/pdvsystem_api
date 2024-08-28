@@ -1,10 +1,11 @@
+import { SharedChangeFiscalParametersRequest } from '@shared/api/settings/changeFiscalParameters';
 import prisma from '../../../services/prisma/index';
 import validateFields from '../../../utils/validateFields';
 import { Request, Response } from 'express'
 
 export default async function changeFiscalParameters(request: Request, response: Response) {
     try {
-        const  dataChangeFiscalParameters  = request.body
+        const dataChangeFiscalParameters: SharedChangeFiscalParametersRequest = request.body
         const requiredFields = ['storeId', 'taxCrtId', 'taxCstCofinsAliquot', 'taxCstCofinsId', 'taxCstPisAliquot', 'taxCstPisId', 'taxRegimeId',]
         validateFields(requiredFields, dataChangeFiscalParameters)
         await prisma.user.update({
@@ -17,7 +18,13 @@ export default async function changeFiscalParameters(request: Request, response:
                 taxCstCofinsId: dataChangeFiscalParameters.taxCstCofinsId,
                 taxCstPisId: dataChangeFiscalParameters.taxCstPisId,
                 taxCstCofinsAliquot: dataChangeFiscalParameters.taxCstCofinsAliquot,
-                taxRegimeId: dataChangeFiscalParameters.taxRegimeId
+                taxRegimeId: dataChangeFiscalParameters.taxRegimeId,
+                fileCertId: dataChangeFiscalParameters.fileCertId,
+                passCert: dataChangeFiscalParameters.passCert,
+                validityCert: dataChangeFiscalParameters.validityCert,
+                lastNumberNF: dataChangeFiscalParameters.lastNumberNF,
+                lastNumberNFCE: dataChangeFiscalParameters.lastNumberNFCE,
+                codCSC: dataChangeFiscalParameters.codCSC
             }
         })
         return response.json({ Success: true })

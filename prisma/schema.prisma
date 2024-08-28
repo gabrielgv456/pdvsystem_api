@@ -30,6 +30,11 @@ model User {
   urlLogo              String?
   lastNumberNF         Int?
   lastNumberNFCE       Int?
+  codCSC               String?  // Token para gerar QRCode NFCE
+  passCert             String?
+  validityCert         DateTime?  
+  fileCert             Images?                @relation(fields: [fileCertId], references: [id])
+  fileCertId           Int? 
   plans                Plans?                 @relation(fields: [planId], references: [id])
   planId               Int? // mudar para obrigatorio futuramente
   addressRelation      Address?               @relation(name: "addressRelation", fields: [addressId], references: [id])
@@ -326,6 +331,7 @@ model Images {
   path               String?
   owner              String?
   products           Products[]
+  user               User[]
 }
 // FISCAL TABLES START
 
