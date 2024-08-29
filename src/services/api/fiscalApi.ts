@@ -61,5 +61,26 @@ export const useFiscalApi = () => ({
 
         return response.data
 
+    },
+
+    uploadCert: async (base64Cert: string, userId: number) => {
+
+        const { tokenGenerate } = useFiscalApi()
+        const fiscalApi = await loadApi(userId)
+        const response = await fiscalApi.post('/EnviaCertificado', { base64Cert });
+
+        if (response.status === 401) {
+            const { key, cnpj } = await prisma.user.findUnique({ where: { id: userId } })
+            const token = await tokenGenerate({ key, user: String(onlyNumbers(cnpj)) }, userId)
+            const result = await fiscalApi.post('/EnviaCertificado', { base64Cert }, { headers: { Authorization: 'Bearer ' + token.tokenJWT } });
+            if (result.data.error) throw new Error(result.data.erro)
+            if (result.status !== 200) throw new Error('Código de erro: ' + response.status)
+        } else {
+            if (response.data.error) throw new Error(response.data.error)
+            if (response.status !== 200) throw new Error('Código de erro: ' + response.status)
+        }
+
+        return response.data
+
     }
 })

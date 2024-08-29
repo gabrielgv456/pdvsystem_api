@@ -29,7 +29,8 @@ export const createSellFiscalNote = async (request: Request, response: Response)
             'NFCE' = 'NFCE',
             'NFE' = 'NFE'
         }
-        const model: modelEnum = false ? modelEnum.NFCE : modelEnum.NFE;
+        // TRUE = NFCE , FALSE = NFE  
+        const model: modelEnum = true ? modelEnum.NFCE : modelEnum.NFE;
 
         const { emiteNfe } = useFiscalApi()
         const sellData = await getSellData(sellId, userId)
@@ -44,6 +45,8 @@ export const createSellFiscalNote = async (request: Request, response: Response)
         // Preenche dados principais e valores
         const nfeData: CreateFiscalNoteInterface = {
 
+            certificadoSenha: sellData[0].store.passCert,
+            codCSC: sellData[0].store.codCSC,
             ambiente: ambiente,
             cMunFG: sellData[0].store.addressRelation.city.ibge,
             cUF: sellData[0].store.addressRelation.city.state.uf,

@@ -1,3 +1,5 @@
+
+
 export function createSequence(number: number) {
     return Array.from({ length: number }, (_, index) => index);
 }
@@ -20,3 +22,4 @@ export function onlyNumbersStr(value: string) {
     const onlyNumbers = value.replace(/\D/g, '');
     return onlyNumbers
 }
+

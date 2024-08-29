@@ -336,6 +336,8 @@ interface InfoIntermediador {
 // Tipo principal para NFe
 export interface CreateFiscalNoteInterface {
     natOp: string;
+    certificadoSenha: string,
+    codCSC: string,
     nNF: number;
     indPag: string | FormaPagamento;
     tpNF: tipoSaida;
