@@ -93,8 +93,8 @@ interface Combustivel {
 
 interface Imposto {
     vTotTrib: number;
-    origemMercadoria: OrigemMercadoria;
-    ICMS: {
+    origemMercadoria: string | OrigemMercadoria;
+    ICMS?: {
         CST?: string;
         CSOSN?: string;
         modBC: string;
@@ -142,7 +142,7 @@ interface Imposto {
         vII: number;
         vIOF: number;
     };
-    PIS: {
+    PIS?: {
         CST: string;
         vBC: number;
         pPIS: number;
@@ -158,7 +158,7 @@ interface Imposto {
         vPIS: number;
         indSomaPISST: string;
     };
-    COFINS: {
+    COFINS?: {
         CST: string;
         vBC: number;
         pCOFINS: number;

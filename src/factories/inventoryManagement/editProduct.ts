@@ -8,13 +8,13 @@ import { addEditProductDataSend } from '../../interfaces/productsInterface';
 export default async function editProduct(request: Request, response: Response) {
 
     try {
-        const data : addEditProductDataSend = request.body
+        const data: addEditProductDataSend = request.body
         const requiredFields = ['userId', 'id', 'name', 'value', 'quantity', 'active', 'cost', 'profitMargin', 'barCode', 'ncmCode', 'cfopId', 'unitMeasurement']
-        validateFields(requiredFields, data.principal)        
+        validateFields(requiredFields, data.principal)
 
         await prisma.$transaction(async (prismaTx) => {
 
-            if (!data.principal.id) { throw new Error('Id do produto não informado!')}
+            if (!data.principal.id) { throw new Error('Id do produto não informado!') }
 
             const searchProduct = await prismaTx.products.findUnique({
                 where: {
@@ -272,3 +272,4 @@ export default async function editProduct(request: Request, response: Response) 
     }
 
 }
+

@@ -65,7 +65,7 @@ export default async function findSell(request: Request, response: Response) {
                     where: {
                         AND: [
                             { sellId: sell.id },
-                            { statusNFId: 1 }
+                            { statusNFId: 1 } // status 1 autorizada
                         ]
                     }
                 })

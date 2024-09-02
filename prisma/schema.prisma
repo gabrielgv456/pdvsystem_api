@@ -397,6 +397,7 @@ model TaxIcms {
 
 model TaxIcmsOrigin {
   id          Int       @id
+  codSefaz    String?
   description String
   TaxIcms     TaxIcms[]
 }
@@ -454,6 +455,7 @@ model TaxReasonExemption {
 
 model TaxIcmsCst {
   id             Int              @id
+  codSefaz       String?
   description    String
   taxIcmsNFe     TaxIcmsNfe[]
   taxIcmsNoPayer TaxIcmsNoPayer[]
@@ -463,6 +465,7 @@ model TaxIcmsCst {
 
 model TaxModalityBCICMS {
   id          Int          @id
+  codSefaz    String?
   description String
   taxIcmsNFe  TaxIcmsNfe[]
   taxIcmsST   TaxIcmsST[]
@@ -525,6 +528,7 @@ model TaxIpi {
 
 model TaxCstIpi {
   id             Int      @id
+  codSefaz       String?
   description    String
   type           String
   taxIpiExit     TaxIpi[] @relation(name: "cstIpiExit")
@@ -574,6 +578,7 @@ model TaxRegime {
 
 model TaxCstPis {
   id             Int      @id
+  codSefaz       String?
   description    String
   User           User[]
   type           String   @default("entrance")
@@ -583,6 +588,7 @@ model TaxCstPis {
 
 model TaxCstCofins {
   id                Int         @id
+  codSefaz          String?
   description       String
   User              User[]
   type              String      @default("entrance")

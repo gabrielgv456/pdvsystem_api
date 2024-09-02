@@ -57,6 +57,7 @@ import { createSellFiscalNote } from '../factories/fiscal/createSellFiscalNote';
 import { generateDanfe, useDanfeGeneratorApi } from '../services/api/danfeGenerateApi';
 import getCities from '../factories/people/getCities';
 import { getXmlFiscalNote } from '../factories/fiscal/getXmlFiscalNote';
+import { EventCancelNote } from '../factories/fiscal/eventCancelNote';
 
 const router = Router();
 
@@ -143,6 +144,7 @@ router.delete("/deleteFile/:fileName",)
 router.post("/createSellFiscalNote", createSellFiscalNote)
 router.get("/getXmlFiscalNote", getXmlFiscalNote)
 router.post("/danfeGenerator", generateDanfe)
+router.post("/eventCancelNote", EventCancelNote)
 // END FISCAL
 
 
