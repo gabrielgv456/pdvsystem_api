@@ -58,6 +58,7 @@ import { generateDanfe, useDanfeGeneratorApi } from '../services/api/danfeGenera
 import getCities from '../factories/people/getCities';
 import { getXmlFiscalNote } from '../factories/fiscal/getXmlFiscalNote';
 import { EventCancelNote } from '../factories/fiscal/eventCancelNote';
+import { fiscalEvents } from '../factories/fiscal/getFiscalEvents';
 
 const router = Router();
 
@@ -145,6 +146,7 @@ router.post("/createSellFiscalNote", createSellFiscalNote)
 router.get("/getXmlFiscalNote", getXmlFiscalNote)
 router.post("/danfeGenerator", generateDanfe)
 router.post("/eventCancelNote", EventCancelNote)
+router.get("/fiscalEvents", fiscalEvents)
 // END FISCAL
 
 

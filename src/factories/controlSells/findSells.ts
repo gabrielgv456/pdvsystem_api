@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import prisma from '../../services/prisma/index'
 import { Sells } from '@prisma/client'
+import { fiscalStatusNf } from '../../interfaces/enums/fiscalNotaEnums'
 
 type SellswithSellerorClientnameType = adicionalSellType & Sells
 
@@ -65,7 +66,7 @@ export default async function findSell(request: Request, response: Response) {
                     where: {
                         AND: [
                             { sellId: sell.id },
-                            { statusNFId: 1 } // status 1 autorizada
+                            { statusNFId: fiscalStatusNf.autorizada } 
                         ]
                     }
                 })

@@ -1,4 +1,4 @@
-import { Ambiente, Crt, finalidadeNFe, fiscalModels, fiscalStatusNf, FormaPagamento, IndFinal, IndIEDest, IndIntermediador, IndPresencaComprador, OrigemMercadoria, PaymentType, TipoEmissao, TipoEntrega, TipoFrete, tipoSaida } from '../../interfaces/enums/fiscalNotaEnums';
+import { Ambiente, Crt, finalidadeNFe, fiscalEvent, fiscalModels, fiscalStatusNf, FormaPagamento, IndFinal, IndIEDest, IndIntermediador, IndPresencaComprador, OrigemMercadoria, PaymentType, TipoEmissao, TipoEntrega, TipoFrete, tipoSaida } from '../../interfaces/enums/fiscalNotaEnums';
 import { CreateFiscalNoteInterface, NFeResponse } from '../../interfaces/fiscalNoteInterface';
 import { useFiscalApi } from '../../services/api/fiscalApi';
 import prisma from '../../services/prisma/index';
@@ -15,7 +15,7 @@ export const createSellFiscalNote = async (request: Request, response: Response)
         const { sellId, userId } = request.body;
         validateFields(['sellId', 'userId'], request.body)
 
-        const existsFiscalNote = await prisma.fiscalNotes.findFirst({ where: { sellId: sellId, statusNFId: 1 } })
+        const existsFiscalNote = await prisma.fiscalNotes.findFirst({ where: { sellId: sellId, statusNFId: fiscalStatusNf.autorizada } })
 
         if (existsFiscalNote) {
             const user = await prisma.user.findFirst({ where: { id: userId } })
@@ -619,7 +619,7 @@ export const createSellFiscalNote = async (request: Request, response: Response)
         console.log(totalizedNfe.produtos[0].imposto)
         const result: NFeResponse = await emiteNfe(totalizedNfe, userId, model)
 
-        await prisma.fiscalNotes.create({
+        const dbNfe = await prisma.fiscalNotes.create({
             data: {
                 enviroment: Number(totalizedNfe.ambiente),
                 keyNF: onlyNumbersStr(result.NFe),
@@ -630,14 +630,13 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                 serieNFId: totalizedNfe.serie,
                 sellId: sellData[0].id,
                 modelNFId: model === modelEnum.NFE ? fiscalModels.nfe55 : fiscalModels.nfce65,
-                statusNFId: fiscalStatusNf.emitida,
+                statusNFId: fiscalStatusNf.autorizada,
                 stateId: sellData[0].store.addressRelation.city.stateId,
                 storeId: userId
             }
         })
 
-
-
+        // Atualizar o id da ultima NFCE/NFE
         await prisma.user.update({
             data: {
                 ...(model === modelEnum.NFCE ?
@@ -646,6 +645,15 @@ export const createSellFiscalNote = async (request: Request, response: Response)
             }
             ,
             where: { id: userId }
+        })
+
+        // Cria Evento Emissao
+        await prisma.fiscalEvents.create({
+            data:{
+                protocol: result.Protocolo,
+                fiscalEventTypeId: fiscalEvent.Emissao,
+                fiscalNoteId: dbNfe.id,
+            }
         })
 
         if (result.cStat !== '100') throw new Error('Status da emissão: ' + result.cMsg)

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../../services/prisma"
+import { fiscalStatusNf } from "../../interfaces/enums/fiscalNotaEnums";
 
 export const getXmlFiscalNote = async (request: Request, response: Response) => {
     try {
@@ -10,7 +11,7 @@ export const getXmlFiscalNote = async (request: Request, response: Response) => 
             where: {
                 AND: [
                     { sellId: Number(sellId) },
-                    { statusNFId: 1 }
+                    { statusNFId: fiscalStatusNf.autorizada }
                 ]
             }
         })
@@ -20,7 +21,6 @@ export const getXmlFiscalNote = async (request: Request, response: Response) => 
         if (!fiscalNote[0].xml) throw new Error('XML não encontrado!')
         if (!fiscalNote[0].keyNF) throw new Error('Chave da nota não encontrada!')
 
-            console.log('aq')
 
         return response.status(200).json({ Success: true, xml: fiscalNote[0].xml, keyNF: fiscalNote[0].keyNF })
     }

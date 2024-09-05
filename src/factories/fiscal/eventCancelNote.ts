@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { useFiscalApi } from "../../services/api/fiscalApi";
 import prisma from "../../services/prisma";
 import validateFields from "../../utils/validateFields";
+import { fiscalEvent, fiscalStatusNf } from "../..//interfaces/enums/fiscalNotaEnums";
 
 export const EventCancelNote = async (request: Request, response: Response) => {
 
@@ -15,7 +16,7 @@ export const EventCancelNote = async (request: Request, response: Response) => {
                 AND: [
                     { sellId: req.idSell },
                     { storeId: req.idUser },
-                    { statusNFId: 1 } // status 1 = Autorizada
+                    { statusNFId: fiscalStatusNf.autorizada }
                 ]
             }
         })
@@ -36,7 +37,7 @@ export const EventCancelNote = async (request: Request, response: Response) => {
         })
 
         const { EventCancelNote } = useFiscalApi()
-        const resCancelNote = await EventCancelNote(req.idUser, {
+        const resCancelNote: RetornoCancelamentoType = await EventCancelNote(req.idUser, {
             chave: fiscalNote[0].keyNF,
             CNPJCPF: user.cnpj,
             certificadoSenha: user.passCert,
@@ -44,14 +45,26 @@ export const EventCancelNote = async (request: Request, response: Response) => {
             protocolo: fiscalNote[0].protocol,
             cUF: user.addressRelation.city.state.uf,
             idLote: 1, // o id lote esta definido na funcao que envia nfe, no caso sempre 1 pois envio de uma em uma
-            ambiente: String(fiscalNote[0].enviroment)
+            ambiente: String(fiscalNote[0].enviroment),
+            xml: fiscalNote[0].xml
         })
         console.log(resCancelNote)
+
+        // Atualiza nota para cancelada
         await prisma.fiscalNotes.update({
             data: {
-                statusNFId: 2 // cancelado
+                statusNFId: fiscalStatusNf.cancelada
             }, where: {
                 id: fiscalNote[0].id
+            }
+        })
+
+        // Cria Evento Emissao
+        await prisma.fiscalEvents.create({
+            data: {
+                protocol: resCancelNote.Protocolo,
+                fiscalEventTypeId: fiscalEvent.Cancelamento,
+                fiscalNoteId: fiscalNote[0].id,
             }
         })
 
@@ -65,3 +78,16 @@ export const EventCancelNote = async (request: Request, response: Response) => {
     }
 }
 
+
+
+type RetornoCancelamentoType = {
+    tpAmb: string;
+    verAplic: string;
+    cStat: string;
+    xMotivo: string;
+    chNFe: string;
+    dhRegEvento: string;
+    Protocolo: string;
+    RetWs: string;
+    RetornoWs: string;
+};

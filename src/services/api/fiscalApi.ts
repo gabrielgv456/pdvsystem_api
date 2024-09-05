@@ -110,5 +110,6 @@ type EventCancelNoteType = {
     justificativa: string,
     ambiente: string,
     cUF: string,
-    certificadoSenha: string
+    certificadoSenha: string,
+    xml: string
 }

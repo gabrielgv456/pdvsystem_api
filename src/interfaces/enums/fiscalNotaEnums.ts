@@ -154,7 +154,14 @@ export enum fiscalSeries {
 }
 
 export enum fiscalStatusNf {
-    emitida = 1,
+    autorizada = 1,
     cancelada = 2,
     inutilizada = 3
 }
+
+export enum fiscalEvent {
+    Emissao = 1,
+    Cancelamento = 2,
+    CartaDeCorrecao = 3
+}
+
