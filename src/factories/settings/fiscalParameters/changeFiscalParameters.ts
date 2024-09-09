@@ -4,7 +4,7 @@ import validateFields from '../../../utils/validateFields';
 import { Request, Response } from 'express'
 import { useFiscalApi } from '../../../services/api/fiscalApi';
 import fs from 'fs';
-import { rootPath } from '../../../utils/rootPath'
+import { rootPath } from '../../../../rootPath'
 import path from 'path';
 
 export default async function changeFiscalParameters(request: Request, response: Response) {

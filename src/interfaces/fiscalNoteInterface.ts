@@ -397,5 +397,8 @@ export type NFeResponse = {
 export type danfeGenReqType = {
     profile: string,
     NFe: string,
-    xml: string
+    xml: string,
+    logoBase64: string  | null,
+    positionYEmitDataNFe: number,
+    positionYLogoNFe: number
 }

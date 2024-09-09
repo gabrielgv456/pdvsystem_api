@@ -32,8 +32,12 @@ model User {
   lastNumberNFCE       Int?
   codCSC               String?  // Token para gerar QRCode NFCE
   passCert             String?
-  validityCert         DateTime?  
-  fileCert             Images?                @relation(fields: [fileCertId], references: [id])
+  validityCert         DateTime? 
+  positionYLogoNFe     Int?
+  positionYEmitDataNFe Int?
+  logo                 Images?                @relation(name: "logoRelation", fields: [logoId], references: [id])
+  logoId               Int?                 
+  fileCert             Images?                @relation(name: "certRelation", fields: [fileCertId], references: [id])
   fileCertId           Int? 
   plans                Plans?                 @relation(fields: [planId], references: [id])
   planId               Int? // mudar para obrigatorio futuramente
@@ -331,7 +335,8 @@ model Images {
   path               String?
   owner              String?
   products           Products[]
-  user               User[]
+  userCert           User[] @relation(name:"certRelation")
+  userLogo           User[] @relation(name:"logoRelation")
 }
 // FISCAL TABLES START
 

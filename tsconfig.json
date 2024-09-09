@@ -15,7 +15,7 @@
   },
   "include": [
     "src/**/*"
-  ],
+, "rootPath.ts"  ],
   "exclude": [
     "node_modules",
     "dist"

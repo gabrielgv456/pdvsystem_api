@@ -11,7 +11,8 @@ export default async function deleteLogo(request: Request, response: Response) {
                 id: parseInt(request.query.storeId?.toString())
             },
             data: {
-                urlLogo: null
+                urlLogo: null,
+                logoId: null
             }
         })
         response.json({ Success: true })

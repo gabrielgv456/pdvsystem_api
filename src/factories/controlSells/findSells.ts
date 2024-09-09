@@ -81,7 +81,6 @@ export default async function findSell(request: Request, response: Response) {
         if (findsells && findsellsproducts && finalSellswithSellerorClientname) {
             finalSellswithSellerorClientname.sort(function (y, x) { return x.created_at.getTime() - y.created_at.getTime() })
             const finalreturn = { sells: [...finalSellswithSellerorClientname], sellsproducts: [...findsellsproducts] }
-            console.log(findsells)
             return response.json(finalreturn)
         }
     }

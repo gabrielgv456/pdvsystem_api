@@ -9,6 +9,9 @@ import { useDanfeGeneratorApi } from '../../services/api/danfeGenerateApi';
 import { BaseCofins, BaseIcmsProprio, BaseIPI, BasePIS, BaseReduzidaIcmsProprio, Cofins01, Cofins02, Cofins03, Fcp, FcpEfetivo, Icms00, Icms10, Icms101, Icms20, Icms30, Icms51, Icms70, Icms90, Icms900, Ipi50AdValorem, Ipi50Especifico, Pis01, Pis02, Pis03, ValorIcmsProprio } from '../../services/taxesCalculator';
 import { ICofins01, ICofins03 } from '../../services/taxesCalculator/interfaces/cofins';
 import Utils from '../../services/taxesCalculator/utils';
+import { rootPath } from '../../../rootPath';
+import path from 'path';
+import fs from 'fs'
 
 export const createSellFiscalNote = async (request: Request, response: Response) => {
     try {
@@ -18,9 +21,19 @@ export const createSellFiscalNote = async (request: Request, response: Response)
         const existsFiscalNote = await prisma.fiscalNotes.findFirst({ where: { sellId: sellId, statusNFId: fiscalStatusNf.autorizada } })
 
         if (existsFiscalNote) {
-            const user = await prisma.user.findFirst({ where: { id: userId } })
+            const user = await prisma.user.findFirst({ where: { id: userId }, include: { logo: true } })
             const profile = user.key + '_' + onlyNumbersStr(user.cnpj)
-            await generateDanfeAndRespond({ NFe: existsFiscalNote.keyNF, profile, xml: existsFiscalNote.xml, model: (existsFiscalNote.modelNFId === 1 ? 'NFE' : 'NFCE') }, response)
+            const pathLogo = user.logo ? path.join(rootPath(), user.logo.path, user.logo.nameFile) : ''
+            const logoBase64 = pathLogo ? fs.readFileSync(pathLogo).toString('base64') : null
+            await generateDanfeAndRespond({
+                NFe: existsFiscalNote.keyNF,
+                profile, xml: existsFiscalNote.xml,
+                model: (existsFiscalNote.modelNFId === 1 ? 'NFE' : 'NFCE'),
+                logoBase64,
+                positionYLogoNFe: user.positionYLogoNFe ?? 0,
+                positionYEmitDataNFe: user.positionYEmitDataNFe ?? 0
+            },
+                response)
             return
         }
 
@@ -29,12 +42,14 @@ export const createSellFiscalNote = async (request: Request, response: Response)
             'NFE' = 'NFE'
         }
         // TRUE = NFCE , FALSE = NFE  
-        const model: modelEnum = true ? modelEnum.NFCE : modelEnum.NFE;
+
+
 
         const { emiteNfe } = useFiscalApi()
         const sellData = await getSellData(sellId, userId)
-
         if (!sellData) throw new Error("Não foi encontrado venda com o id informado!")
+
+        const model: modelEnum = ((sellData[0].client?.taxPayerTypeId ?? 9) === 9) ? modelEnum.NFCE : modelEnum.NFE;
         if (model === modelEnum.NFE && !sellData[0].client?.id) throw new Error("Para emissão de NFe é obrigatório informar o cliente!")
         if (sellData[0].deleted ?? false) throw new Error("Essa venda já foi excluída")
 
@@ -115,7 +130,7 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                     valorUnitarioComerc: item.valueProduct + (item.discount ?? 0),
                     valorUnitarioTrib: item.valueProduct + (item.discount ?? 0),
                     infAdProd: "",
-                    //CEST: "", // Código Especificador da Substituição Tributária
+                    CEST: "", // Código Especificador da Substituição Tributária
                     CFOP: model === modelEnum.NFE ? (
                         !sellData[0].client?.cpf ? String(item.product.taxIcms[0].taxIcmsNfe[0].taxCfopStateId) :
                             (sellData[0].client.address.city.stateId === sellData[0].store.addressRelation.city.stateId ?
@@ -599,7 +614,7 @@ export const createSellFiscalNote = async (request: Request, response: Response)
         }
 
         // Preenche totais
-        const totalizedNfe: CreateFiscalNoteInterface = {
+        let totalizedNfe: CreateFiscalNoteInterface = {
             ...NfeWithTaxes,
             total: {
                 ICMS: {
@@ -609,14 +624,37 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                     vDesc: NfeWithTaxes.produtos.reduce((acc, product) => { return acc + product.valorDesconto }, 0),
                     vICMS: NfeWithTaxes.produtos.reduce((acc, product) => { return acc + (product.imposto.ICMS?.vICMS ?? 0) }, 0),
                     vPIS: NfeWithTaxes.produtos.reduce((acc, product) => { return acc + (product.imposto.PIS?.vPIS ?? 0) }, 0),
+                    vIPI: NfeWithTaxes.produtos.reduce((acc, product) => { return acc + (product.imposto.IPI?.vIPI ?? 0) }, 0),
                     vProd: NfeWithTaxes.produtos.reduce((acc, product) => { return acc + product.valorTotalProdutos }, 0),
                     vTotTrib: NfeWithTaxes.produtos.reduce((acc, product) => { return acc + product.imposto.vTotTrib }, 0)
                 }
             }
         }
 
+        totalizedNfe = {
+            ...totalizedNfe,
+            total: {
+                ICMS: {
+                    ...totalizedNfe.total.ICMS,
+                    vNF: (totalizedNfe.total.ICMS.vProd +
+                        totalizedNfe.total.ICMS.vST +
+                        totalizedNfe.total.ICMS.vFCPST +
+                        totalizedNfe.total.ICMS.vFrete +
+                        totalizedNfe.total.ICMS.vSeg +
+                        totalizedNfe.total.ICMS.vOutro +
+                        totalizedNfe.total.ICMS.vII +
+                        totalizedNfe.total.ICMS.vIPI -
+                        totalizedNfe.total.ICMS.vDesc)
+                }
+            }
+        }
+
+
         console.log(totalizedNfe)
         console.log(totalizedNfe.produtos[0].imposto)
+
+        console.log(JSON.stringify(totalizedNfe))
+
         const result: NFeResponse = await emiteNfe(totalizedNfe, userId, model)
 
         const dbNfe = await prisma.fiscalNotes.create({
@@ -649,7 +687,7 @@ export const createSellFiscalNote = async (request: Request, response: Response)
 
         // Cria Evento Emissao
         await prisma.fiscalEvents.create({
-            data:{
+            data: {
                 protocol: result.Protocolo,
                 fiscalEventTypeId: fiscalEvent.Emissao,
                 fiscalNoteId: dbNfe.id,
@@ -658,7 +696,17 @@ export const createSellFiscalNote = async (request: Request, response: Response)
 
         if (result.cStat !== '100') throw new Error('Status da emissão: ' + result.cMsg)
 
-        await generateDanfeAndRespond({ NFe: result.NFe, profile: result.profile, xml: result.xml, model }, response)
+        const pathLogo = sellData[0].store.logo ? path.join(rootPath(), sellData[0].store.logo.path, sellData[0].store.logo.nameFile) : ''
+        const logoBase64 = pathLogo ? fs.readFileSync(pathLogo).toString('base64') : null
+
+        await generateDanfeAndRespond({
+            NFe: result.NFe,
+            profile: result.profile,
+            xml: result.xml, model,
+            logoBase64,
+            positionYLogoNFe: sellData[0].store.positionYLogoNFe ?? 0,
+            positionYEmitDataNFe: sellData[0].store.positionYEmitDataNFe ?? 0
+        }, response)
 
     } catch (error) {
         console.log(error)
@@ -672,7 +720,10 @@ interface GenerateDanfeParams {
     NFe: string;
     profile: string;
     xml: string;
-    model: 'NFCE' | 'NFE'
+    model: 'NFCE' | 'NFE',
+    logoBase64: string | null,
+    positionYEmitDataNFe: number,
+    positionYLogoNFe: number
 }
 
 export const generateDanfeAndRespond = async (
@@ -731,7 +782,7 @@ const getSellData = async (sellId: number, userId: number) => {
                 }
             },
             paymentsells: { include: { payment: { include: { paymentCondition: true } } } },
-            store: { include: { addressRelation: { include: { city: { include: { state: true } } } } } }
+            store: { include: { addressRelation: { include: { city: { include: { state: true } } } }, logo: true } }
         }, where: {
             AND: [
                 { id: sellId },
