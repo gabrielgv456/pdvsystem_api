@@ -54,11 +54,13 @@ import uploadFile from '../factories/files/uploadFile';
 import { deleteFile } from '../factories/files/deleteFile';
 import productsToSell from '../factories/sells/productsToSell';
 import { createSellFiscalNote } from '../factories/fiscal/createSellFiscalNote';
-import { generateDanfe, useDanfeGeneratorApi } from '../services/api/danfeGenerateApi';
+import { generateDanfe } from '../services/api/danfeGenerateApi';
 import getCities from '../factories/people/getCities';
 import { getXmlFiscalNote } from '../factories/fiscal/getXmlFiscalNote';
 import { EventCancelNote } from '../factories/fiscal/eventCancelNote';
 import { fiscalEvents } from '../factories/fiscal/getFiscalEvents';
+import { getFiscalNotes } from '../factories/fiscal/getFiscalNotes';
+import { getTaxGroups } from '../factories/fiscal/getTaxGroups';
 
 const router = Router();
 
@@ -147,6 +149,8 @@ router.get("/getXmlFiscalNote", getXmlFiscalNote)
 router.post("/danfeGenerator", generateDanfe)
 router.post("/eventCancelNote", EventCancelNote)
 router.get("/fiscalEvents", fiscalEvents)
+router.get("/fiscalNotes", getFiscalNotes)
+router.get("/taxGroups", getTaxGroups)
 // END FISCAL
 
 

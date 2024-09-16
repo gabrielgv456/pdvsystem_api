@@ -2,34 +2,40 @@ import { v4 } from 'uuid'
 import { compare } from 'bcrypt'
 import prisma from '../../services/prisma/index'
 import { Request, Response } from 'express'
+import { sharedErrorSignInResponse, sharedSignInSuccessResponse } from '@shared/api/login/sign'
 
 export default async function signIn(request: Request, response: Response) {
     try {
         const { email, password } = request.body
         const uuidGenerated = v4()
 
-        const updatetoken = await prisma.user.update({ where: { email: email }, data: { Token: uuidGenerated } })
-        const validateUser = await prisma.user.findUnique({ where: { email: email } })
+        const validateUser = await prisma.user.findUnique({
+            where: { email: email }, select: {
+                addressRelation: { include: { city: { include: { state: true } } } },
+                cellPhone: true, cnpj: true, email: true, id: true, name: true,
+                phone: true, Token: true, urlLogo: true, masterkey: true, password: true,
+                plans: true, codEmailValidate: true, isEmailValid: true
+            }
+        })
 
-        if (validateUser === null) {
-            return response.json({ erro: "Não foi encontrado usuarios com esse email" })
+        if (!validateUser) throw new Error("Não foi encontrado usuários com esse email")
+
+        if (await compare(password, validateUser.password)) {
+            await prisma.user.update({ where: { email: email }, data: { Token: uuidGenerated } })
+            const { password, ...rest } = validateUser
+            const result: sharedSignInSuccessResponse = {
+                Success: true,
+                user: rest,
+                token: uuidGenerated
+            }
+            return response.json(result)
         }
         else {
-            if (await compare(password, validateUser.password)) {
-                //delete validateUser.password
-                const { password, ...rest } = validateUser
-                return response.json({
-                    user: rest,
-                    token: validateUser.Token
-                })
-            }
-            else {
-                return response.json({ Success: false, erro: "Senha incorreta" })
-            }
+            throw new Error("Senha incorreta")
         }
 
-
     } catch (error) {
-        return response.status(400).json({ error_message: "Usuario não encontrado", error })
+        const result: sharedErrorSignInResponse = { Success: false, erro: error.message }
+        return response.status(400).json()
     }
 }

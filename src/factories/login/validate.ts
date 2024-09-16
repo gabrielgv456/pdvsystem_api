@@ -6,12 +6,14 @@ export default async function validate(request: Request, response: Response) {
     try {
         const { token } = request.body
 
+        console.log(token + 'aa')
+
         const validateUser = await prisma.user.findUnique({
             where: { Token: token }, select: {
                 addressRelation: { include: { city: { include: { state: true } } } },
                 cellPhone: true, cnpj: true, email: true, id: true, name: true,
                 phone: true, Token: true, urlLogo: true, masterkey: true,
-                plans: true
+                plans: true, isEmailValid: true, codEmailValidate: true
             },
         })
 

@@ -32,7 +32,9 @@ export default async function changeFiscalParameters(request: Request, response:
                 validityCert: dataChangeFiscalParameters.validityCert,
                 lastNumberNF: dataChangeFiscalParameters.lastNumberNF,
                 lastNumberNFCE: dataChangeFiscalParameters.lastNumberNFCE,
-                codCSC: dataChangeFiscalParameters.codCSC
+                codCSC: dataChangeFiscalParameters.codCSC,
+                positionYEmitDataNFe: dataChangeFiscalParameters.positionYEmitDataNFe,
+                positionYLogoNFe: dataChangeFiscalParameters.positionYLogoNFe
             }
         })
 

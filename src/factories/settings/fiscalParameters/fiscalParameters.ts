@@ -26,7 +26,9 @@ export default async function fiscalParameters(request: Request, response: Respo
                 taxCstCofinsId: true,
                 fileCertId: true,
                 fileCert: true,
-                codCSC: true
+                codCSC: true,
+                positionYEmitDataNFe: true,
+                positionYLogoNFe: true
             }
         })
 

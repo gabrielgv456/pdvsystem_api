@@ -1,3 +1,4 @@
+import { sharedProductsError, sharedProdutcsSuccess, sharedProdutcsType } from '@shared/api/inventoryManagement/productsResponse'
 import prisma from '../../services/prisma/index'
 import { Request, Response } from 'express'
 
@@ -6,12 +7,16 @@ export default async function products(request: Request, response: Response) {
     try {
         const { userId } = request.query
         if (!userId) { throw new Error('Informe o userId') }
-        const listProducts = await prisma.products.findMany({
+        const listProducts: sharedProdutcsType[] = await prisma.products.findMany({
             include: {
-                taxIcms: { include: { taxIcmsNfce: true, taxIcmsNfe: true, taxIcmsNoPayer: true, taxIcmsOrigin: true, taxIcmsSt: true } },
-                taxCofins: true,
-                taxIpi: true,
-                taxPis: true,
+                taxGroup: {
+                    include: {
+                        taxIcms: { include: { taxIcmsNfce: true, taxIcmsNfe: true, taxIcmsNoPayer: true, taxIcmsOrigin: true, taxIcmsSt: true } },
+                        taxCofins: true,
+                        taxIpi: true,
+                        taxPis: true
+                    }
+                },
                 deliveries: { include: { itemSell: true }, where: { status: 'Pending' } },
                 image: true
             },
@@ -24,23 +29,26 @@ export default async function products(request: Request, response: Response) {
         else {
 
             for (const product of listProducts) {
-                //@ts-ignore
+
                 product.totalValue = product.quantity * product.value
 
                 if (product.image) {
-                    //@ts-ignore
+
                     product.urlImage = ((product.image.host ?? '') + (product.image.path ?? '') + (product.image?.nameFile ?? '')) ?? null
                 }
             }
 
-            return response.json({
+            const result: sharedProdutcsSuccess = {
                 Success: true,
                 listProducts
-            })
+            }
+
+            return response.json(result)
         }
     }
 
     catch (error) {
-        return response.status(400).json({ Success: false, erro: (error as Error).message })
+        const result: sharedProductsError = { Success: false, erro: (error as Error).message }
+        return response.status(400).json(result)
     }
 }

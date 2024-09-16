@@ -7,7 +7,6 @@ import validateFields from '../../utils/validateFields';
 import { onlyNumbers, onlyNumbersStr } from '../../utils/utils';
 import { useDanfeGeneratorApi } from '../../services/api/danfeGenerateApi';
 import { BaseCofins, BaseIcmsProprio, BaseIPI, BasePIS, BaseReduzidaIcmsProprio, Cofins01, Cofins02, Cofins03, Fcp, FcpEfetivo, Icms00, Icms10, Icms101, Icms20, Icms30, Icms51, Icms70, Icms90, Icms900, Ipi50AdValorem, Ipi50Especifico, Pis01, Pis02, Pis03, ValorIcmsProprio } from '../../services/taxesCalculator';
-import { ICofins01, ICofins03 } from '../../services/taxesCalculator/interfaces/cofins';
 import Utils from '../../services/taxesCalculator/utils';
 import { rootPath } from '../../../rootPath';
 import path from 'path';
@@ -49,9 +48,9 @@ export const createSellFiscalNote = async (request: Request, response: Response)
         const sellData = await getSellData(sellId, userId)
         if (!sellData) throw new Error("Não foi encontrado venda com o id informado!")
 
-        const model: modelEnum = ((sellData[0].client?.taxPayerTypeId ?? 9) === 9) ? modelEnum.NFCE : modelEnum.NFE;
-        if (model === modelEnum.NFE && !sellData[0].client?.id) throw new Error("Para emissão de NFe é obrigatório informar o cliente!")
-        if (sellData[0].deleted ?? false) throw new Error("Essa venda já foi excluída")
+        const model: modelEnum = ((sellData.client?.taxPayerTypeId ?? 9) === 9) ? modelEnum.NFCE : modelEnum.NFE;
+        if (model === modelEnum.NFE && !sellData.client?.id) throw new Error("Para emissão de NFe é obrigatório informar o cliente!")
+        if (sellData.deleted ?? false) throw new Error("Essa venda já foi excluída")
 
 
         const ambiente = Ambiente.Homologacao
@@ -59,60 +58,60 @@ export const createSellFiscalNote = async (request: Request, response: Response)
         // Preenche dados principais e valores
         const nfeData: CreateFiscalNoteInterface = {
 
-            certificadoSenha: sellData[0].store.passCert,
-            codCSC: sellData[0].store.codCSC,
+            certificadoSenha: sellData.store.passCert,
+            codCSC: sellData.store.codCSC,
             ambiente: ambiente,
-            cMunFG: sellData[0].store.addressRelation.city.ibge,
-            cUF: sellData[0].store.addressRelation.city.state.uf,
+            cMunFG: sellData.store.addressRelation.city.ibge,
+            cUF: sellData.store.addressRelation.city.state.uf,
             finalidadeNFe: finalidadeNFe.Normal,
-            indFinal: (sellData[0].client?.finalCostumer ?? true) ? IndFinal.ConsumidorFinal : IndFinal.NaoConsumidorFinal,
+            indFinal: (sellData.client?.finalCostumer ?? true) ? IndFinal.ConsumidorFinal : IndFinal.NaoConsumidorFinal,
             indPresenca: IndPresencaComprador.pcPresencial,
             //indIntermediador: IndIntermediador.OperacaoSemIntermediador,
-            indPag: sellData[0].paymentsells[0].payment.paymentCondition.codSefaz === FormaPagamento.Outras ? undefined : sellData[0].paymentsells[0].payment.paymentCondition.codSefaz,
+            indPag: sellData.paymentsells[0].payment.paymentCondition.codSefaz === FormaPagamento.Outras ? undefined : sellData.paymentsells[0].payment.paymentCondition.codSefaz,
             natOp: "VENDA",
             tpEmis: TipoEmissao.Normal,
             tpNF: tipoSaida.Saida,
             serie: model === modelEnum.NFE ? 1 : 2,
-            nNF: model === modelEnum.NFE ? (sellData[0].store.lastNumberNF + 1 ?? 1) : (sellData[0].store.lastNumberNFCE + 1 ?? 1),
+            nNF: model === modelEnum.NFE ? (sellData.store.lastNumberNF + 1 ?? 1) : (sellData.store.lastNumberNFCE + 1 ?? 1),
             emitente: {
-                CNPJCPF: sellData[0].store.cnpj,
-                CRT: sellData[0].store.taxCrtId,
-                nomeFantasia: sellData[0].store.fantasyName,
-                IE: sellData[0].store.ie,
-                razaoSocial: sellData[0].store.name,
+                CNPJCPF: sellData.store.cnpj,
+                CRT: sellData.store.taxCrtId,
+                nomeFantasia: sellData.store.fantasyName,
+                IE: sellData.store.ie,
+                razaoSocial: sellData.store.name,
                 endereco: {
-                    bairro: sellData[0].store.addressRelation.addressNeighborhood,
-                    CEP: onlyNumbers(sellData[0].store.addressRelation.addressCep),
-                    logradouro: sellData[0].store.addressRelation.addressStreet,
-                    nomeMunicipio: sellData[0].store.addressRelation.city.name,
-                    UF: sellData[0].store.addressRelation.city.state.uf,
-                    complemento: sellData[0].store.addressRelation.addressComplement,
-                    numero: sellData[0].store.addressRelation.addressNumber,
-                    codMunicipio: sellData[0].store.addressRelation.city.ibge,
-                    fone: sellData[0].store.phone,
+                    bairro: sellData.store.addressRelation.addressNeighborhood,
+                    CEP: onlyNumbers(sellData.store.addressRelation.addressCep),
+                    logradouro: sellData.store.addressRelation.addressStreet,
+                    nomeMunicipio: sellData.store.addressRelation.city.name,
+                    UF: sellData.store.addressRelation.city.state.uf,
+                    complemento: sellData.store.addressRelation.addressComplement,
+                    numero: sellData.store.addressRelation.addressNumber,
+                    codMunicipio: sellData.store.addressRelation.city.ibge,
+                    fone: sellData.store.phone,
                 }
             },
-            ...(sellData[0].client?.cpf && {
+            ...(sellData.client?.cpf && {
                 destinatario: {
-                    CNPJCPF: sellData[0].client.cpf,
-                    IE: sellData[0].client.ie,
-                    nome: sellData[0].client.name,
-                    indIEDest: sellData[0].client.taxPayerTypeId,
-                    ISUF: sellData[0].client.suframa,
+                    CNPJCPF: sellData.client.cpf,
+                    IE: sellData.client.ie,
+                    nome: sellData.client.name,
+                    indIEDest: sellData.client.taxPayerTypeId,
+                    ISUF: sellData.client.suframa,
                     endereco: {
-                        bairro: sellData[0].client.address.addressNeighborhood,
-                        CEP: onlyNumbers(sellData[0].client.address.addressCep),
-                        codMunicipio: sellData[0].client.address.city.ibge,
-                        complemento: sellData[0].client.address.addressComplement,
-                        logradouro: sellData[0].client.address.addressStreet,
-                        nomeMunicipio: sellData[0].client.address.city.name,
-                        numero: sellData[0].client.address.addressNumber,
-                        UF: sellData[0].client.address.city.state.uf,
-                        fone: sellData[0].client.phoneNumber
+                        bairro: sellData.client.address.addressNeighborhood,
+                        CEP: onlyNumbers(sellData.client.address.addressCep),
+                        codMunicipio: sellData.client.address.city.ibge,
+                        complemento: sellData.client.address.addressComplement,
+                        logradouro: sellData.client.address.addressStreet,
+                        nomeMunicipio: sellData.client.address.city.name,
+                        numero: sellData.client.address.addressNumber,
+                        UF: sellData.client.address.city.state.uf,
+                        fone: sellData.client.phoneNumber
                     }
                 }
             }),
-            produtos: sellData[0].itenssells.map((item) => {
+            produtos: sellData.itenssells.map((item) => {
                 return {
                     descricao: item.descriptionProduct,
                     codigo: String(item.idProduct),
@@ -132,58 +131,58 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                     infAdProd: "",
                     CEST: "", // Código Especificador da Substituição Tributária
                     CFOP: model === modelEnum.NFE ? (
-                        !sellData[0].client?.cpf ? String(item.product.taxIcms[0].taxIcmsNfe[0].taxCfopStateId) :
-                            (sellData[0].client.address.city.stateId === sellData[0].store.addressRelation.city.stateId ?
-                                String(item.product.taxIcms[0].taxIcmsNfe[0].taxCfopStateId ?? '') :
-                                String(item.product.taxIcms[0].taxIcmsNfe[0].taxCfopInterstateId ?? ''))
+                        !sellData.client?.cpf ? String(item.product.taxGroup?.taxIcms?.taxIcmsNfe?.taxCfopStateId) :
+                            (sellData.client.address.city.stateId === sellData.store.addressRelation.city.stateId ?
+                                String(item.product.taxGroup?.taxIcms?.taxIcmsNfe?.taxCfopStateId ?? '') :
+                                String(item.product.taxGroup?.taxIcms?.taxIcmsNfe?.taxCfopInterstateId ?? ''))
                     ) : (
-                        String(item.product.taxIcms[0].taxIcmsNfce[0].taxCfopId ?? '')
+                        String(item.product.taxGroup?.taxIcms?.taxIcmsNfce?.taxCfopId ?? '')
                     ),
                     extIPI: item.product.exTipi, // Código Exceção da Tabela de IPI
                     valorSeguro: 0,
                     valorFrete: 0,
                     valorOutro: 0,
                     imposto: {
-                        origemMercadoria: item.product.taxIcms[0].taxIcmsOrigin?.codSefaz ?? OrigemMercadoria.Nacional,
+                        origemMercadoria: item.product.taxGroup?.taxIcms?.taxIcmsOrigin?.codSefaz ?? OrigemMercadoria.Nacional,
                         ICMS: {
-                            ...(sellData[0].store.taxCrtId === Crt.SimplesNacional ?
+                            ...(sellData.store.taxCrtId === Crt.SimplesNacional ?
                                 {
-                                    CSOSN: (String(sellData[0].client?.taxPayerTypeId ?? 9) === IndIEDest.NaoContribuinte) ?
-                                        (item.product.taxIcms[0].taxIcmsNoPayer[0].taxCstIcms?.codSefaz ?? null)
+                                    CSOSN: (String(sellData.client?.taxPayerTypeId ?? 9) === IndIEDest.NaoContribuinte) ?
+                                        (item.product.taxGroup?.taxIcms?.taxIcmsNoPayer?.taxCstIcms?.codSefaz ?? null)
                                         :
                                         (model === modelEnum.NFE ?
-                                            (item.product.taxIcms[0].taxIcmsNfe[0].taxCstIcms?.codSefaz ?? null) :
-                                            (item.product.taxIcms[0].taxIcmsNfce[0].taxCstIcms?.codSefaz ?? null))
+                                            (item.product.taxGroup?.taxIcms?.taxIcmsNfe?.taxCstIcms?.codSefaz ?? null) :
+                                            (item.product.taxGroup?.taxIcms?.taxIcmsNfce?.taxCstIcms?.codSefaz ?? null))
                                 } // Somente simples nacional - Código de Situação da Operação no Simples Nacional
                                 :
                                 {
-                                    CST: (String(sellData[0].client?.taxPayerTypeId ?? 9) === IndIEDest.NaoContribuinte) ?
-                                        (item.product.taxIcms[0].taxIcmsNoPayer[0].taxCstIcms.codSefaz ?? null)
+                                    CST: (String(sellData.client?.taxPayerTypeId ?? 9) === IndIEDest.NaoContribuinte) ?
+                                        (item.product.taxGroup?.taxIcms?.taxIcmsNoPayer?.taxCstIcms.codSefaz ?? null)
                                         :
                                         (model === modelEnum.NFE ?
-                                            (item.product.taxIcms[0].taxIcmsNfe[0].taxCstIcms.codSefaz ?? null) :
-                                            (item.product.taxIcms[0].taxIcmsNfce[0].taxCstIcms.codSefaz ?? null))
+                                            (item.product.taxGroup?.taxIcms?.taxIcmsNfe?.taxCstIcms.codSefaz ?? null) :
+                                            (item.product.taxGroup?.taxIcms?.taxIcmsNfce?.taxCstIcms.codSefaz ?? null))
                                 }
                             ), // Código de Situação Tibutaria
                             modBC: model === modelEnum.NFE ?
-                                (item.product.taxIcms[0].taxIcmsNfe[0].taxModalityBC?.codSefaz ?? undefined) : undefined,
-                            pICMS: ((String(sellData[0].client?.taxPayerTypeId ?? 9) === IndIEDest.NaoContribuinte) ?
-                                item.product.taxIcms[0].taxIcmsNoPayer[0].taxAliquotIcms ?? 0 :
+                                (item.product.taxGroup?.taxIcms?.taxIcmsNfe?.taxModalityBC?.codSefaz ?? undefined) : undefined,
+                            pICMS: ((String(sellData.client?.taxPayerTypeId ?? 9) === IndIEDest.NaoContribuinte) ?
+                                item.product.taxGroup?.taxIcms?.taxIcmsNoPayer?.taxAliquotIcms ?? 0 :
                                 (model === modelEnum.NFE ?
-                                    (item.product.taxIcms[0].taxIcmsNfe[0].taxAliquotIcms ?? 0) :
-                                    (item.product.taxIcms[0].taxIcmsNfce[0].taxAliquotIcms ?? 0)
+                                    (item.product.taxGroup?.taxIcms?.taxIcmsNfe?.taxAliquotIcms ?? 0) :
+                                    (item.product.taxGroup?.taxIcms?.taxIcmsNfce?.taxAliquotIcms ?? 0)
                                 )), // Aliquota ICMS
-                            pRedBC: ((String(sellData[0].client?.taxPayerTypeId ?? 9) === IndIEDest.NaoContribuinte) ?
-                                item.product.taxIcms[0].taxIcmsNoPayer[0].taxRedBCICMS ?? 0 :
+                            pRedBC: ((String(sellData.client?.taxPayerTypeId ?? 9) === IndIEDest.NaoContribuinte) ?
+                                item.product.taxGroup?.taxIcms?.taxIcmsNoPayer?.taxRedBCICMS ?? 0 :
                                 (model === modelEnum.NFE ?
-                                    (item.product.taxIcms[0].taxIcmsNfe[0].taxRedBCICMS ?? 0) : // Percentual de Redução da BC ICMS
-                                    (item.product.taxIcms[0].taxIcmsNfce[0].taxRedBCICMS ?? 0)))
+                                    (item.product.taxGroup?.taxIcms?.taxIcmsNfe?.taxRedBCICMS ?? 0) : // Percentual de Redução da BC ICMS
+                                    (item.product.taxGroup?.taxIcms?.taxIcmsNfce?.taxRedBCICMS ?? 0)))
                             ,
                             vBC: 0, // Valor da BC ICMS
                             vICMS: 0, // Valor do ICMS
-                            pFCP: item.product.taxIcms[0].fcpAliquot ?? 0,
+                            pFCP: item.product.taxGroup?.taxIcms?.fcpAliquot ?? 0,
                             vFCP: 0,
-                            motDesICMS: model === modelEnum.NFE ? item.product.taxIcms[0].taxIcmsNfe[0].taxReasonExemptionId : undefined, // Motivo desoneração ICMS
+                            motDesICMS: model === modelEnum.NFE ? item.product.taxGroup?.taxIcms?.taxIcmsNfe?.taxReasonExemptionId : undefined, // Motivo desoneração ICMS
                             pCredSN: 0,         // Alíquota aplicável de cálculo do crédito (Simples Nacional)
                             pFCPST: 0,          // Percentual do Fundo de Combate à Pobreza devido na substituição tributária
                             pFCPSTRet: 0,       // Percentual do Fundo de Combate à Pobreza retido anteriormente na substituição tributária
@@ -191,7 +190,7 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                             vFCPSTRet: 0,       // Valor do Fundo de Combate à Pobreza retido anteriormente na substituição tributária
                             pICMSEfet: 0,       // Alíquota do ICMS efetivo
                             pICMSST: 0,         // Alíquota do ICMS na substituição tributária
-                            pMVAST: item.product.taxIcms[0].taxIcmsSt?.[0].taxMvaPauta ?? 0,          // Percentual de Margem de Valor Agregado na substituição tributária
+                            pMVAST: item.product.taxGroup?.taxIcms?.taxIcmsSt?.taxMvaPauta ?? 0,          // Percentual de Margem de Valor Agregado na substituição tributária
                             pRedBCEfet: 0,      // Percentual de redução da base de cálculo efetiva
                             pRedBCST: 0,        // Percentual de redução da base de cálculo na substituição tributária
                             pST: 0,             // Alíquota do ICMS na substituição tributária (ST)
@@ -207,30 +206,30 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                             vICMSSubstituto: 0  // Valor do ICMS do substituto tributário                                               
                         },
                         COFINS: {
-                            CST: item.product.taxCofins?.[0].taxCstCofinsExit?.codSefaz ?? null,
-                            pCOFINS: item.product.taxCofins[0].taxAliquotCofinsExit ?? 0,
+                            CST: item.product.taxGroup?.taxCofins?.taxCstCofinsExit?.codSefaz ?? null,
+                            pCOFINS: item.product.taxGroup?.taxCofins?.taxAliquotCofinsExit ?? 0,
                             vBC: 0,//item.totalValue,
-                            vCOFINS: 0,//item.totalValue * (item.product.taxCofins[0].taxAliquotCofinsExit / 100),
+                            vCOFINS: 0,//item.totalValue * (item.product.taxGroup?.taxCofins?.taxAliquotCofinsExit / 100),
                             vAliqProd: 0,
                             qBCProd: 0,
                         },
                         PIS: {
-                            CST: (item.product.taxPis[0].taxCstPisExit?.codSefaz ?? null), // Código de Situação Tributária    
-                            pPIS: item.product.taxPis[0].taxAliquotPisExit ?? 0, // Percentual do PIS (se aplicável, caso contrário, 0)
+                            CST: (item.product.taxGroup?.taxPis?.taxCstPisExit?.codSefaz ?? null), // Código de Situação Tributária    
+                            pPIS: item.product.taxGroup?.taxPis?.taxAliquotPisExit ?? 0, // Percentual do PIS (se aplicável, caso contrário, 0)
                             vBC: 0, // Valor da base de cálculo (se aplicável, caso contrário, 0)
                             vPIS: 0, // Valor do PIS (se aplicável, caso contrário, 0)
                             vAliqProd: 0, // Alíquota em valor
                             qBCProd: 0 // Quantidade vendida (se aplicável, caso contrário, 0)                      
                         },
                         IPI: {
-                            CST: (item.product.taxIpi[0].taxCstIpiExit?.codSefaz ?? null), // Código de Situação Tributária do IPI
-                            cEnq: item.product.taxIpi[0].taxStampIpi, // Código de Enquadramento Legal do IPI
-                            clEnq: item.product.taxIpi[0].taxClassificationClassIpi, // Classe de Enquadramento do IPI
-                            CNPJProd: item.product.taxIpi[0].taxCnpjProd, // CNPJ do Produtor, obrigatório nos casos de exportação direta ou indireta
-                            cSelo: item.product.taxIpi[0].taxStampIpi, // Código do Selo de Controle do IPI
-                            qSelo: item.product.taxIpi[0].taxQtdStampControlIpi, // Quantidade de Selos de Controle do IPI   
+                            CST: (item.product.taxGroup?.taxIpi?.taxCstIpiExit?.codSefaz ?? null), // Código de Situação Tributária do IPI
+                            cEnq: item.product.taxGroup?.taxIpi?.taxStampIpi, // Código de Enquadramento Legal do IPI
+                            clEnq: item.product.taxGroup?.taxIpi?.taxClassificationClassIpi, // Classe de Enquadramento do IPI
+                            CNPJProd: item.product.taxGroup?.taxIpi?.taxCnpjProd, // CNPJ do Produtor, obrigatório nos casos de exportação direta ou indireta
+                            cSelo: item.product.taxGroup?.taxIpi?.taxStampIpi, // Código do Selo de Controle do IPI
+                            qSelo: item.product.taxGroup?.taxIpi?.taxQtdStampControlIpi, // Quantidade de Selos de Controle do IPI   
                             vBC: 0, // Valor da Base de Cálculo do IPI
-                            pIPI: item.product.taxIpi[0].taxAliquotIpi ?? 0, // Alíquota do IPI
+                            pIPI: item.product.taxGroup?.taxIpi?.taxAliquotIpi ?? 0, // Alíquota do IPI
                             vIPI: 0 // Valor do IPI
                             //qUnid: item.product.taxIpi[0].taxQtdUnidIpi, // Quantidade total na unidade padrão, só preenche se for valor fixo e nao percentual
                             //vUnid: item.product.taxIpi[0].taxValorUnidIpi // Valor por Unidade do IPI, só preenche se for valor fixo e nao percentual
@@ -296,21 +295,21 @@ export const createSellFiscalNote = async (request: Request, response: Response)
             //         qVol: 0
             //     }
             // },
-            ...(sellData[0].deliveries.length > 0 && {
+            ...(sellData.deliveries.length > 0 && {
                 entrega: {
                     tipo: TipoEntrega.Entrega,
-                    bairro: sellData[0].deliveries[0].address.addressNeighborhood,
-                    CEP: onlyNumbers(sellData[0].deliveries[0].address.addressCep),
-                    logradouro: sellData[0].deliveries[0].address.addressStreet,
-                    nomeMunicipio: sellData[0].deliveries[0].address.city.name,
-                    numero: sellData[0].deliveries[0].address.addressNumber,
-                    complemento: sellData[0].deliveries[0].address.addressComplement,
-                    UF: sellData[0].deliveries[0].address.city.state.uf,
-                    codMunicipio: sellData[0].deliveries[0].address.city.ibge,
-                    CNPJCPF: sellData[0].client?.cpf ?? ''
+                    bairro: sellData.deliveries[0].address.addressNeighborhood,
+                    CEP: onlyNumbers(sellData.deliveries[0].address.addressCep),
+                    logradouro: sellData.deliveries[0].address.addressStreet,
+                    nomeMunicipio: sellData.deliveries[0].address.city.name,
+                    numero: sellData.deliveries[0].address.addressNumber,
+                    complemento: sellData.deliveries[0].address.addressComplement,
+                    UF: sellData.deliveries[0].address.city.state.uf,
+                    codMunicipio: sellData.deliveries[0].address.city.ibge,
+                    CNPJCPF: sellData.client?.cpf ?? ''
                 }
             }),
-            pagamento: sellData[0].paymentsells.map(itemPay => {
+            pagamento: sellData.paymentsells.map(itemPay => {
                 return {
                     forma: itemPay.payment.codSefaz,
                     condicao: itemPay.payment.paymentCondition.codSefaz === FormaPagamento.Outras ? undefined : itemPay.payment.paymentCondition.codSefaz,
@@ -334,7 +333,7 @@ export const createSellFiscalNote = async (request: Request, response: Response)
             },
             total: {
                 ICMS: {
-                    vNF: sellData[0].sellValue,
+                    vNF: sellData.sellValue,
                     vBC: 0,
                     vBCST: 0,
                     vCOFINS: 0,
@@ -666,10 +665,10 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                 totalAmount: totalizedNfe.total.ICMS.vNF,
                 xml: result.xml,
                 serieNFId: totalizedNfe.serie,
-                sellId: sellData[0].id,
+                sellId: sellData.id,
                 modelNFId: model === modelEnum.NFE ? fiscalModels.nfe55 : fiscalModels.nfce65,
                 statusNFId: fiscalStatusNf.autorizada,
-                stateId: sellData[0].store.addressRelation.city.stateId,
+                stateId: sellData.store.addressRelation.city.stateId,
                 storeId: userId
             }
         })
@@ -696,7 +695,7 @@ export const createSellFiscalNote = async (request: Request, response: Response)
 
         if (result.cStat !== '100') throw new Error('Status da emissão: ' + result.cMsg)
 
-        const pathLogo = sellData[0].store.logo ? path.join(rootPath(), sellData[0].store.logo.path, sellData[0].store.logo.nameFile) : ''
+        const pathLogo = sellData.store.logo ? path.join(rootPath(), sellData.store.logo.path, sellData.store.logo.nameFile) : ''
         const logoBase64 = pathLogo ? fs.readFileSync(pathLogo).toString('base64') : null
 
         await generateDanfeAndRespond({
@@ -704,8 +703,8 @@ export const createSellFiscalNote = async (request: Request, response: Response)
             profile: result.profile,
             xml: result.xml, model,
             logoBase64,
-            positionYLogoNFe: sellData[0].store.positionYLogoNFe ?? 0,
-            positionYEmitDataNFe: sellData[0].store.positionYEmitDataNFe ?? 0
+            positionYLogoNFe: sellData.store.positionYLogoNFe ?? 0,
+            positionYEmitDataNFe: sellData.store.positionYEmitDataNFe ?? 0
         }, response)
 
     } catch (error) {
@@ -744,7 +743,7 @@ export const generateDanfeAndRespond = async (
 
 const getSellData = async (sellId: number, userId: number) => {
 
-    const sellData = await prisma.sells.findMany({
+    const sellData = await prisma.sells.findUnique({
         include: {
             client: { include: { address: { include: { city: { include: { state: true } } } } } },
             deliveries: { include: { address: { include: { city: { include: { state: true } } } } } },
@@ -752,29 +751,33 @@ const getSellData = async (sellId: number, userId: number) => {
                 include: {
                     product: {
                         include: {
-                            taxIcms: {
+                            taxGroup: {
                                 include: {
-                                    taxIcmsNfe: { include: { taxCstIcms: true, taxModalityBC: true } },
-                                    taxIcmsNfce: { include: { taxCstIcms: true } },
-                                    taxIcmsNoPayer: { include: { taxCstIcms: true } },
-                                    taxIcmsOrigin: true,
-                                    taxIcmsSt: true
-                                }
-                            }, taxCofins: {
-                                include: {
-                                    taxCstCofinsEntrance: true,
-                                    taxCstCofinsExit: true
-                                }
-                            }, taxIpi: {
-                                include: {
-                                    taxCstIpiEntrance: true,
-                                    taxCstIpiExit: true
-                                }
-                            },
-                            taxPis: {
-                                include: {
-                                    taxCstPisEntrance: true,
-                                    taxCstPisExit: true
+                                    taxIcms: {
+                                        include: {
+                                            taxIcmsNfe: { include: { taxCstIcms: true, taxModalityBC: true } },
+                                            taxIcmsNfce: { include: { taxCstIcms: true } },
+                                            taxIcmsNoPayer: { include: { taxCstIcms: true } },
+                                            taxIcmsOrigin: true,
+                                            taxIcmsSt: true
+                                        }
+                                    }, taxCofins: {
+                                        include: {
+                                            taxCstCofinsEntrance: true,
+                                            taxCstCofinsExit: true
+                                        }
+                                    }, taxIpi: {
+                                        include: {
+                                            taxCstIpiEntrance: true,
+                                            taxCstIpiExit: true
+                                        }
+                                    },
+                                    taxPis: {
+                                        include: {
+                                            taxCstPisEntrance: true,
+                                            taxCstPisExit: true
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -784,10 +787,10 @@ const getSellData = async (sellId: number, userId: number) => {
             paymentsells: { include: { payment: { include: { paymentCondition: true } } } },
             store: { include: { addressRelation: { include: { city: { include: { state: true } } } }, logo: true } }
         }, where: {
-            AND: [
-                { id: sellId },
-                { storeId: userId }
-            ]
+            id_storeId: {
+                id: sellId,
+                storeId: userId
+            }
         }
     });
 
