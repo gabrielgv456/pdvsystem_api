@@ -2,6 +2,7 @@ import validateFields from '../../utils/validateFields';
 import prisma from '../../services/prisma/index';
 import { sharedAddEditProductRequest } from '../../shared-types/src/types/api/inventoryManagement/productsRequest';
 import { Request, Response } from 'express'
+import { TaxGroup } from '@prisma/client';
 
 
 export default async function addProduct(request: Request, response: Response) {
@@ -121,19 +122,24 @@ export default async function addProduct(request: Request, response: Response) {
                 }
             })
 
+            let taxGroupId = data.principal.taxGroupId
             // Cria Grupo de Tributação
-
-            const taxGroup = await prismaTx.taxGroup.create({
-                data: {
-                    individual: true,
-                    description: 'Grupo de produto individual',
-                    taxCofinsId: cofinsCreated.id,
-                    taxIcmsId: icmsCreated.id,
-                    taxIpiId: ipiCreated.id,
-                    taxPisId: pisCreated.id,
-                    storeId: data.principal.userId
-                }
-            })
+            if (!data.principal.taxGroupId) {
+                const lastGroupId = await prismaTx.taxGroup.findFirst({ orderBy: { code: 'desc' }, select: { code: true }, where: { storeId: data.principal.userId } })
+                const taxGroup = await prismaTx.taxGroup.create({
+                    data: {
+                        individual: true,
+                        description: 'Grupo de produto individual',
+                        taxCofinsId: cofinsCreated.id,
+                        taxIcmsId: icmsCreated.id,
+                        taxIpiId: ipiCreated.id,
+                        taxPisId: pisCreated.id,
+                        storeId: data.principal.userId,
+                        code: (lastGroupId?.code ?? 0) + 1
+                    }
+                })
+                taxGroupId = taxGroup.id
+            }
 
             // Adiciona Produtos
             const addproduct = await prismaTx.products.create({
@@ -153,7 +159,7 @@ export default async function addProduct(request: Request, response: Response) {
                     unitMeasurement: data.principal.unitMeasurement,
                     itemTypeId: data.principal.itemTypeId,
                     imageId: data.principal.imageId,
-                    taxGroupId: taxGroup.id
+                    taxGroupId: taxGroupId
                 }
             })
 
@@ -177,7 +183,7 @@ export default async function addProduct(request: Request, response: Response) {
 }
 
 
-export const validateRulesAddEditProduct = (data: sharedAddEditProductRequest) => {
+export const validateRulesAddEditProduct = (data: Omit<sharedAddEditProductRequest,'principal'>) => {
 
     function ICMSValidate(CST: number, aliquota: number) {
         switch (CST) {

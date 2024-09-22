@@ -10,7 +10,7 @@ export const fiscalEvents = async (request: Request, response: Response) => {
             include: {
                 fiscalNote: {
                     select: {
-                        numberNF: true, protocol: true, createdAt: true
+                        numberNF: true, protocol: true, createdAt: true, keyNF: true
                     }
                 }, fiscalEventType: true
             },

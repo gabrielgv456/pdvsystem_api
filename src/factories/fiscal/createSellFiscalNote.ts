@@ -112,7 +112,9 @@ export const createSellFiscalNote = async (request: Request, response: Response)
                 }
             }),
             produtos: sellData.itenssells.map((item) => {
-                return {
+                if (!item.product.taxGroup) throw new Error('Não foi encontrado o grupo de tributação do item ' + item.product.name)
+
+                    return {
                     descricao: item.descriptionProduct,
                     codigo: String(item.idProduct),
                     codBarra: item.product.barCode,

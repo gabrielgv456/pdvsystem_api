@@ -22,8 +22,6 @@ export default async function editProduct(request: Request, response: Response) 
             const searchProduct = await prismaTx.products.findUnique({
                 where: {
                     id_storeId: { id: data.principal.id, storeId: data.principal.userId }
-                }, include: {
-                    taxGroup: true
                 }
             })
             if (!searchProduct) {
@@ -49,11 +47,22 @@ export default async function editProduct(request: Request, response: Response) 
             }
 
             // Tributacao
-
-            if (searchProduct.taxGroupId)
-                await updateFiscalTaxes(prismaTx, searchProduct.taxGroup, data)
-            else
-                await createFiscalTaxes(prismaTx, data)
+            let idGroupTax = data.principal.taxGroupId
+            console.log(data.principal.userId)
+            if (data.principal.taxGroupId) {
+                const searchTaxGroup = await prisma.taxGroup.findUnique({
+                    where: {
+                        storeId_id: {
+                            id: data.principal.taxGroupId,
+                            storeId: data.principal.userId
+                        }
+                    }
+                })
+                if (!searchTaxGroup) throw new Error('Não foi encontrado grupo de tributação com esse id')
+                if (searchTaxGroup.individual)
+                    await updateFiscalTaxes(prismaTx, searchTaxGroup, data)
+            } else
+                idGroupTax = await createFiscalTaxes(prismaTx, data)
 
 
             const editProduct = await prismaTx.products.update({
@@ -72,6 +81,7 @@ export default async function editProduct(request: Request, response: Response) 
                     unitMeasurement: data.principal.unitMeasurement,
                     itemTypeId: data.principal.itemTypeId,
                     imageId: data.principal.imageId,
+                    taxGroupId: idGroupTax
                 }, where: {
                     id_storeId: {
                         id: data.principal.id,
@@ -206,6 +216,8 @@ async function createFiscalTaxes(prismaTx: Prisma.TransactionClient, data: share
 
     // Cria Grupo de Tributação
 
+    const lastGroupId = await prismaTx.taxGroup.findFirst({ orderBy: { code: 'desc' }, select: { code: true }, where: { storeId: data.principal.userId } })
+
     const taxGroupCreated = await prismaTx.taxGroup.create({
         data: {
             individual: true,
@@ -214,20 +226,12 @@ async function createFiscalTaxes(prismaTx: Prisma.TransactionClient, data: share
             taxIpiId: ipiCreated.id,
             taxPisId: pisCreated.id,
             description: 'Grupo de produto individual',
-            storeId: data.principal.userId
+            storeId: data.principal.userId,
+            code: (lastGroupId?.code ?? 0) + 1
         }
     })
 
-    await prismaTx.products.update({
-        data: {
-            taxGroupId: taxGroupCreated.id
-        }, where: {
-            id_storeId: {
-                id: data.principal.id,
-                storeId: data.principal.userId
-            }
-        }
-    })
+    return taxGroupCreated.id
 
 }
 

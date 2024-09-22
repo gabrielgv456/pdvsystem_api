@@ -1,8 +1,12 @@
+import { sharedTaxOptions } from '@shared/api/inventoryManagement/findTaxOptions'
 import prisma from '../../services/prisma/index'
 import { Request, Response } from 'express'
 
-export default async function findIcmsOptions(request: Request, response: Response) {
+export default async function findTaxOptions(request: Request, response: Response) {
     try {
+
+        const { userId } = request.query
+        if (!userId) throw new Error('id usuário não informado')
         // ICMS Options
         const originOptions = await prisma.taxIcmsOrigin.findMany()
         const cstOptions = await prisma.taxIcmsCst.findMany()
@@ -21,9 +25,9 @@ export default async function findIcmsOptions(request: Request, response: Respon
         const cstPisExitOptions = await prisma.taxCstPis.findMany({ where: { OR: [{ type: 'entrance' }, { type: 'exit/entrance' }] } })
         const cstCofinsEntranceOptions = await prisma.taxCstCofins.findMany({ where: { OR: [{ type: 'entrance' }, { type: 'exit/entrance' }] } })
         const cstCofinsExitOptions = await prisma.taxCstCofins.findMany({ where: { OR: [{ type: 'exit' }, { type: 'exit/entrance' }] } })
+        const taxGroupsOptions = await prisma.taxGroup.findMany({ where: { AND: [{ storeId: Number(userId) }, { individual: false }] }, select: { description: true, id: true, code: true } })
 
-
-        return response.json({
+        const result: sharedTaxOptions = {
             Success: true,
             originOptions,
             cstOptions,
@@ -38,9 +42,13 @@ export default async function findIcmsOptions(request: Request, response: Respon
             cstPisEntranceOptions,
             cstPisExitOptions,
             cstCofinsEntranceOptions,
-            cstCofinsExitOptions
-        })
+            cstCofinsExitOptions,
+            taxGroupsOptions
+        }
+
+        return response.json(result)
     } catch (error) {
         return response.status(400).json({ Success: false, erro: (error as Error).message })
     }
 }
+

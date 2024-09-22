@@ -404,6 +404,7 @@ model FiscalEventsType {
 
 model TaxGroup {
   id               Int            @id @default(autoincrement())
+  code             Int 
   individual       Boolean
   description      String
   taxIcms          TaxIcms?       @relation(fields:[taxIcmsId], references: [id])
@@ -416,7 +417,8 @@ model TaxGroup {
   taxPisId         Int?   
   Products         Products[] 
   store            User           @relation(fields: [storeId], references: [id])
-  storeId          Int       
+  storeId          Int    
+  @@unique([storeId,code])   
   @@unique([storeId,id])
 }
 

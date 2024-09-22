@@ -49,7 +49,7 @@ import changeForgotPassword from '../factories/login/changeForgotPassword';
 import verifyCodeForgotPassword from '../factories/login/verifyCodeForgotPassword';
 import fiscalParameters from '../factories/settings/fiscalParameters/fiscalParameters';
 import changeFiscalParameters from '../factories/settings/fiscalParameters/changeFiscalParameters';
-import findIcmsOptions from '../factories/inventoryManagement/findIcmsOptions';
+import findTaxOptions from '../factories/inventoryManagement/findTaxOptions';
 import uploadFile from '../factories/files/uploadFile';
 import { deleteFile } from '../factories/files/deleteFile';
 import productsToSell from '../factories/sells/productsToSell';
@@ -61,6 +61,8 @@ import { EventCancelNote } from '../factories/fiscal/eventCancelNote';
 import { fiscalEvents } from '../factories/fiscal/getFiscalEvents';
 import { getFiscalNotes } from '../factories/fiscal/getFiscalNotes';
 import { getTaxGroups } from '../factories/fiscal/getTaxGroups';
+import { PostTaxGroup } from '../factories/fiscal/PostTaxGroup';
+import { PutTaxGroup } from '../factories/fiscal/PutTaxGroup';
 
 const router = Router();
 
@@ -108,7 +110,7 @@ router.post("/addproduct", addProduct)
 router.post("/editproduct", editProduct)
 router.post("/deleteproduct", deleteProduct)
 router.post("/findtransactionsproducts", findTransactionsProducts)
-router.get("/findIcmsOptions", findIcmsOptions)
+router.get("/findTaxOptions", findTaxOptions)
 // END INVENTORYMANAGEMENT
 
 // START TRANSCTIONS 
@@ -150,7 +152,10 @@ router.post("/danfeGenerator", generateDanfe)
 router.post("/eventCancelNote", EventCancelNote)
 router.get("/fiscalEvents", fiscalEvents)
 router.get("/fiscalNotes", getFiscalNotes)
+
 router.get("/taxGroups", getTaxGroups)
+router.post("/taxGroups", PostTaxGroup)
+router.put("/taxGroups", PutTaxGroup)
 // END FISCAL
 
 
