@@ -30,7 +30,8 @@ async function loadTokenApi() {
 }
 async function tokenGenerate(body: { user: string, key: string }, userId: number) {
     const tokenApi = await loadTokenApi();
-    const response = await tokenApi.post('/CreateToken', body);
+    const req = { ...body, token: process.env.FISCALAPI_TOKEN_GENARATE_AUTH }
+    const response = await tokenApi.post('/CreateToken', req);
     if (response.data.error) throw new Error(response.data.error)
     if (response.status !== 200) throw new Error('Falha ao gerar token, código de erro: ' + response.status)
     await prisma.user.update({ data: { tokenFiscalApi: response.data.tokenJWT }, where: { id: userId } })

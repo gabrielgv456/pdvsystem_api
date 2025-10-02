@@ -78,7 +78,7 @@ export default async function chartsBar(request:Request, response : Response) {
                 //const totalProfit = listSellFiltered.map(item => item.sellValue).reduce((prev, curr) => prev + curr, 0) - listSellFiltered.map(item => item.cost).reduce((prev, curr) => prev + curr, 0) ;   
 
                 dataBarChart.push({ sumSells, month, medTicket, totalProfit, year, initialDate, finalDate })
-                dataBarChart.sort(function (x, y) { return x.initialDate.getTime() - y.initialDate.getDate() }) //order array
+                dataBarChart.sort(function (x, y) { return x.initialDate.getTime() - y.initialDate.getTime() }) //order array
             }))
         return response.json({ Success: true, content: dataBarChart })
 

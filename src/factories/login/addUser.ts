@@ -16,7 +16,8 @@ export default async function addUser(request: Request, response: Response) {
             throw new Error('E-mail já cadastrado!')
         }
         const hashedpassword = await hash(password, 11)
-        const uuidGenerated = v4()
+        const uuidToken = v4()
+        const uuidKey = v4()
 
         const codEmailValidate = generateNumberRandom()
 
@@ -25,7 +26,8 @@ export default async function addUser(request: Request, response: Response) {
                 email: email,
                 name: name,
                 password: hashedpassword,
-                Token: uuidGenerated,
+                Token: uuidToken,
+                key: uuidKey,
                 masterkey: "safyra",
                 nameOwner: ownerName,
                 phone,

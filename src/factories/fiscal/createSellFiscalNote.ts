@@ -4,13 +4,10 @@ import { useFiscalApi } from '../../services/api/fiscalApi';
 import prisma from '../../services/prisma/index';
 import { Request, Response } from 'express'
 import validateFields from '../../utils/validateFields';
-import { onlyNumbers, onlyNumbersStr } from '../../utils/utils';
+import { getFileUrlAsBase64, onlyNumbers, onlyNumbersStr } from '../../utils/utils';
 import { useDanfeGeneratorApi } from '../../services/api/danfeGenerateApi';
 import { BaseCofins, BaseIcmsProprio, BaseIPI, BasePIS, BaseReduzidaIcmsProprio, Cofins01, Cofins02, Cofins03, Fcp, FcpEfetivo, Icms00, Icms10, Icms101, Icms20, Icms30, Icms51, Icms70, Icms90, Icms900, Ipi50AdValorem, Ipi50Especifico, Pis01, Pis02, Pis03, ValorIcmsProprio } from '../../services/taxesCalculator';
 import Utils from '../../services/taxesCalculator/utils';
-import { rootPath } from '../../../rootPath';
-import path from 'path';
-import fs from 'fs'
 
 export const createSellFiscalNote = async (request: Request, response: Response) => {
     try {
@@ -22,8 +19,8 @@ export const createSellFiscalNote = async (request: Request, response: Response)
         if (existsFiscalNote) {
             const user = await prisma.user.findFirst({ where: { id: userId }, include: { logo: true } })
             const profile = user.key + '_' + onlyNumbersStr(user.cnpj)
-            const pathLogo = user.logo ? path.join(rootPath(), user.logo.path, user.logo.nameFile) : ''
-            const logoBase64 = pathLogo ? fs.readFileSync(pathLogo).toString('base64') : null
+            const urlLogo = ((user.logo?.host ?? '') + (user.logo?.path ?? '') + (user.logo?.nameFile ?? '')) ?? null
+            const logoBase64 = urlLogo ? await getFileUrlAsBase64(urlLogo) : null
             await generateDanfeAndRespond({
                 NFe: existsFiscalNote.keyNF,
                 profile, xml: existsFiscalNote.xml,
@@ -114,7 +111,7 @@ export const createSellFiscalNote = async (request: Request, response: Response)
             produtos: sellData.itenssells.map((item) => {
                 if (!item.product.taxGroup) throw new Error('Não foi encontrado o grupo de tributação do item ' + item.product.name)
 
-                    return {
+                return {
                     descricao: item.descriptionProduct,
                     codigo: String(item.idProduct),
                     codBarra: item.product.barCode,
@@ -658,6 +655,9 @@ export const createSellFiscalNote = async (request: Request, response: Response)
 
         const result: NFeResponse = await emiteNfe(totalizedNfe, userId, model)
 
+        console.log('nota emitida')
+        console.log(result)
+
         const dbNfe = await prisma.fiscalNotes.create({
             data: {
                 enviroment: Number(totalizedNfe.ambiente),
@@ -697,8 +697,8 @@ export const createSellFiscalNote = async (request: Request, response: Response)
 
         if (result.cStat !== '100') throw new Error('Status da emissão: ' + result.cMsg)
 
-        const pathLogo = sellData.store.logo ? path.join(rootPath(), sellData.store.logo.path, sellData.store.logo.nameFile) : ''
-        const logoBase64 = pathLogo ? fs.readFileSync(pathLogo).toString('base64') : null
+        const pathLogo = ((sellData.store.logo?.host ?? '') + (sellData.store.logo?.path ?? '') + (sellData.store.logo?.nameFile ?? '')) ?? null
+        const logoBase64 = pathLogo ? await getFileUrlAsBase64(pathLogo) : null
 
         await generateDanfeAndRespond({
             NFe: result.NFe,
@@ -710,7 +710,7 @@ export const createSellFiscalNote = async (request: Request, response: Response)
         }, response)
 
     } catch (error) {
-        console.log(error)
+        console.log(error.message)
         return response.status(400).json({ erro: 'Ocorreu uma falha ao emitir nota fiscal! ' + (error as Error).message });
     }
 }

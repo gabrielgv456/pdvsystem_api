@@ -58,7 +58,7 @@ export default async function changeAboutCorporation(request: Request, response:
                 }
             }
 
-            const updateAbouteCorporation = await prisma.user.update({
+            const updateAbouteCorporation = await prismaTx.user.update({
                 where: {
                     id: req.storeId
                 }, data: {

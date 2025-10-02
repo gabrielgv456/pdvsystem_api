@@ -1,4 +1,4 @@
-
+import axios from 'axios'
 
 export function createSequence(number: number) {
     return Array.from({ length: number }, (_, index) => index);
@@ -23,3 +23,17 @@ export function onlyNumbersStr(value: string) {
     return onlyNumbers
 }
 
+export async function getFileUrlAsBase64(url:string) {
+    
+    try {
+      const response = await axios.get(url, {
+        responseType: 'arraybuffer' 
+      });
+  
+      const base64String = Buffer.from(response.data, 'binary').toString('base64');
+  
+      return base64String;
+    } catch (error) {
+      console.error('Erro ao buscar ou converter o arquivo:', error);
+    }
+  }

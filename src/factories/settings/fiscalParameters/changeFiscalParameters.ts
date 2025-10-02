@@ -3,9 +3,7 @@ import prisma from '../../../services/prisma/index';
 import validateFields from '../../../utils/validateFields';
 import { Request, Response } from 'express'
 import { useFiscalApi } from '../../../services/api/fiscalApi';
-import fs from 'fs';
-import { rootPath } from '../../../../rootPath'
-import path from 'path';
+import { getFileUrlAsBase64 } from '../../../utils/utils';
 
 export default async function changeFiscalParameters(request: Request, response: Response) {
     try {
@@ -44,9 +42,8 @@ export default async function changeFiscalParameters(request: Request, response:
             try {
                 const fileCert = await prisma.images.findUnique({ where: { id: dataChangeFiscalParameters.fileCertId } })
                 if (!fileCert) throw new Error('Não foi encontrado o registro do arquivo!')
-
-                const pathFileCert = path.join(__dirname, '../../../..') + fileCert.path + fileCert.nameFile
-                const pfxFile = fs.readFileSync(pathFileCert).toString('base64');
+                const pathFileCert = ((fileCert.host ?? '') + (fileCert.path ?? '') + (fileCert.nameFile ?? '')) ?? null
+                const pfxFile = await getFileUrlAsBase64(pathFileCert)
                 const { uploadCert } = useFiscalApi()
                 await uploadCert(pfxFile, dataChangeFiscalParameters.storeId)
             } catch (error) {
